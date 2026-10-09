@@ -2,3 +2,26 @@
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+.table-scroll { width: 100%; overflow-x: auto; }
+.table-scroll table { min-width: 660px; }
+.pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 16px; padding: 16px; border-top: 1px solid #eee; font-size: 13px; }
+.pagination button { padding: 8px 14px; border: 1px solid #ddd; border-radius: 7px; background: #fff; cursor: pointer; }
+.pagination button:disabled { opacity: .45; cursor: default; }
+@media (max-width: 760px) {
+  app-main-layout .main-content { margin-left: 0 !important; }
+  app-sidebar .sidebar { position: static !important; width: 100% !important; height: auto !important; min-height: 0 !important; padding: 12px !important; }
+  app-sidebar .logo { padding: 0 0 12px !important; }
+  app-sidebar .navigation { flex-direction: row !important; flex-wrap: wrap !important; gap: 4px !important; }
+  app-sidebar .navigation a { padding: 8px !important; gap: 6px !important; }
+  app-sidebar .sidebar-footer { display: none !important; }
+  app-navbar .navbar { height: auto !important; min-height: 80px !important; padding: 16px !important; gap: 12px !important; }
+  app-navbar .page-title { min-width: 0 !important; }
+  app-navbar .user-info { display: none !important; }
+  app-main-layout .page-content { padding: 16px !important; }
+  main .metrics, main .stats, main .filter-grid, main .form-grid { grid-template-columns: 1fr !important; }
+  main .filters, main .page-header, main .report-header, main .table-header { flex-wrap: wrap !important; gap: 12px !important; }
+  main .filter-group { min-width: 0 !important; flex: 1 1 200px !important; }
+  main .monitor-layout, main .dashboard-grid { grid-template-columns: 1fr !important; }
+  main .monitor-content, main .chart-card, main .table-card, main .report-card { min-width: 0 !important; }
+}

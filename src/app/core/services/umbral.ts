@@ -5,7 +5,8 @@ import { NivelConcentracion } from '../models/monitoreo.model';
 export class UmbralService {
   private umbrales: UmbralConcentracion[] = [
     { id: 1, zonaId: 1, umbralMedio: 10, umbralAlto: 30 },
-    { id: 2, zonaId: 2, umbralMedio: 20, umbralAlto: 40 }
+    { id: 2, zonaId: 2, umbralMedio: 20, umbralAlto: 40 },
+    { id: 3, zonaId: 4, umbralMedio: 15, umbralAlto: 45 }
   ];
   obtenerPorZona(zonaId: number) { return this.umbrales.find(u => u.zonaId === zonaId); }
   calcularNivel(zonaId: number, cantidad: number): NivelConcentracion | null {

@@ -129,7 +129,7 @@
     </div>
 
 
-    <table>
+    <div class="table-scroll"><table>
 
       <thead>
         <tr>
@@ -145,7 +145,7 @@
       <tbody>
 
         @for (
-          registro of registrosFiltrados;
+          registro of registrosPagina;
           track registro.id
         ) {
 
@@ -193,16 +193,21 @@
 
       </tbody>
 
-    </table>
+    </table></div>
+    <div class="pagination" aria-label="Paginación de mediciones">
+      <button type="button" (click)="cambiarPagina(-1)" [disabled]="paginaActual === 1">Anterior</button>
+      <span>Página {{ paginaActual }} de {{ totalPaginas }} · {{ registrosFiltrados.length }} ventanas</span>
+      <button type="button" (click)="cambiarPagina(1)" [disabled]="paginaActual === totalPaginas">Siguiente</button>
+    </div>
 
   </div>
 
   <div class="table-card">
     <h3>Ejecuciones de análisis</h3>
-    <table><thead><tr><th>Zona / fuente</th><th>Cámara</th><th>Captura (Lima)</th><th>Inicio de proceso (Lima)</th><th>Estado</th><th>Detalle</th></tr></thead><tbody>
+    <div class="table-scroll"><table><thead><tr><th>Zona / fuente</th><th>Cámara</th><th>Captura (Lima)</th><th>Inicio de proceso (Lima)</th><th>Estado</th><th>Detalle</th></tr></thead><tbody>
     @for (p of procesamientosFiltrados; track p.id) {
       <tr><td>{{ obtenerNombreZona(p.zonaId) }} · {{ p.tipoFuente }}</td><td>{{ obtenerNombreCamara(p.camaraId) }}</td><td>{{ p.fechaCapturaInicio | date:'dd/MM/yyyy HH:mm':'-0500' }}</td><td>{{ p.fechaInicioProceso | date:'dd/MM/yyyy HH:mm':'-0500' }}</td><td>{{ p.estado | titlecase }}</td><td>{{ p.mensajeError ?? '—' }}</td></tr>
     } @empty { <tr><td colspan="6">Sin ejecuciones para los filtros seleccionados.</td></tr> }
-    </tbody></table>
+    </tbody></table></div>
   </div>
 </section>

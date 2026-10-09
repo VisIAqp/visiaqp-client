@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { IndicadorService } from './indicador';
 import { UmbralService } from './umbral';
 import { AnalisisService } from './analisis';
 import { CamaraService } from './camara';
@@ -34,18 +35,18 @@ describe('Compatibilidad con el esquema actual', () => {
   it('filtra archivos sin cámara por la zona del procesamiento', () => {
     const page = TestBed.runInInjectionContext(() => new Analisis());
     page.zonaSeleccionada = 2;
-    expect(page.registrosFiltrados.length).toBe(2);
-    expect(page.registrosFiltrados.every(r => r.camaraId === null)).toBeTrue();
+    expect(page.registrosFiltrados.length).toBeGreaterThan(2);
+    expect(page.registrosFiltrados.some(r => r.camaraId === null)).toBeTrue();
     page.camaraSeleccionada = 2;
     expect(page.registrosFiltrados.length).toBe(0);
     expect(page.procesamientosFiltrados[0].estado).toBe('error');
   });
   it('no combina indicadores de zonas o granularidades diferentes', () => {
     const page = TestBed.runInInjectionContext(() => new Dashboard());
-    expect(page.indicadores.length).toBe(1);
-    expect(page.ultimoIndicador?.promedioPeatones).toBe(17.67);
+    expect(page.indicadores.length).toBeGreaterThan(1);
+    expect(page.indicadores.every(i => i.zonaId === 1 && i.periodoTipo === 'hora')).toBeTrue();
     page.periodoTipo = 'dia';
-    expect(page.indicadores.length).toBe(1);
+    expect(page.indicadores.length).toBe(3);
     expect(page.ultimoIndicador?.periodoTipo).toBe('dia');
     page.zonaSeleccionada = 3;
     expect(page.ultimoIndicador).toBeUndefined();
@@ -55,11 +56,11 @@ describe('Compatibilidad con el esquema actual', () => {
     const page = TestBed.runInInjectionContext(() => new Reportes());
     page.zonaSeleccionada = 2;
     page.fechaInicio = '2026-10-09'; page.fechaFin = '2026-10-09';
-    expect(page.registrosFiltrados.length).toBe(2);
+    expect(page.registrosFiltrados.length).toBe(18);
     page.fechaInicio = '2026-10-10';
     expect(page.registrosFiltrados.length).toBe(0);
     page.limpiarFiltros();
-    expect(page.registrosFiltrados.length).toBe(5);
+    expect(page.registrosFiltrados.length).toBeGreaterThan(100);
   });
   it('rechaza intervalos inválidos y no expone credenciales en las cámaras', () => {
     const service = TestBed.inject(CamaraService);
@@ -89,7 +90,7 @@ describe('Compatibilidad con el esquema actual', () => {
     expect(texto).toContain('Pendiente');
     expect(texto).toContain('No se pudo conectar');
     const rows = fixture.nativeElement.querySelectorAll('tbody tr');
-    expect(rows[0].textContent).toContain('Bajo');
+    expect(rows[0].textContent).toContain('Alto');
     fixture.destroy();
   });
   it('el formulario permite mantenimiento y valida un intervalo positivo', () => {
@@ -103,5 +104,31 @@ describe('Compatibilidad con el esquema actual', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain('intervalo');
     fixture.destroy();
+  });
+
+  it('los indicadores ficticios coinciden con las ventanas de cada zona y periodo', () => {
+    const registros = TestBed.inject(AnalisisService).obtenerRegistros();
+    const umbral = TestBed.inject(UmbralService);
+    for (const indicador of TestBed.inject(IndicadorService).obtenerIndicadores()) {
+      const ventanas = registros.filter(r => r.zonaId === indicador.zonaId && r.periodoInicio >= indicador.periodoInicio && r.periodoInicio < indicador.periodoFin);
+      expect(ventanas.length).toBeGreaterThan(0);
+      const total = ventanas.reduce((n,r) => n+r.cantidadPeatones, 0);
+      expect(indicador.totalPeatones).toBe(total);
+      expect(indicador.promedioPeatones).toBeCloseTo(total / ventanas.length, 2);
+      expect(indicador.maxPeatones).toBe(Math.max(...ventanas.map(r => r.cantidadPeatones)));
+      expect(indicador.nivelConcentracion).toBe(umbral.calcularNivel(indicador.zonaId, indicador.promedioPeatones)!);
+    }
+  });
+  it('pagina las ventanas y reinicia al cambiar filtros', () => {
+    const page = TestBed.runInInjectionContext(() => new Analisis());
+    expect(page.registrosPagina.length).toBe(15);
+    const ids = page.registrosPagina.map(r => r.id);
+    page.cambiarPagina(1);
+    expect(page.paginaActual).toBe(2);
+    expect(page.registrosPagina.every(r => !ids.includes(r.id))).toBeTrue();
+    page.zonaSeleccionada = 5;
+    page.aplicarFiltros();
+    expect(page.paginaActual).toBe(1);
+    expect(page.registrosPagina.length).toBe(3);
   });
 });

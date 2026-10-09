@@ -1,3 +1,4 @@
+import { camarasAdicionales } from '../data/demo';
 import { Injectable } from '@angular/core';
 import { Camara, ConfiguracionCamara } from '../models/camara.model';
 @Injectable({ providedIn: 'root' })
@@ -5,7 +6,8 @@ export class CamaraService {
   private camaras: Camara[] = [
     { id: 1, nombre: 'Zona de Prueba', zonaId: 1, tipo: 'fija', estado: 'activa', intervaloMuestreoSeg: 60, zonePolygon: [[0.05,0.1],[0.95,0.1],[0.95,0.95],[0.05,0.95]], ultimaConexion: null },
     { id: 2, nombre: 'Cámara UTP', zonaId: 2, tipo: 'fija', estado: 'mantenimiento', intervaloMuestreoSeg: 60, zonePolygon: null, ultimaConexion: null },
-    { id: 3, nombre: 'Cámara sin muestras', zonaId: 3, tipo: 'movil', estado: 'inactiva', intervaloMuestreoSeg: 120, zonePolygon: null, ultimaConexion: null }
+    { id: 3, nombre: 'Cámara sin muestras', zonaId: 3, tipo: 'movil', estado: 'inactiva', intervaloMuestreoSeg: 120, zonePolygon: null, ultimaConexion: null },
+    ...camarasAdicionales
   ];
   obtenerCamaras() { return this.camaras; }
   obtenerCamaraPorId(id: number) { return this.camaras.find(c => c.id === id); }

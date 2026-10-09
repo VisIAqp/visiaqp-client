@@ -13,3 +13,7 @@ Indicador se consulta por zona y periodo hora/día. Sus fixtures son ejemplos de
 Los conteos sumados pueden repetir personas. No representan personas únicas ni flujo. Los promedios de la pantalla de ventanas son medias simples de los ejemplos; la semántica final de cantidad_peatones y agregados se acordará con el backend. Ausencia de resultados muestra Sin datos, no cero. Fechas de prueba incluyen -05:00 y se presentan en hora de Lima; las respuestas reales deberán declarar su zona horaria.
 
 Casos incluidos: cámara activa/procesando, cámara en mantenimiento con error, zona inactiva sin muestras, video completado sin cámara, imagen pendiente, ventana con cero y confianza nula. No hay detecciones reales ni exportaciones de archivos.
+
+## Ampliación de ejemplos
+
+6 zonas, 8 cámaras, 15 procesamientos, 152 ventanas y 45 indicadores de hora/día. Los ejemplos abarcan el 7, 8 y 9 de octubre de 2026, con horarios hasta las 17:14; son escenarios de demostración, no eventos reales. Se incluyen una zona activa sin resultados y otra sin umbral. Los indicadores se prepararon junto con los fixtures para mantener su coherencia con las ventanas; no se calculan en el frontend.

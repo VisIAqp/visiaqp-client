@@ -24,6 +24,13 @@ export class Reportes {
   camaras = this.camaraService.obtenerCamaras();
   registros = this.analisisService.obtenerRegistros();
 
+  pagina = 1;
+  readonly porPagina = 15;
+  get totalPaginas() { return Math.max(1, Math.ceil(this.registrosFiltrados.length / this.porPagina)); }
+  get paginaActual() { return Math.min(this.pagina, this.totalPaginas); }
+  get registrosPagina() { return [...this.registrosFiltrados].sort((a,b) => b.periodoInicio.getTime() - a.periodoInicio.getTime()).slice((this.paginaActual - 1) * this.porPagina, this.paginaActual * this.porPagina); }
+  cambiarPagina(delta: number) { this.pagina = Math.max(1, Math.min(this.totalPaginas, this.paginaActual + delta)); }
+  reiniciarPagina() { this.pagina = 1; }
   zonaSeleccionada = 0;
   camaraSeleccionada = 0;
 
@@ -136,6 +143,7 @@ export class Reportes {
   }
 
   cambiarZona(): void {
+    this.reiniciarPagina();
 
     if (
       this.camaraSeleccionada &&
@@ -151,6 +159,7 @@ export class Reportes {
   }
 
   limpiarFiltros(): void {
+    this.reiniciarPagina();
 
     this.zonaSeleccionada = 0;
     this.camaraSeleccionada = 0;

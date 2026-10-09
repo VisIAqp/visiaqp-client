@@ -49,7 +49,7 @@
         (ngModelChange)="aplicarFiltros()">
 
         <option [ngValue]="0">
-          Todas las cámaras
+          Todas las fuentes
         </option>
 
         @for (camara of camarasDisponibles; track camara.id) {
@@ -70,21 +70,21 @@
   <div class="metrics">
 
     <div class="metric-card">
-      <span>Total detectado</span>
-      <strong>{{ totalPeatones }}</strong>
-      <small>Registros acumulados</small>
+      <span>Suma de conteos</span>
+      <strong>{{ registrosFiltrados.length ? totalPeatones : 'Sin datos' }}</strong>
+      <small>Puede contar personas repetidas</small>
     </div>
 
     <div class="metric-card">
       <span>Promedio</span>
-      <strong>{{ promedioPeatones }}</strong>
-      <small>Peatones por medición</small>
+      <strong>{{ registrosFiltrados.length ? promedioPeatones : 'Sin datos' }}</strong>
+      <small>Conteo por ventana</small>
     </div>
 
     <div class="metric-card">
       <span>Máximo registrado</span>
-      <strong>{{ maximoPeatones }}</strong>
-      <small>Mayor concentración</small>
+      <strong>{{ registrosFiltrados.length ? maximoPeatones : 'Sin datos' }}</strong>
+      <small>Máximo por ventana</small>
     </div>
 
     <div class="metric-card">
@@ -100,14 +100,15 @@
 
     <div class="card-header">
       <div>
-        <h3>Concentración por hora</h3>
+        <h3>Conteos por ventana</h3>
         <p>
-          Evolución de peatones detectados durante el día.
+          Conteos por ventana y fuente. Horarios de Lima.
         </p>
       </div>
     </div>
 
     <div class="chart-container">
+      @if (!registrosFiltrados.length) { <p>Sin datos para los filtros seleccionados.</p> }
       <canvas #graficoPeatones></canvas>
     </div>
 
@@ -133,7 +134,7 @@
       <thead>
         <tr>
           <th>Fecha</th>
-          <th>Hora</th>
+          <th>Ventana (hora Lima)</th>
           <th>Zona</th>
           <th>Cámara</th>
           <th>Peatones</th>
@@ -151,15 +152,15 @@
           <tr>
 
             <td>
-              {{ registro.fecha | date:'dd/MM/yyyy' }}
+              {{ registro.periodoInicio | date:'dd/MM/yyyy':'-0500' }}
             </td>
 
             <td>
-              {{ registro.fecha | date:'HH:mm' }}
+              {{ registro.periodoInicio | date:'HH:mm:ss':'-0500' }} – {{ registro.periodoFin | date:'HH:mm:ss':'-0500' }}
             </td>
 
             <td>
-              {{ obtenerNombreZona(registro.camaraId) }}
+              {{ obtenerNombreZona(registro.zonaId) }}
             </td>
 
             <td>
@@ -168,7 +169,7 @@
 
             <td>
               <strong>
-                {{ registro.peatonesDetectados }}
+                {{ registro.cantidadPeatones }}
               </strong>
             </td>
 
@@ -176,11 +177,11 @@
 
               <span
                 class="level"
-                [class.low]="registro.nivel === 'Bajo'"
-                [class.medium]="registro.nivel === 'Medio'"
-                [class.high]="registro.nivel === 'Alto'">
+                [class.low]="registro.nivel === 'bajo'"
+                [class.medium]="registro.nivel === 'medio'"
+                [class.high]="registro.nivel === 'alto'">
 
-                {{ registro.nivel }}
+                {{ registro.nivel ? (registro.nivel | titlecase) : 'Sin umbral' }}
 
               </span>
 
@@ -188,7 +189,7 @@
 
           </tr>
 
-        }
+        } @empty { <tr><td colspan="6">Sin ventanas para los filtros seleccionados.</td></tr> }
 
       </tbody>
 
@@ -196,4 +197,12 @@
 
   </div>
 
+  <div class="table-card">
+    <h3>Ejecuciones de análisis</h3>
+    <table><thead><tr><th>Zona / fuente</th><th>Cámara</th><th>Captura (Lima)</th><th>Inicio de proceso (Lima)</th><th>Estado</th><th>Detalle</th></tr></thead><tbody>
+    @for (p of procesamientosFiltrados; track p.id) {
+      <tr><td>{{ obtenerNombreZona(p.zonaId) }} · {{ p.tipoFuente }}</td><td>{{ obtenerNombreCamara(p.camaraId) }}</td><td>{{ p.fechaCapturaInicio | date:'dd/MM/yyyy HH:mm':'-0500' }}</td><td>{{ p.fechaInicioProceso | date:'dd/MM/yyyy HH:mm':'-0500' }}</td><td>{{ p.estado | titlecase }}</td><td>{{ p.mensajeError ?? '—' }}</td></tr>
+    } @empty { <tr><td colspan="6">Sin ejecuciones para los filtros seleccionados.</td></tr> }
+    </tbody></table>
+  </div>
 </section>

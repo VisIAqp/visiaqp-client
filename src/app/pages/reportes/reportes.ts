@@ -48,18 +48,9 @@ export class Reportes {
 
     return this.registros.filter(registro => {
 
-      const camara =
-        this.camaraService.obtenerCamaraPorId(
-          registro.camaraId
-        );
-
-      if (!camara) {
-        return false;
-      }
-
       const coincideZona =
         !this.zonaSeleccionada ||
-        camara.zonaId === Number(this.zonaSeleccionada);
+        registro.zonaId === Number(this.zonaSeleccionada);
 
       const coincideCamara =
         !this.camaraSeleccionada ||
@@ -71,21 +62,21 @@ export class Reportes {
       if (this.fechaInicio) {
 
         const inicio = new Date(
-          this.fechaInicio + 'T00:00:00'
+          this.fechaInicio + 'T00:00:00-05:00'
         );
 
         coincideFechaInicio =
-          registro.fecha >= inicio;
+          registro.periodoInicio >= inicio;
       }
 
       if (this.fechaFin) {
 
         const fin = new Date(
-          this.fechaFin + 'T23:59:59'
+          this.fechaFin + 'T23:59:59.999-05:00'
         );
 
         coincideFechaFin =
-          registro.fecha <= fin;
+          registro.periodoInicio <= fin;
       }
 
       return (
@@ -101,7 +92,7 @@ export class Reportes {
 
     return this.registrosFiltrados.reduce(
       (total, registro) =>
-        total + registro.peatonesDetectados,
+        total + registro.cantidadPeatones,
       0
     );
   }
@@ -114,7 +105,7 @@ export class Reportes {
 
     return Math.max(
       ...this.registrosFiltrados.map(
-        registro => registro.peatonesDetectados
+        registro => registro.cantidadPeatones
       )
     );
   }
@@ -131,29 +122,17 @@ export class Reportes {
     );
   }
 
-  obtenerNombreCamara(camaraId: number): string {
+  obtenerNombreCamara(camaraId: number | null): string {
 
     return (
       this.camaraService
-        .obtenerCamaraPorId(camaraId)?.nombre ??
-      'Cámara desconocida'
+        .obtenerCamaraPorId(camaraId ?? 0)?.nombre ??
+      'Archivo sin cámara'
     );
   }
 
-  obtenerNombreZona(camaraId: number): string {
-
-    const camara =
-      this.camaraService.obtenerCamaraPorId(camaraId);
-
-    if (!camara) {
-      return 'Zona desconocida';
-    }
-
-    return (
-      this.zonaService
-        .obtenerZonaPorId(camara.zonaId)?.nombre ??
-      'Zona desconocida'
-    );
+  obtenerNombreZona(zonaId: number): string {
+    return this.zonaService.obtenerZonaPorId(zonaId)?.nombre ?? 'Zona desconocida';
   }
 
   cambiarZona(): void {

@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
+import { AnalisisService } from '../../core/services/analisis';
 import { Camara } from '../../core/models/camara.model';
 import { Zona } from '../../core/models/zona.model';
 import { MonitoreoCamara } from '../../core/models/monitoreo.model';
@@ -22,13 +23,14 @@ export class Monitoreo {
   private zonaService = inject(ZonaService);
   private monitoreoService = inject(MonitoreoService);
 
+  private analisisService = inject(AnalisisService);
   camaraSeleccionadaId = 0;
 
   camaras = this.camaraService.obtenerCamaras();
 
   get camarasDisponibles(): Camara[] {
     return this.camaras.filter(
-      camara => camara.activa && camara.analisisActivo
+      camara => camara.estado === 'activa'
     );
   }
 
@@ -58,17 +60,5 @@ export class Monitoreo {
     this.camaraSeleccionadaId = id;
   }
 
-  simularDeteccion(): void {
-
-    if (!this.camaraSeleccionada) {
-      return;
-    }
-
-    const cantidad = Math.floor(Math.random() * 100);
-
-    this.monitoreoService.actualizarConteo(
-      this.camaraSeleccionada.id,
-      cantidad
-    );
-  }
+  estaAnalizando(id: number) { return this.analisisService.estaAnalizando(id); }
 }

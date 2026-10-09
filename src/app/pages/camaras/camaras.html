@@ -45,7 +45,7 @@
             <input
               type="text"
               name="nombre"
-              [(ngModel)]="nuevaCamara.nombre"
+              maxlength="100" [(ngModel)]="nuevaCamara.nombre"
               placeholder="Ej. Cámara UTP 01"
               required>
           </div>
@@ -70,15 +70,14 @@
           </div>
 
           <div class="form-group">
-            <label>Tipo de fuente</label>
+            <label>Tipo de cámara</label>
 
             <select
-              name="tipoFuente"
-              [(ngModel)]="nuevaCamara.tipoFuente">
+              name="tipo"
+              [(ngModel)]="nuevaCamara.tipo">
 
-              <option value="RTSP">RTSP / Cámara IP</option>
-              <option value="HTTP">HTTP</option>
-              <option value="LOCAL">Cámara local</option>
+              <option value="fija">Fija</option>
+              <option value="movil">Móvil</option>
 
             </select>
           </div>
@@ -88,26 +87,21 @@
 
             <input
               type="text"
-              name="fuente"
-              [(ngModel)]="nuevaCamara.fuente"
-              placeholder="rtsp://192.168.1.100/stream"
-              required>
+              name="urlStream"
+              [(ngModel)]="nuevaCamara.urlStream"
+              maxlength="255" placeholder="https://… o rtsp://…"
+              [required]="!camaraEditando">
 
             <small>
-              Para una cámara local puedes utilizar 0, 1, 2...
+              {{ camaraEditando ? 'Fuente opcional en esta prueba; no se conecta ni se conserva.' : 'Solo se utiliza para probar el formulario; no hay conexión real.' }}
             </small>
           </div>
 
+          <div class="form-group"><label>Estado</label><select name="estado" [(ngModel)]="nuevaCamara.estado"><option value="activa">Activa</option><option value="inactiva">Inactiva</option><option value="mantenimiento">Mantenimiento</option></select></div>
+          <div class="form-group"><label>Intervalo de muestreo (segundos)</label><input type="number" name="intervalo" min="1" step="1" required [(ngModel)]="nuevaCamara.intervaloMuestreoSeg"></div>
         </div>
 
-        <label class="checkbox-row">
-          <input
-            type="checkbox"
-            name="analisisActivo"
-            [(ngModel)]="nuevaCamara.analisisActivo">
-
-          Activar análisis automático para esta cámara
-        </label>
+        @if (mensaje) { <p role="alert">{{ mensaje }}</p> }
 
         <div class="form-actions">
 
@@ -176,9 +170,9 @@
         <tr>
           <th>Cámara</th>
           <th>Zona</th>
-          <th>Fuente</th>
+          <th>Tipo</th>
           <th>Estado</th>
-          <th>Análisis</th>
+          <th>Muestreo / procesamiento</th>
           <th>Acciones</th>
         </tr>
       </thead>
@@ -197,23 +191,23 @@
 
             <td>
               <span class="source-type">
-                {{ camara.tipoFuente }}
+                {{ camara.tipo }}
               </span>
             </td>
 
             <td>
               <span
                 class="status"
-                [class.active]="camara.activa"
-                [class.inactive]="!camara.activa">
+                [class.active]="camara.estado === 'activa'"
+                [class.inactive]="camara.estado === 'inactiva'" [class.maintenance]="camara.estado === 'mantenimiento'">
 
-                {{ camara.activa ? 'Activa' : 'Inactiva' }}
+                {{ camara.estado | titlecase }}
 
               </span>
             </td>
 
             <td>
-              {{ camara.analisisActivo ? 'Activado' : 'Desactivado' }}
+              {{ camara.intervaloMuestreoSeg }} s · {{ estaAnalizando(camara.id) ? 'Procesando' : 'Sin ejecución activa' }}
             </td>
 
             <td class="actions">
@@ -228,7 +222,7 @@
                 class="action-button"
                 (click)="cambiarEstado(camara)">
 
-                {{ camara.activa ? 'Desactivar' : 'Activar' }}
+                {{ camara.estado === 'activa' ? 'Desactivar' : 'Activar' }}
 
               </button>
 

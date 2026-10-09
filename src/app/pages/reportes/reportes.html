@@ -59,7 +59,7 @@
           [(ngModel)]="camaraSeleccionada">
 
           <option [ngValue]="0">
-            Todas las cámaras
+            Todas las fuentes
           </option>
 
           @for (
@@ -127,23 +127,23 @@
     </div>
 
     <div class="metric-card">
-      <span>Total detectado</span>
+      <span>Suma de conteos</span>
       <strong>
-        {{ totalPeatones }}
+        {{ registrosFiltrados.length ? totalPeatones : 'Sin datos' }}
       </strong>
     </div>
 
     <div class="metric-card">
       <span>Promedio</span>
       <strong>
-        {{ promedioPeatones }}
+        {{ registrosFiltrados.length ? promedioPeatones : 'Sin datos' }}
       </strong>
     </div>
 
     <div class="metric-card">
       <span>Máximo</span>
       <strong>
-        {{ maximoPeatones }}
+        {{ registrosFiltrados.length ? maximoPeatones : 'Sin datos' }}
       </strong>
     </div>
 
@@ -202,7 +202,7 @@
 
         <tr>
           <th>Fecha</th>
-          <th>Hora</th>
+          <th>Ventana (hora Lima)</th>
           <th>Zona</th>
           <th>Cámara</th>
           <th>Peatones</th>
@@ -222,15 +222,15 @@
           <tr>
 
             <td>
-              {{ registro.fecha | date:'dd/MM/yyyy' }}
+              {{ registro.periodoInicio | date:'dd/MM/yyyy':'-0500' }}
             </td>
 
             <td>
-              {{ registro.fecha | date:'HH:mm' }}
+              {{ registro.periodoInicio | date:'HH:mm:ss':'-0500' }} – {{ registro.periodoFin | date:'HH:mm:ss':'-0500' }}
             </td>
 
             <td>
-              {{ obtenerNombreZona(registro.camaraId) }}
+              {{ obtenerNombreZona(registro.zonaId) }}
             </td>
 
             <td>
@@ -239,7 +239,7 @@
 
             <td>
               <strong>
-                {{ registro.peatonesDetectados }}
+                {{ registro.cantidadPeatones }}
               </strong>
             </td>
 
@@ -247,11 +247,11 @@
 
               <span
                 class="level"
-                [class.low]="registro.nivel === 'Bajo'"
-                [class.medium]="registro.nivel === 'Medio'"
-                [class.high]="registro.nivel === 'Alto'">
+                [class.low]="registro.nivel === 'bajo'"
+                [class.medium]="registro.nivel === 'medio'"
+                [class.high]="registro.nivel === 'alto'">
 
-                {{ registro.nivel }}
+                {{ registro.nivel ? (registro.nivel | titlecase) : 'Sin umbral' }}
 
               </span>
 

@@ -210,3 +210,4 @@ td {
   display: flex;
   gap: 7px;
 }
+.status.maintenance { background: #fff3cd; color: #805b00; }

@@ -1,0 +1,285 @@
+<section class="reportes-page">
+
+  <div class="page-header">
+
+    <div>
+      <h2>Reportes</h2>
+
+      <p>
+        Consulta y prepara reportes históricos
+        de concentración peatonal.
+      </p>
+    </div>
+
+  </div>
+
+
+  <div class="filter-card">
+
+    <div class="filter-header">
+      <h3>Filtros del reporte</h3>
+      <p>
+        Selecciona los datos que deseas incluir.
+      </p>
+    </div>
+
+
+    <div class="filter-grid">
+
+      <div class="form-group">
+
+        <label>Zona</label>
+
+        <select
+          [(ngModel)]="zonaSeleccionada"
+          (ngModelChange)="cambiarZona()">
+
+          <option [ngValue]="0">
+            Todas las zonas
+          </option>
+
+          @for (zona of zonas; track zona.id) {
+
+            <option [ngValue]="zona.id">
+              {{ zona.nombre }}
+            </option>
+
+          }
+
+        </select>
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label>Cámara</label>
+
+        <select
+          [(ngModel)]="camaraSeleccionada">
+
+          <option [ngValue]="0">
+            Todas las cámaras
+          </option>
+
+          @for (
+            camara of camarasDisponibles;
+            track camara.id
+          ) {
+
+            <option [ngValue]="camara.id">
+              {{ camara.nombre }}
+            </option>
+
+          }
+
+        </select>
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label>Fecha inicial</label>
+
+        <input
+          type="date"
+          [(ngModel)]="fechaInicio">
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label>Fecha final</label>
+
+        <input
+          type="date"
+          [(ngModel)]="fechaFin">
+
+      </div>
+
+    </div>
+
+
+    <div class="filter-actions">
+
+      <button
+        class="secondary-button"
+        (click)="limpiarFiltros()">
+
+        Limpiar filtros
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <div class="metrics">
+
+    <div class="metric-card">
+      <span>Registros</span>
+      <strong>
+        {{ registrosFiltrados.length }}
+      </strong>
+    </div>
+
+    <div class="metric-card">
+      <span>Total detectado</span>
+      <strong>
+        {{ totalPeatones }}
+      </strong>
+    </div>
+
+    <div class="metric-card">
+      <span>Promedio</span>
+      <strong>
+        {{ promedioPeatones }}
+      </strong>
+    </div>
+
+    <div class="metric-card">
+      <span>Máximo</span>
+      <strong>
+        {{ maximoPeatones }}
+      </strong>
+    </div>
+
+  </div>
+
+
+  <div class="report-card">
+
+    <div class="report-header">
+
+      <div>
+        <h3>Vista previa del reporte</h3>
+
+        <p>
+          Registros que serán incluidos
+          en la exportación.
+        </p>
+      </div>
+
+
+      <div class="export-actions">
+
+        <button
+          class="secondary-button"
+          (click)="exportarExcel()">
+
+          Exportar Excel
+
+        </button>
+
+        <button
+          class="primary-button"
+          (click)="exportarPDF()">
+
+          Exportar PDF
+
+        </button>
+
+      </div>
+
+    </div>
+
+
+    @if (mensaje) {
+
+      <div class="message">
+        {{ mensaje }}
+      </div>
+
+    }
+
+
+    <table>
+
+      <thead>
+
+        <tr>
+          <th>Fecha</th>
+          <th>Hora</th>
+          <th>Zona</th>
+          <th>Cámara</th>
+          <th>Peatones</th>
+          <th>Nivel</th>
+        </tr>
+
+      </thead>
+
+
+      <tbody>
+
+        @for (
+          registro of registrosFiltrados;
+          track registro.id
+        ) {
+
+          <tr>
+
+            <td>
+              {{ registro.fecha | date:'dd/MM/yyyy' }}
+            </td>
+
+            <td>
+              {{ registro.fecha | date:'HH:mm' }}
+            </td>
+
+            <td>
+              {{ obtenerNombreZona(registro.camaraId) }}
+            </td>
+
+            <td>
+              {{ obtenerNombreCamara(registro.camaraId) }}
+            </td>
+
+            <td>
+              <strong>
+                {{ registro.peatonesDetectados }}
+              </strong>
+            </td>
+
+            <td>
+
+              <span
+                class="level"
+                [class.low]="registro.nivel === 'Bajo'"
+                [class.medium]="registro.nivel === 'Medio'"
+                [class.high]="registro.nivel === 'Alto'">
+
+                {{ registro.nivel }}
+
+              </span>
+
+            </td>
+
+          </tr>
+
+        } @empty {
+
+          <tr>
+
+            <td
+              colspan="6"
+              class="empty-table">
+
+              No existen registros para los
+              filtros seleccionados.
+
+            </td>
+
+          </tr>
+
+        }
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</section>

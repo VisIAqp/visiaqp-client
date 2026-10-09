@@ -1,0 +1,199 @@
+<section class="analisis-page">
+
+  <div class="page-header">
+
+    <div>
+      <h2>Análisis peatonal</h2>
+      <p>
+        Consulta el comportamiento histórico de la
+        concentración peatonal.
+      </p>
+    </div>
+
+  </div>
+
+
+  <div class="filters">
+
+    <div class="filter-group">
+
+      <label>Zona</label>
+
+      <select
+        [(ngModel)]="zonaSeleccionada"
+        (ngModelChange)="aplicarFiltros()">
+
+        <option [ngValue]="0">
+          Todas las zonas
+        </option>
+
+        @for (zona of zonas; track zona.id) {
+
+          <option [ngValue]="zona.id">
+            {{ zona.nombre }}
+          </option>
+
+        }
+
+      </select>
+
+    </div>
+
+
+    <div class="filter-group">
+
+      <label>Cámara</label>
+
+      <select
+        [(ngModel)]="camaraSeleccionada"
+        (ngModelChange)="aplicarFiltros()">
+
+        <option [ngValue]="0">
+          Todas las cámaras
+        </option>
+
+        @for (camara of camarasDisponibles; track camara.id) {
+
+          <option [ngValue]="camara.id">
+            {{ camara.nombre }}
+          </option>
+
+        }
+
+      </select>
+
+    </div>
+
+  </div>
+
+
+  <div class="metrics">
+
+    <div class="metric-card">
+      <span>Total detectado</span>
+      <strong>{{ totalPeatones }}</strong>
+      <small>Registros acumulados</small>
+    </div>
+
+    <div class="metric-card">
+      <span>Promedio</span>
+      <strong>{{ promedioPeatones }}</strong>
+      <small>Peatones por medición</small>
+    </div>
+
+    <div class="metric-card">
+      <span>Máximo registrado</span>
+      <strong>{{ maximoPeatones }}</strong>
+      <small>Mayor concentración</small>
+    </div>
+
+    <div class="metric-card">
+      <span>Mediciones</span>
+      <strong>{{ registrosFiltrados.length }}</strong>
+      <small>Registros analizados</small>
+    </div>
+
+  </div>
+
+
+  <div class="chart-card">
+
+    <div class="card-header">
+      <div>
+        <h3>Concentración por hora</h3>
+        <p>
+          Evolución de peatones detectados durante el día.
+        </p>
+      </div>
+    </div>
+
+    <div class="chart-container">
+      <canvas #graficoPeatones></canvas>
+    </div>
+
+  </div>
+
+
+  <div class="table-card">
+
+    <div class="card-header">
+
+      <div>
+        <h3>Historial de mediciones</h3>
+        <p>
+          Detalle de los registros procesados.
+        </p>
+      </div>
+
+    </div>
+
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Hora</th>
+          <th>Zona</th>
+          <th>Cámara</th>
+          <th>Peatones</th>
+          <th>Concentración</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        @for (
+          registro of registrosFiltrados;
+          track registro.id
+        ) {
+
+          <tr>
+
+            <td>
+              {{ registro.fecha | date:'dd/MM/yyyy' }}
+            </td>
+
+            <td>
+              {{ registro.fecha | date:'HH:mm' }}
+            </td>
+
+            <td>
+              {{ obtenerNombreZona(registro.camaraId) }}
+            </td>
+
+            <td>
+              {{ obtenerNombreCamara(registro.camaraId) }}
+            </td>
+
+            <td>
+              <strong>
+                {{ registro.peatonesDetectados }}
+              </strong>
+            </td>
+
+            <td>
+
+              <span
+                class="level"
+                [class.low]="registro.nivel === 'Bajo'"
+                [class.medium]="registro.nivel === 'Medio'"
+                [class.high]="registro.nivel === 'Alto'">
+
+                {{ registro.nivel }}
+
+              </span>
+
+            </td>
+
+          </tr>
+
+        }
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</section>

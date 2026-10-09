@@ -1,0 +1,164 @@
+<section class="zonas-page">
+
+  <div class="page-header">
+    <div>
+      <h2>Gestión de zonas</h2>
+      <p>Administra las zonas donde se realizará el monitoreo peatonal.</p>
+    </div>
+
+    <button class="primary-button" (click)="abrirFormulario()">
+     + Nueva zona
+    </button>
+  </div>
+
+  @if (mostrarFormulario) {
+
+  <div class="form-card">
+
+    <div class="form-header">
+      <div>
+        <h3>
+            {{ zonaEditando ? 'Editar zona' : 'Nueva zona' }}
+        </h3>
+        
+        <p>
+            {{
+                zonaEditando
+                ? 'Modifica los datos de la zona seleccionada.'
+                : 'Registra una nueva zona de monitoreo.'
+            }}
+        </p>
+      </div>
+
+      <button
+        class="close-button"
+        (click)="cerrarFormulario()">
+        ✕
+      </button>
+    </div>
+
+    <form (ngSubmit)="guardarZona()">
+
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="nombre">Nombre de la zona</label>
+
+          <input
+            id="nombre"
+            type="text"
+            name="nombre"
+            [(ngModel)]="nuevaZona.nombre"
+            placeholder="Ej. Zona UTP Arequipa"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="ubicacion">Ubicación</label>
+
+          <input
+            id="ubicacion"
+            type="text"
+            name="ubicacion"
+            [(ngModel)]="nuevaZona.ubicacion"
+            placeholder="Ej. Av. Tacna y Arica"
+            required
+          >
+        </div>
+
+      </div>
+
+      <div class="form-actions">
+
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="cerrarFormulario()">
+          Cancelar
+        </button>
+
+        <button
+          type="submit"
+          class="primary-button">
+          {{ zonaEditando ? 'Guardar cambios' : 'Guardar zona' }}
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+
+}
+  <div class="stats">
+    <div class="stat-card">
+      <span>Total de zonas</span>
+      <strong>{{ zonas.length }}</strong>
+    </div>
+
+    <div class="stat-card">
+      <span>Zonas activas</span>
+      <strong>{{ zonasActivas }}</strong>
+    </div>
+
+    <div class="stat-card">
+      <span>Cámaras asociadas</span>
+      <strong>{{ totalCamaras }}</strong>
+    </div>
+  </div>
+
+  <div class="table-container">
+
+    <div class="table-header">
+      <div>
+        <h3>Zonas registradas</h3>
+        <p>Listado de zonas configuradas en el sistema.</p>
+      </div>
+
+      <input
+        type="text"
+        placeholder="Buscar zona..."
+        class="search-input"
+        [(ngModel)]="busqueda"
+      >
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Zona</th>
+          <th>Ubicación</th>
+          <th>Cámaras</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        
+        @for (zona of zonasFiltradas; track zona.id) {
+            <tr>
+                <td>{{ zona.nombre }}</td>
+                <td>{{ zona.ubicacion }}</td>
+                <td>{{ contarCamaras(zona.id) }}</td>
+                <td>
+                    <span class="status" [class.active]="zona.activa">
+                        {{ zona.activa ? 'Activa' : 'Inactiva' }}
+                    </span>
+                </td>
+                <td>
+                    <button 
+                        class="action-button"
+                        (click)="editarZona(zona)">
+                        Editar
+                    </button>
+      </td>
+    </tr>
+    }
+        </tbody>
+    </table>
+
+  </div>
+
+</section>

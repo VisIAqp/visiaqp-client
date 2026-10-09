@@ -1,0 +1,247 @@
+<section class="camaras-page">
+
+  <div class="page-header">
+    <div>
+      <h2>Gestión de cámaras</h2>
+      <p>Administra las cámaras utilizadas para el monitoreo peatonal.</p>
+    </div>
+
+    <button
+      class="primary-button"
+      (click)="abrirFormulario()">
+      + Nueva cámara
+    </button>
+  </div>
+
+  @if (mostrarFormulario) {
+
+    <div class="form-card">
+
+      <div class="form-header">
+        <div>
+          <h3>
+            {{ camaraEditando ? 'Editar cámara' : 'Nueva cámara' }}
+          </h3>
+
+          <p>
+            Configura la cámara y su fuente de video.
+          </p>
+        </div>
+
+        <button
+          class="close-button"
+          (click)="cerrarFormulario()">
+          ✕
+        </button>
+      </div>
+
+      <form (ngSubmit)="guardarCamara()">
+
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label>Nombre</label>
+
+            <input
+              type="text"
+              name="nombre"
+              [(ngModel)]="nuevaCamara.nombre"
+              placeholder="Ej. Cámara UTP 01"
+              required>
+          </div>
+
+          <div class="form-group">
+            <label>Zona</label>
+
+            <select
+              name="zonaId"
+              [(ngModel)]="nuevaCamara.zonaId"
+              required>
+
+              <option [ngValue]="0">Seleccione una zona</option>
+
+              @for (zona of zonas; track zona.id) {
+                <option [ngValue]="zona.id">
+                  {{ zona.nombre }}
+                </option>
+              }
+
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Tipo de fuente</label>
+
+            <select
+              name="tipoFuente"
+              [(ngModel)]="nuevaCamara.tipoFuente">
+
+              <option value="RTSP">RTSP / Cámara IP</option>
+              <option value="HTTP">HTTP</option>
+              <option value="LOCAL">Cámara local</option>
+
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Fuente de video</label>
+
+            <input
+              type="text"
+              name="fuente"
+              [(ngModel)]="nuevaCamara.fuente"
+              placeholder="rtsp://192.168.1.100/stream"
+              required>
+
+            <small>
+              Para una cámara local puedes utilizar 0, 1, 2...
+            </small>
+          </div>
+
+        </div>
+
+        <label class="checkbox-row">
+          <input
+            type="checkbox"
+            name="analisisActivo"
+            [(ngModel)]="nuevaCamara.analisisActivo">
+
+          Activar análisis automático para esta cámara
+        </label>
+
+        <div class="form-actions">
+
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="cerrarFormulario()">
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="primary-button">
+
+            {{ camaraEditando ? 'Guardar cambios' : 'Registrar cámara' }}
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  }
+
+  <div class="stats">
+
+    <div class="stat-card">
+      <span>Total de cámaras</span>
+      <strong>{{ camaras.length }}</strong>
+    </div>
+
+    <div class="stat-card">
+      <span>Cámaras activas</span>
+      <strong>{{ camarasActivas }}</strong>
+    </div>
+
+    <div class="stat-card">
+      <span>Analizando</span>
+      <strong>{{ camarasAnalizando }}</strong>
+    </div>
+
+  </div>
+
+  <div class="table-container">
+
+    <div class="table-header">
+
+      <div>
+        <h3>Cámaras registradas</h3>
+        <p>Dispositivos configurados para monitoreo.</p>
+      </div>
+
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Buscar cámara..."
+        [(ngModel)]="busqueda">
+
+    </div>
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>Cámara</th>
+          <th>Zona</th>
+          <th>Fuente</th>
+          <th>Estado</th>
+          <th>Análisis</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        @for (camara of camarasFiltradas; track camara.id) {
+
+          <tr>
+
+            <td>
+              <strong>{{ camara.nombre }}</strong>
+            </td>
+
+            <td>{{ obtenerZona(camara.zonaId)?.nombre || 'Sin zona' }}</td>
+
+            <td>
+              <span class="source-type">
+                {{ camara.tipoFuente }}
+              </span>
+            </td>
+
+            <td>
+              <span
+                class="status"
+                [class.active]="camara.activa"
+                [class.inactive]="!camara.activa">
+
+                {{ camara.activa ? 'Activa' : 'Inactiva' }}
+
+              </span>
+            </td>
+
+            <td>
+              {{ camara.analisisActivo ? 'Activado' : 'Desactivado' }}
+            </td>
+
+            <td class="actions">
+
+              <button
+                class="action-button"
+                (click)="editarCamara(camara)">
+                Editar
+              </button>
+
+              <button
+                class="action-button"
+                (click)="cambiarEstado(camara)">
+
+                {{ camara.activa ? 'Desactivar' : 'Activar' }}
+
+              </button>
+
+            </td>
+
+          </tr>
+
+        }
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</section>

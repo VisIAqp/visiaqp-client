@@ -1,0 +1,298 @@
+<section class="dashboard-page">
+
+  <div class="page-header">
+
+    <div>
+      <h2>Resumen general</h2>
+
+      <p>
+        Estado actual del sistema de análisis
+        de concentración peatonal.
+      </p>
+    </div>
+
+    <div class="system-status">
+      <span class="status-dot"></span>
+      Sistema operativo
+    </div>
+
+  </div>
+
+
+  <!-- KPIs -->
+
+  <div class="metrics">
+
+    <div class="metric-card">
+
+      <span>Peatones detectados</span>
+
+      <strong>
+        {{ totalPeatones }}
+      </strong>
+
+      <small>
+        Total de registros analizados
+      </small>
+
+    </div>
+
+
+    <div class="metric-card">
+
+      <span>Cámaras activas</span>
+
+      <strong>
+        {{ camarasActivas }}/{{ totalCamaras }}
+      </strong>
+
+      <small>
+        {{ camarasAnalizando }} realizando análisis
+      </small>
+
+    </div>
+
+
+    <div class="metric-card">
+
+      <span>Zonas monitoreadas</span>
+
+      <strong>
+        {{ zonasActivas }}
+      </strong>
+
+      <small>
+        {{ totalZonas }} zonas registradas
+      </small>
+
+    </div>
+
+
+    <div class="metric-card">
+
+      <span>Nivel reciente</span>
+
+      <strong
+        [class.level-low]="nivelActual === 'Bajo'"
+        [class.level-medium]="nivelActual === 'Medio'"
+        [class.level-high]="nivelActual === 'Alto'">
+
+        {{ nivelActual }}
+
+      </strong>
+
+      <small>
+        Última medición registrada
+      </small>
+
+    </div>
+
+  </div>
+
+
+  <!-- GRÁFICO + ESTADO -->
+
+  <div class="dashboard-grid">
+
+    <div class="chart-card">
+
+      <div class="card-header">
+
+        <div>
+          <h3>Concentración por hora</h3>
+
+          <p>
+            Total de peatones detectados
+            en todas las cámaras.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="chart-container">
+        <canvas #graficoDashboard></canvas>
+      </div>
+
+    </div>
+
+
+    <div class="status-card">
+
+      <div class="card-header">
+
+        <div>
+          <h3>Estado del sistema</h3>
+
+          <p>
+            Resumen de los recursos registrados.
+          </p>
+        </div>
+
+      </div>
+
+
+      <div class="status-list">
+
+        <div class="status-item">
+
+          <div>
+            <span class="indicator active"></span>
+
+            <span>
+              Cámaras activas
+            </span>
+          </div>
+
+          <strong>
+            {{ camarasActivas }}
+          </strong>
+
+        </div>
+
+
+        <div class="status-item">
+
+          <div>
+            <span class="indicator active"></span>
+
+            <span>
+              Cámaras analizando
+            </span>
+          </div>
+
+          <strong>
+            {{ camarasAnalizando }}
+          </strong>
+
+        </div>
+
+
+        <div class="status-item">
+
+          <div>
+            <span class="indicator active"></span>
+
+            <span>
+              Zonas activas
+            </span>
+          </div>
+
+          <strong>
+            {{ zonasActivas }}
+          </strong>
+
+        </div>
+
+
+        <div class="status-item">
+
+          <div>
+            <span class="indicator"></span>
+
+            <span>
+              Máximo registrado
+            </span>
+          </div>
+
+          <strong>
+            {{ maximoRegistrado }}
+          </strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ACTIVIDAD RECIENTE -->
+
+  <div class="activity-card">
+
+    <div class="card-header">
+
+      <div>
+        <h3>Actividad reciente</h3>
+
+        <p>
+          Últimas mediciones procesadas por el sistema.
+        </p>
+      </div>
+
+    </div>
+
+
+    <table>
+
+      <thead>
+
+        <tr>
+          <th>Fecha</th>
+          <th>Hora</th>
+          <th>Zona</th>
+          <th>Cámara</th>
+          <th>Peatones</th>
+          <th>Nivel</th>
+        </tr>
+
+      </thead>
+
+
+      <tbody>
+
+        @for (
+          registro of actividadReciente;
+          track registro.id
+        ) {
+
+          <tr>
+
+            <td>
+              {{ registro.fecha | date:'dd/MM/yyyy' }}
+            </td>
+
+            <td>
+              {{ registro.fecha | date:'HH:mm' }}
+            </td>
+
+            <td>
+              {{ obtenerNombreZona(registro.camaraId) }}
+            </td>
+
+            <td>
+              {{ obtenerNombreCamara(registro.camaraId) }}
+            </td>
+
+            <td>
+              <strong>
+                {{ registro.peatonesDetectados }}
+              </strong>
+            </td>
+
+            <td>
+
+              <span
+                class="level"
+                [class.low]="registro.nivel === 'Bajo'"
+                [class.medium]="registro.nivel === 'Medio'"
+                [class.high]="registro.nivel === 'Alto'">
+
+                {{ registro.nivel }}
+
+              </span>
+
+            </td>
+
+          </tr>
+
+        }
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</section>

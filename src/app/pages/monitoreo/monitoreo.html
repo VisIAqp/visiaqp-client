@@ -1,0 +1,229 @@
+<section class="monitoreo-page">
+
+  <div class="page-header">
+    <div>
+      <h2>Monitoreo</h2>
+      <p>
+        Supervisa las cámaras activas y la concentración
+        peatonal detectada.
+      </p>
+    </div>
+
+    <span class="system-status">
+      <span class="status-dot"></span>
+      Sistema operativo
+    </span>
+  </div>
+
+
+  <div class="monitor-layout">
+
+    <!-- LISTA DE CÁMARAS -->
+
+    <aside class="camera-list">
+
+      <div class="panel-header">
+        <h3>Cámaras activas</h3>
+        <span>{{ camarasDisponibles.length }}</span>
+      </div>
+
+      @for (camara of camarasDisponibles; track camara.id) {
+
+        <button
+          class="camera-item"
+          [class.selected]="camaraSeleccionadaId === camara.id"
+          (click)="seleccionarCamara(camara.id)">
+
+          <div class="camera-icon">
+            ●
+          </div>
+
+          <div class="camera-info">
+
+            <strong>
+              {{ camara.nombre }}
+            </strong>
+
+            <span>
+              {{ obtenerZona(camara.zonaId)?.nombre }}
+            </span>
+
+          </div>
+
+          <span class="online-dot"></span>
+
+        </button>
+
+      }
+
+      @if (camarasDisponibles.length === 0) {
+
+        <div class="empty-cameras">
+          No hay cámaras disponibles para monitoreo.
+        </div>
+
+      }
+
+    </aside>
+
+
+    <!-- ÁREA PRINCIPAL -->
+
+    <div class="monitor-content">
+
+      @if (camaraSeleccionada) {
+
+        <div class="camera-header">
+
+          <div>
+            <h3>
+              {{ camaraSeleccionada.nombre }}
+            </h3>
+
+            <p>
+              {{ obtenerZona(camaraSeleccionada.zonaId)?.nombre }}
+            </p>
+          </div>
+
+          <span class="live-badge">
+            ● EN VIVO
+          </span>
+
+        </div>
+
+
+        <!-- VIDEO -->
+
+        <div class="video-container">
+
+          <div class="video-placeholder">
+
+            <div class="camera-symbol">
+              ◉
+            </div>
+
+            <strong>
+              Vista de cámara
+            </strong>
+
+            <span>
+              La transmisión de video se conectará
+              posteriormente con el backend.
+            </span>
+
+          </div>
+
+
+          @if (monitoreoSeleccionado) {
+
+            <div class="detection-overlay">
+
+              <span>
+                Personas:
+                {{ monitoreoSeleccionado.peatonesDetectados }}
+              </span>
+
+            </div>
+
+          }
+
+        </div>
+
+
+        <!-- INDICADORES -->
+
+        <div class="metrics">
+
+          <div class="metric-card">
+
+            <span>
+              Peatones detectados
+            </span>
+
+            <strong>
+              {{ monitoreoSeleccionado?.peatonesDetectados ?? 0 }}
+            </strong>
+
+          </div>
+
+
+          <div class="metric-card">
+
+            <span>
+              Concentración
+            </span>
+
+            <strong
+              [class.level-low]="monitoreoSeleccionado?.nivel === 'Bajo'"
+              [class.level-medium]="monitoreoSeleccionado?.nivel === 'Medio'"
+              [class.level-high]="monitoreoSeleccionado?.nivel === 'Alto'">
+
+              {{ monitoreoSeleccionado?.nivel ?? 'Sin datos' }}
+
+            </strong>
+
+          </div>
+
+
+          <div class="metric-card">
+
+            <span>
+              Última actualización
+            </span>
+
+            <strong class="time">
+
+              @if (monitoreoSeleccionado) {
+
+                {{
+                  monitoreoSeleccionado.ultimaActualizacion
+                    | date:'HH:mm:ss'
+                }}
+
+              } @else {
+
+                Sin datos
+
+              }
+
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <!-- TEMPORAL -->
+
+        <button
+          class="simulation-button"
+          (click)="simularDeteccion()">
+
+          Simular nueva detección
+
+        </button>
+
+      } @else {
+
+        <div class="empty-monitor">
+
+          <div class="empty-icon">
+            ◉
+          </div>
+
+          <h3>Selecciona una cámara</h3>
+
+          <p>
+            Elige una cámara activa para visualizar
+            su monitoreo.
+          </p>
+
+        </div>
+
+      }
+
+    </div>
+
+  </div>
+
+</section>

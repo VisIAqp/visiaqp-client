@@ -1,223 +1,175 @@
-<section class="mx-auto min-w-0 max-w-[1400px]">
-
-  <div class="mb-6 flex flex-col items-start justify-between gap-3 min-[761px]:flex-row min-[761px]:items-center [&_h2]:mt-0 [&_h2]:mb-[6px] [&_p]:m-0 [&_p]:text-[#777]">
+<section class="mx-auto min-w-0 max-w-page">
+  <div
+    class="mb-6 flex flex-col items-start justify-between gap-3 desktop:flex-row desktop:items-center"
+  >
     <div>
-      <h2>Monitoreo</h2>
-      <p>
-        Supervisa las cámaras activas y la concentración
-        peatonal detectada.
+      <h2 class="mt-0 mb-1.5">Monitoreo</h2>
+      <p class="m-0 text-muted">
+        Supervisa las cámaras activas y la concentración peatonal detectada.
       </p>
     </div>
 
-    <span class="flex items-center gap-[7px] text-[13px]">
-      <span class="size-2 shrink-0 rounded-full bg-[#2e7d32]"></span>
+    <span class="flex items-center gap-1.75 text-label">
+      <span class="size-2 shrink-0 rounded-full bg-success"></span>
       Modo de prueba · sin conexión
     </span>
   </div>
 
-
-  <div class="grid grid-cols-1 gap-5 min-[761px]:grid-cols-[280px_minmax(0,1fr)]">
-
+  <div class="grid grid-cols-1 gap-5 desktop:grid-cols-[280px_minmax(0,1fr)]">
     <!-- LISTA DE CÁMARAS -->
 
-    <aside class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white self-start overflow-hidden">
-
-      <div class="flex items-center justify-between border-0 border-b border-solid border-[#eee] p-[18px] [&_h3]:m-0 [&_h3]:text-[15px] [&_span]:rounded-[20px] [&_span]:bg-[#f1f1f1] [&_span]:px-[9px] [&_span]:py-[3px] [&_span]:text-xs">
-        <h3>Cámaras activas</h3>
-        <span>{{ camarasDisponibles.length }}</span>
+    <aside class="ui-card self-start overflow-hidden">
+      <div
+        class="flex items-center justify-between border-0 border-b border-solid border-divider p-4.5"
+      >
+        <h3 class="m-0 text-panel">Cámaras activas</h3>
+        <span class="rounded-badge bg-soft px-2.25 py-0.75 text-xs">{{
+          camarasDisponibles.length
+        }}</span>
       </div>
 
       @for (camara of camarasDisponibles; track camara.id) {
-
         <button
-          class="box-border flex w-full cursor-pointer items-center gap-2.5 border-0 border-b border-solid border-[#eee] p-[15px] text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#0d0d0d]"
+          class="box-border flex w-full cursor-pointer items-center gap-2.5 border-0 border-b border-solid border-divider p-3.75 text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-content"
           [attr.aria-pressed]="camaraSeleccionadaId === camara.id"
-          [ngClass]="camaraSeleccionadaId === camara.id ? 'bg-[#f0f0f0]' : 'bg-white hover:bg-[#f7f7f7]'"
-          (click)="seleccionarCamara(camara.id)">
-
-          <div class="flex size-[35px] shrink-0 items-center justify-center rounded-lg bg-[#eee]">
+          [ngClass]="camaraSeleccionadaId === camara.id ? 'bg-selected' : 'bg-white hover:bg-hover'"
+          (click)="seleccionarCamara(camara.id)"
+        >
+          <div class="flex size-8.75 shrink-0 items-center justify-center rounded-lg bg-divider">
             ●
           </div>
 
-          <div class="flex min-w-0 flex-1 flex-col gap-[3px] break-words [&_strong]:text-[13px] [&_span]:text-[11px] [&_span]:text-[#777]">
-
-            <strong>
+          <div class="flex min-w-0 flex-1 flex-col gap-0.75 break-words">
+            <strong class="text-label">
               {{ camara.nombre }}
             </strong>
 
-            <span>
+            <span class="text-caption text-muted">
               {{ obtenerZona(camara.zonaId)?.nombre }}
             </span>
-
           </div>
 
-          <span class="size-2 shrink-0 rounded-full bg-[#2e7d32]"></span>
-
+          <span class="size-2 shrink-0 rounded-full bg-success"></span>
         </button>
-
       }
 
       @if (camarasDisponibles.length === 0) {
-
-        <div class="p-[25px] text-center text-[13px] text-[#777]">
+        <div class="p-6.25 text-center text-label text-muted">
           No hay cámaras disponibles para monitoreo.
         </div>
-
       }
-
     </aside>
-
 
     <!-- ÁREA PRINCIPAL -->
 
-    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white min-h-[600px] p-5">
-
+    <div class="ui-card min-h-150 p-5">
       @if (camaraSeleccionada) {
-
-        <div class="mb-4 flex flex-wrap justify-between gap-3 [&_h3]:mt-0 [&_h3]:mb-1 [&_p]:m-0 [&_p]:text-[13px] [&_p]:text-[#777]">
-
+        <div class="mb-4 flex flex-wrap justify-between gap-3">
           <div>
-            <h3>
+            <h3 class="mt-0 mb-1">
               {{ camaraSeleccionada.nombre }}
             </h3>
 
-            <p>
+            <p class="m-0 text-label text-muted">
               {{ obtenerZona(camaraSeleccionada.zonaId)?.nombre }}
             </p>
           </div>
 
-          <span class="text-[11px] font-semibold">
-            {{ estaAnalizando(camaraSeleccionada.id) ? 'PROCESANDO (PRUEBA)' : 'SIN EJECUCIÓN ACTIVA' }}
+          <span class="text-caption font-semibold">
+            {{
+              estaAnalizando(camaraSeleccionada.id) ? 'PROCESANDO (PRUEBA)' : 'SIN EJECUCIÓN ACTIVA'
+            }}
           </span>
-
         </div>
-
 
         <!-- VIDEO -->
 
-        <div class="relative h-[390px] overflow-hidden rounded-[10px] bg-[#111]">
+        <div class="relative h-97.5 overflow-hidden rounded-panel bg-video">
+          <div
+            class="box-border flex h-full flex-col items-center justify-center gap-2 px-4 text-center text-dimmed"
+          >
+            <div class="text-symbol-small">◉</div>
 
-          <div class="box-border flex h-full flex-col items-center justify-center gap-2 px-4 text-center text-[#aaa] [&_strong]:text-white [&_span]:text-xs">
+            <strong class="text-white"> Vista de cámara </strong>
 
-            <div class="text-[35px]">
-              ◉
-            </div>
-
-            <strong>
-              Vista de cámara
-            </strong>
-
-            <span>
-              La transmisión de video se conectará
-              posteriormente con el backend.
+            <span class="text-xs">
+              La transmisión de video se conectará posteriormente con el backend.
             </span>
-
           </div>
 
-
           @if (monitoreoSeleccionado) {
-
-            <div class="absolute top-[15px] left-[15px] rounded-md bg-black/70 px-3 py-2 text-xs text-white">
-
+            <div
+              class="absolute top-3.75 left-3.75 rounded-md bg-black/70 px-3 py-2 text-xs text-white"
+            >
               <span>
                 Personas:
                 {{ monitoreoSeleccionado.cantidadPeatones }}
               </span>
-
             </div>
-
           }
-
         </div>
-
 
         <!-- INDICADORES -->
 
-        <div class="mt-4 grid grid-cols-1 gap-3 min-[1100px]:grid-cols-3">
+        <div class="mt-4 grid grid-cols-1 gap-3 expanded:grid-cols-3">
+          <div
+            class="flex min-w-0 flex-col gap-1.75 rounded-panel border border-solid border-divider p-4"
+          >
+            <span class="text-xs text-muted"> Peatones detectados </span>
 
-          <div class="flex min-w-0 flex-col gap-[7px] rounded-[10px] border border-solid border-[#eee] p-4 [&_span]:text-xs [&_span]:text-[#777]">
-
-            <span>
-              Peatones detectados
-            </span>
-
-            <strong class="text-[23px]">
+            <strong class="text-indicator">
               {{ monitoreoSeleccionado?.cantidadPeatones ?? 'Sin datos' }}
             </strong>
-
           </div>
 
-
-          <div class="flex min-w-0 flex-col gap-[7px] rounded-[10px] border border-solid border-[#eee] p-4 [&_span]:text-xs [&_span]:text-[#777]">
-
-            <span>
-              Concentración
-            </span>
+          <div
+            class="flex min-w-0 flex-col gap-1.75 rounded-panel border border-solid border-divider p-4"
+          >
+            <span class="text-xs text-muted"> Concentración </span>
 
             <strong
-              class="text-[23px]"
-              [ngClass]="{ 'text-[#2e7d32]': monitoreoSeleccionado?.nivel === 'bajo', 'text-[#b26a00]': monitoreoSeleccionado?.nivel === 'medio', 'text-[#c62828]': monitoreoSeleccionado?.nivel === 'alto' }">
-
-              {{ monitoreoSeleccionado ? (monitoreoSeleccionado.nivel ? (monitoreoSeleccionado.nivel | titlecase) : 'Sin umbral') : 'Sin datos' }}
-
+              class="text-indicator"
+              [ngClass]="{
+                'text-success': monitoreoSeleccionado?.nivel === 'bajo',
+                'text-warning': monitoreoSeleccionado?.nivel === 'medio',
+                'text-danger': monitoreoSeleccionado?.nivel === 'alto',
+              }"
+            >
+              {{
+                monitoreoSeleccionado
+                  ? monitoreoSeleccionado.nivel
+                    ? (monitoreoSeleccionado.nivel | titlecase)
+                    : 'Sin umbral'
+                  : 'Sin datos'
+              }}
             </strong>
-
           </div>
 
+          <div
+            class="flex min-w-0 flex-col gap-1.75 rounded-panel border border-solid border-divider p-4"
+          >
+            <span class="text-xs text-muted"> Fin de última ventana (Lima) </span>
 
-          <div class="flex min-w-0 flex-col gap-[7px] rounded-[10px] border border-solid border-[#eee] p-4 [&_span]:text-xs [&_span]:text-[#777]">
-
-            <span>
-              Fin de última ventana (Lima)
-            </span>
-
-            <strong class="text-[17px]">
-
+            <strong class="text-time">
               @if (monitoreoSeleccionado) {
-
-                {{
-                  monitoreoSeleccionado.periodoFin
-                    | date:'dd/MM HH:mm:ss':'-0500'
-                }}
-
+                {{ monitoreoSeleccionado.periodoFin | date: 'dd/MM HH:mm:ss' : '-0500' }}
               } @else {
-
                 Sin datos
-
               }
-
             </strong>
-
           </div>
-
         </div>
-
 
         <!-- TEMPORAL -->
-
-
-
       } @else {
+        <div class="flex h-125 flex-col items-center justify-center text-center text-muted">
+          <div class="text-symbol">◉</div>
 
-        <div class="flex h-[500px] flex-col items-center justify-center text-center text-[#777] [&_h3]:mb-[5px] [&_h3]:text-[#333] [&_p]:m-0">
+          <h3 class="mb-1.25 text-heading">Selecciona una cámara</h3>
 
-          <div class="text-[40px]">
-            ◉
-          </div>
-
-          <h3>Selecciona una cámara</h3>
-
-          <p>
-            Elige una cámara activa para visualizar
-            su monitoreo.
-          </p>
-
+          <p class="m-0">Elige una cámara activa para visualizar su monitoreo.</p>
         </div>
-
       }
-
     </div>
-
   </div>
-
 </section>

@@ -1,3 +1,4 @@
+import { Pagination } from '../../shared/pagination/pagination';
 import {
   AfterViewInit,
   Component,
@@ -20,7 +21,7 @@ import { RegistroAnalisis } from '../../core/models/analisis.model';
 
 @Component({
   selector: 'app-analisis',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Pagination],
   templateUrl: './analisis.html'
 })
 export class Analisis implements AfterViewInit, OnDestroy {

@@ -1,211 +1,222 @@
-<section class="mx-auto min-w-0 max-w-[1400px]">
-
-  <div class="mb-6 [&_h2]:mt-0 [&_h2]:mb-[6px] [&_p]:m-0 [&_p]:text-[#777]">
-
+<section class="mx-auto min-w-0 max-w-page">
+  <div class="mb-6">
     <div>
-      <h2>Análisis peatonal</h2>
-      <p>
-        Consulta el comportamiento histórico de la
-        concentración peatonal.
+      <h2 class="mt-0 mb-1.5">Análisis peatonal</h2>
+      <p class="m-0 text-muted">
+        Consulta el comportamiento histórico de la concentración peatonal.
       </p>
     </div>
-
   </div>
 
+  <div class="ui-card mb-5 flex flex-wrap gap-4 p-4.5">
+    <div class="flex min-w-0 flex-1 flex-col gap-1.75 desktop:min-w-filter desktop:flex-none">
+      <label class="text-xs font-semibold" for="analisis-zona">Zona</label>
 
-  <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white mb-5 flex flex-wrap gap-4 p-[18px]">
-
-    <div class="flex min-w-0 flex-1 flex-col gap-[7px] min-[761px]:min-w-[220px] min-[761px]:flex-none [&_label]:text-xs [&_label]:font-semibold [&_select]:box-border [&_select]:w-full [&_select]:min-w-0 [&_select]:rounded-lg [&_select]:border [&_select]:border-solid [&_select]:border-[#ddd] [&_select]:bg-white [&_select]:px-3 [&_select]:py-2.5 [&_select]:outline-none [&_select:focus-visible]:ring-1 [&_select:focus-visible]:ring-[#0d0d0d]">
-
-      <label for="analisis-zona">Zona</label>
-
-      <select id="analisis-zona"
+      <select
+        class="ui-field w-full py-2.5 focus-visible:ring-1 focus-visible:ring-content"
+        id="analisis-zona"
         [(ngModel)]="zonaSeleccionada"
-        (ngModelChange)="aplicarFiltros()">
-
-        <option [ngValue]="0">
-          Todas las zonas
-        </option>
+        (ngModelChange)="aplicarFiltros()"
+      >
+        <option [ngValue]="0">Todas las zonas</option>
 
         @for (zona of zonas; track zona.id) {
-
           <option [ngValue]="zona.id">
             {{ zona.nombre }}
           </option>
-
         }
-
       </select>
-
     </div>
 
+    <div class="flex min-w-0 flex-1 flex-col gap-1.75 desktop:min-w-filter desktop:flex-none">
+      <label class="text-xs font-semibold" for="analisis-camara">Cámara</label>
 
-    <div class="flex min-w-0 flex-1 flex-col gap-[7px] min-[761px]:min-w-[220px] min-[761px]:flex-none [&_label]:text-xs [&_label]:font-semibold [&_select]:box-border [&_select]:w-full [&_select]:min-w-0 [&_select]:rounded-lg [&_select]:border [&_select]:border-solid [&_select]:border-[#ddd] [&_select]:bg-white [&_select]:px-3 [&_select]:py-2.5 [&_select]:outline-none [&_select:focus-visible]:ring-1 [&_select:focus-visible]:ring-[#0d0d0d]">
-
-      <label for="analisis-camara">Cámara</label>
-
-      <select id="analisis-camara"
+      <select
+        class="ui-field w-full py-2.5 focus-visible:ring-1 focus-visible:ring-content"
+        id="analisis-camara"
         [(ngModel)]="camaraSeleccionada"
-        (ngModelChange)="aplicarFiltros()">
-
-        <option [ngValue]="0">
-          Todas las fuentes
-        </option>
+        (ngModelChange)="aplicarFiltros()"
+      >
+        <option [ngValue]="0">Todas las fuentes</option>
 
         @for (camara of camarasDisponibles; track camara.id) {
-
           <option [ngValue]="camara.id">
             {{ camara.nombre }}
           </option>
-
         }
-
       </select>
-
     </div>
-
   </div>
 
-
-  <div class="mb-5 grid grid-cols-1 gap-[15px] min-[761px]:grid-cols-2 min-[1100px]:grid-cols-4">
-
-    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-[7px] p-[18px] [&_span]:text-xs [&_span]:text-[#777] [&_strong]:text-[27px] [&_small]:text-[#999]">
-      <span>Suma de conteos</span>
-      <strong>{{ registrosFiltrados.length ? totalPeatones : 'Sin datos' }}</strong>
-      <small>Puede contar personas repetidas</small>
+  <div class="mb-5 grid grid-cols-1 gap-3.75 desktop:grid-cols-2 expanded:grid-cols-4">
+    <div class="ui-card flex flex-col gap-1.75 p-4.5">
+      <span class="text-xs text-muted">Suma de conteos</span>
+      <strong class="text-metric">{{
+        registrosFiltrados.length ? totalPeatones : 'Sin datos'
+      }}</strong>
+      <small class="text-faint">Puede contar personas repetidas</small>
     </div>
 
-    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-[7px] p-[18px] [&_span]:text-xs [&_span]:text-[#777] [&_strong]:text-[27px] [&_small]:text-[#999]">
-      <span>Promedio</span>
-      <strong>{{ registrosFiltrados.length ? promedioPeatones : 'Sin datos' }}</strong>
-      <small>Conteo por ventana</small>
+    <div class="ui-card flex flex-col gap-1.75 p-4.5">
+      <span class="text-xs text-muted">Promedio</span>
+      <strong class="text-metric">{{
+        registrosFiltrados.length ? promedioPeatones : 'Sin datos'
+      }}</strong>
+      <small class="text-faint">Conteo por ventana</small>
     </div>
 
-    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-[7px] p-[18px] [&_span]:text-xs [&_span]:text-[#777] [&_strong]:text-[27px] [&_small]:text-[#999]">
-      <span>Máximo registrado</span>
-      <strong>{{ registrosFiltrados.length ? maximoPeatones : 'Sin datos' }}</strong>
-      <small>Máximo por ventana</small>
+    <div class="ui-card flex flex-col gap-1.75 p-4.5">
+      <span class="text-xs text-muted">Máximo registrado</span>
+      <strong class="text-metric">{{
+        registrosFiltrados.length ? maximoPeatones : 'Sin datos'
+      }}</strong>
+      <small class="text-faint">Máximo por ventana</small>
     </div>
 
-    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-[7px] p-[18px] [&_span]:text-xs [&_span]:text-[#777] [&_strong]:text-[27px] [&_small]:text-[#999]">
-      <span>Mediciones</span>
-      <strong>{{ registrosFiltrados.length }}</strong>
-      <small>Registros analizados</small>
+    <div class="ui-card flex flex-col gap-1.75 p-4.5">
+      <span class="text-xs text-muted">Mediciones</span>
+      <strong class="text-metric">{{ registrosFiltrados.length }}</strong>
+      <small class="text-faint">Registros analizados</small>
     </div>
-
   </div>
 
-
-  <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white mb-5 overflow-hidden">
-
-    <div class="border-0 border-b border-solid border-[#eee] px-5 py-[18px] [&_h3]:mt-0 [&_h3]:mb-[5px] [&_p]:m-0 [&_p]:text-xs [&_p]:text-[#777]">
+  <div class="ui-card mb-5 overflow-hidden">
+    <div class="border-0 border-b border-solid border-divider px-5 py-4.5">
       <div>
-        <h3>Conteos por ventana</h3>
-        <p>
-          Conteos por ventana y fuente. Horarios de Lima.
-        </p>
+        <h3 class="mt-0 mb-1.25">Conteos por ventana</h3>
+        <p class="m-0 text-xs text-muted">Conteos por ventana y fuente. Horarios de Lima.</p>
       </div>
     </div>
 
-    <div class="box-content h-[330px] min-w-0 p-5">
-      @if (!registrosFiltrados.length) { <p>Sin datos para los filtros seleccionados.</p> }
+    <div class="box-content h-82.5 min-w-0 p-5">
+      @if (!registrosFiltrados.length) {
+        <p>Sin datos para los filtros seleccionados.</p>
+      }
       <canvas #graficoPeatones></canvas>
     </div>
-
   </div>
 
-
-  <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white mb-5 overflow-hidden">
-
-    <div class="border-0 border-b border-solid border-[#eee] px-5 py-[18px] [&_h3]:mt-0 [&_h3]:mb-[5px] [&_p]:m-0 [&_p]:text-xs [&_p]:text-[#777]">
-
+  <div class="ui-card mb-5 overflow-hidden">
+    <div class="border-0 border-b border-solid border-divider px-5 py-4.5">
       <div>
-        <h3>Historial de mediciones</h3>
-        <p>
-          Detalle de los registros procesados.
-        </p>
+        <h3 class="mt-0 mb-1.25">Historial de mediciones</h3>
+        <p class="m-0 text-xs text-muted">Detalle de los registros procesados.</p>
       </div>
-
     </div>
 
-
-    <div class="w-full overflow-x-auto"><table class="w-full min-w-[660px] border-collapse [&_th]:border-0 [&_th]:border-b [&_th]:border-solid [&_th]:border-[#eee] [&_th]:px-5 [&_th]:py-3.5 [&_th]:text-left [&_th]:text-[11px] [&_th]:uppercase [&_th]:text-[#777] [&_td]:border-0 [&_td]:border-b [&_td]:border-solid [&_td]:border-[#eee] [&_td]:px-5 [&_td]:py-3.5 [&_td]:text-left [&_td]:text-[13px]">
-
-      <thead>
-        <tr>
-          <th>Fecha</th>
-          <th>Ventana (hora Lima)</th>
-          <th>Zona</th>
-          <th>Cámara</th>
-          <th>Peatones</th>
-          <th>Concentración</th>
-        </tr>
-      </thead>
-
-      <tbody>
-
-        @for (
-          registro of registrosPagina;
-          track registro.id
-        ) {
-
+    <div class="w-full overflow-x-auto">
+      <table class="w-full min-w-table border-collapse">
+        <thead>
           <tr>
-
-            <td>
-              {{ registro.periodoInicio | date:'dd/MM/yyyy':'-0500' }}
-            </td>
-
-            <td>
-              {{ registro.periodoInicio | date:'HH:mm:ss':'-0500' }} – {{ registro.periodoFin | date:'HH:mm:ss':'-0500' }}
-            </td>
-
-            <td>
-              {{ obtenerNombreZona(registro.zonaId) }}
-            </td>
-
-            <td>
-              {{ obtenerNombreCamara(registro.camaraId) }}
-            </td>
-
-            <td>
-              <strong>
-                {{ registro.cantidadPeatones }}
-              </strong>
-            </td>
-
-            <td>
-
-              <span
-                class="inline-block rounded-[20px] px-2.5 py-[5px] text-[11px] font-semibold"
-                [ngClass]="{ 'bg-[#e8f5e9] text-[#2e7d32]': registro.nivel === 'bajo', 'bg-[#fff3e0] text-[#b26a00]': registro.nivel === 'medio', 'bg-[#ffebee] text-[#c62828]': registro.nivel === 'alto' }">
-
-                {{ registro.nivel ? (registro.nivel | titlecase) : 'Sin umbral' }}
-
-              </span>
-
-            </td>
-
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Fecha</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">
+              Ventana (hora Lima)
+            </th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Zona</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Cámara</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Peatones</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Concentración</th>
           </tr>
+        </thead>
 
-        } @empty { <tr><td colspan="6">Sin ventanas para los filtros seleccionados.</td></tr> }
+        <tbody>
+          @for (registro of registrosPagina; track registro.id) {
+            <tr>
+              <td class="ui-table-cell py-3.5 text-label">
+                {{ registro.periodoInicio | date: 'dd/MM/yyyy' : '-0500' }}
+              </td>
 
-      </tbody>
+              <td class="ui-table-cell py-3.5 text-label">
+                {{ registro.periodoInicio | date: 'HH:mm:ss' : '-0500' }} –
+                {{ registro.periodoFin | date: 'HH:mm:ss' : '-0500' }}
+              </td>
 
-    </table></div>
-    <div class="flex flex-wrap items-center justify-center gap-4 border-0 border-t border-solid border-[#eee] p-4 text-[13px] [&_button]:cursor-pointer [&_button]:rounded-[7px] [&_button]:border [&_button]:border-solid [&_button]:border-[#ddd] [&_button]:bg-white [&_button]:px-3.5 [&_button]:py-2 [&_button:disabled]:cursor-default [&_button:disabled]:opacity-45 [&_button:focus-visible]:outline-2 [&_button:focus-visible]:outline-offset-2 [&_button:focus-visible]:outline-[#0d0d0d]" aria-label="Paginación de mediciones">
-      <button type="button" (click)="cambiarPagina(-1)" [disabled]="paginaActual === 1">Anterior</button>
-      <span>Página {{ paginaActual }} de {{ totalPaginas }} · {{ registrosFiltrados.length }} ventanas</span>
-      <button type="button" (click)="cambiarPagina(1)" [disabled]="paginaActual === totalPaginas">Siguiente</button>
+              <td class="ui-table-cell py-3.5 text-label">
+                {{ obtenerNombreZona(registro.zonaId) }}
+              </td>
+
+              <td class="ui-table-cell py-3.5 text-label">
+                {{ obtenerNombreCamara(registro.camaraId) }}
+              </td>
+
+              <td class="ui-table-cell py-3.5 text-label">
+                <strong>
+                  {{ registro.cantidadPeatones }}
+                </strong>
+              </td>
+
+              <td class="ui-table-cell py-3.5 text-label">
+                <span
+                  class="inline-block rounded-badge px-2.5 py-1.25 text-caption font-semibold"
+                  [ngClass]="{
+                    'bg-success-soft text-success': registro.nivel === 'bajo',
+                    'bg-warning-soft text-warning': registro.nivel === 'medio',
+                    'bg-danger-soft text-danger': registro.nivel === 'alto',
+                  }"
+                >
+                  {{ registro.nivel ? (registro.nivel | titlecase) : 'Sin umbral' }}
+                </span>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td class="ui-table-cell py-3.5 text-label" colspan="6">
+                Sin ventanas para los filtros seleccionados.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </div>
-
+    <app-pagination
+      [page]="paginaActual"
+      [pages]="totalPaginas"
+      [total]="registrosFiltrados.length"
+      (pageChange)="cambiarPagina($event)"
+    />
   </div>
 
-  <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white mb-5 overflow-hidden">
+  <div class="ui-card mb-5 overflow-hidden">
     <h3>Ejecuciones de análisis</h3>
-    <div class="w-full overflow-x-auto"><table class="w-full min-w-[660px] border-collapse [&_th]:border-0 [&_th]:border-b [&_th]:border-solid [&_th]:border-[#eee] [&_th]:px-5 [&_th]:py-3.5 [&_th]:text-left [&_th]:text-[11px] [&_th]:uppercase [&_th]:text-[#777] [&_td]:border-0 [&_td]:border-b [&_td]:border-solid [&_td]:border-[#eee] [&_td]:px-5 [&_td]:py-3.5 [&_td]:text-left [&_td]:text-[13px]"><thead><tr><th>Zona / fuente</th><th>Cámara</th><th>Captura (Lima)</th><th>Inicio de proceso (Lima)</th><th>Estado</th><th>Detalle</th></tr></thead><tbody>
-    @for (p of procesamientosFiltrados; track p.id) {
-      <tr><td>{{ obtenerNombreZona(p.zonaId) }} · {{ p.tipoFuente }}</td><td>{{ obtenerNombreCamara(p.camaraId) }}</td><td>{{ p.fechaCapturaInicio | date:'dd/MM/yyyy HH:mm':'-0500' }}</td><td>{{ p.fechaInicioProceso | date:'dd/MM/yyyy HH:mm':'-0500' }}</td><td>{{ p.estado | titlecase }}</td><td>{{ p.mensajeError ?? '—' }}</td></tr>
-    } @empty { <tr><td colspan="6">Sin ejecuciones para los filtros seleccionados.</td></tr> }
-    </tbody></table></div>
+    <div class="w-full overflow-x-auto">
+      <table class="w-full min-w-table border-collapse">
+        <thead>
+          <tr>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Zona / fuente</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Cámara</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Captura (Lima)</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">
+              Inicio de proceso (Lima)
+            </th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Estado</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of procesamientosFiltrados; track p.id) {
+            <tr>
+              <td class="ui-table-cell py-3.5 text-label">
+                {{ obtenerNombreZona(p.zonaId) }} · {{ p.tipoFuente }}
+              </td>
+              <td class="ui-table-cell py-3.5 text-label">{{ obtenerNombreCamara(p.camaraId) }}</td>
+              <td class="ui-table-cell py-3.5 text-label">
+                {{ p.fechaCapturaInicio | date: 'dd/MM/yyyy HH:mm' : '-0500' }}
+              </td>
+              <td class="ui-table-cell py-3.5 text-label">
+                {{ p.fechaInicioProceso | date: 'dd/MM/yyyy HH:mm' : '-0500' }}
+              </td>
+              <td class="ui-table-cell py-3.5 text-label">{{ p.estado | titlecase }}</td>
+              <td class="ui-table-cell py-3.5 text-label">{{ p.mensajeError ?? '—' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td class="ui-table-cell py-3.5 text-label" colspan="6">
+                Sin ejecuciones para los filtros seleccionados.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   </div>
 </section>

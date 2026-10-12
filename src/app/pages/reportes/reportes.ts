@@ -1,3 +1,4 @@
+import { Pagination } from '../../shared/pagination/pagination';
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -10,7 +11,7 @@ import { RegistroAnalisis } from '../../core/models/analisis.model';
 
 @Component({
   selector: 'app-reportes',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Pagination],
   templateUrl: './reportes.html'
 })
 export class Reportes {

@@ -1,64 +1,68 @@
-<section class="mx-auto min-w-0 max-w-[1400px]">
-
-  <div class="mb-6 flex flex-col items-start justify-between gap-3 min-[761px]:flex-row min-[761px]:items-center [&_h2]:mt-0 [&_h2]:mb-[6px] [&_p]:m-0 [&_p]:text-[#777]">
+<section class="mx-auto min-w-0 max-w-page">
+  <div
+    class="mb-6 flex flex-col items-start justify-between gap-3 desktop:flex-row desktop:items-center"
+  >
     <div>
-      <h2>Gestión de cámaras</h2>
-      <p>Administra las cámaras utilizadas para el monitoreo peatonal.</p>
+      <h2 class="mt-0 mb-1.5">Gestión de cámaras</h2>
+      <p class="m-0 text-muted">Administra las cámaras utilizadas para el monitoreo peatonal.</p>
     </div>
 
     <button
-      class="cursor-pointer rounded-lg border-0 bg-[#0d0d0d] px-[18px] py-[11px] text-white hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d]"
-      (click)="abrirFormulario()">
+      class="ui-focus cursor-pointer rounded-lg border-0 bg-content px-4.5 py-2.75 text-white hover:opacity-85"
+      (click)="abrirFormulario()"
+    >
       + Nueva cámara
     </button>
   </div>
 
   @if (mostrarFormulario) {
-
-    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white mb-6 p-5">
-
-      <div class="mb-5 flex items-center justify-between gap-3 [&_h3]:mt-0 [&_h3]:mb-[5px] [&_p]:m-0 [&_p]:text-[13px] [&_p]:text-[#777]">
+    <div class="ui-card mb-6 p-5">
+      <div class="mb-5 flex items-center justify-between gap-3">
         <div>
-          <h3>
+          <h3 class="mt-0 mb-1.25">
             {{ camaraEditando ? 'Editar cámara' : 'Nueva cámara' }}
           </h3>
 
-          <p>
-            Configura la cámara y su fuente de video.
-          </p>
+          <p class="m-0 text-label text-muted">Configura la cámara y su fuente de video.</p>
         </div>
 
         <button
-          class="shrink-0 cursor-pointer border-0 bg-transparent text-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d]"
-          type="button" aria-label="Cerrar formulario"
-          (click)="cerrarFormulario()">
+          class="ui-focus shrink-0 cursor-pointer border-0 bg-transparent text-lg"
+          type="button"
+          aria-label="Cerrar formulario"
+          (click)="cerrarFormulario()"
+        >
           ✕
         </button>
       </div>
 
       <form (ngSubmit)="guardarCamara()">
-
-        <div class="grid grid-cols-1 gap-5 min-[761px]:grid-cols-2">
-
-          <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-[13px] [&_label]:font-semibold [&_small]:text-[#888]">
-            <label for="camara-nombre">Nombre</label>
+        <div class="grid grid-cols-1 gap-5 desktop:grid-cols-2">
+          <div class="flex min-w-0 flex-col gap-1.75">
+            <label class="text-label font-semibold" for="camara-nombre">Nombre</label>
 
             <input
               type="text"
-              name="nombre" id="camara-nombre" class="box-border min-w-0 rounded-lg border border-solid border-[#ddd] bg-white px-3 py-2.5 outline-none focus:border-[#0d0d0d] focus-visible:ring-1 focus-visible:ring-[#0d0d0d] w-full"
-              maxlength="100" [(ngModel)]="nuevaCamara.nombre"
+              name="nombre"
+              id="camara-nombre"
+              class="ui-field py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content w-full"
+              maxlength="100"
+              [(ngModel)]="nuevaCamara.nombre"
               placeholder="Ej. Cámara UTP 01"
-              required>
+              required
+            />
           </div>
 
-          <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-[13px] [&_label]:font-semibold [&_small]:text-[#888]">
-            <label for="camara-zonaId">Zona</label>
+          <div class="flex min-w-0 flex-col gap-1.75">
+            <label class="text-label font-semibold" for="camara-zonaId">Zona</label>
 
             <select
-              name="zonaId" id="camara-zonaId" class="box-border min-w-0 rounded-lg border border-solid border-[#ddd] bg-white px-3 py-2.5 outline-none focus:border-[#0d0d0d] focus-visible:ring-1 focus-visible:ring-[#0d0d0d] w-full"
+              name="zonaId"
+              id="camara-zonaId"
+              class="ui-field py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content w-full"
               [(ngModel)]="nuevaCamara.zonaId"
-              required>
-
+              required
+            >
               <option [ngValue]="0">Seleccione una zona</option>
 
               @for (zona of zonas; track zona.id) {
@@ -66,176 +70,203 @@
                   {{ zona.nombre }}
                 </option>
               }
-
             </select>
           </div>
 
-          <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-[13px] [&_label]:font-semibold [&_small]:text-[#888]">
-            <label for="camara-tipo">Tipo de cámara</label>
+          <div class="flex min-w-0 flex-col gap-1.75">
+            <label class="text-label font-semibold" for="camara-tipo">Tipo de cámara</label>
 
             <select
-              name="tipo" id="camara-tipo" class="box-border min-w-0 rounded-lg border border-solid border-[#ddd] bg-white px-3 py-2.5 outline-none focus:border-[#0d0d0d] focus-visible:ring-1 focus-visible:ring-[#0d0d0d] w-full"
-              [(ngModel)]="nuevaCamara.tipo">
-
+              name="tipo"
+              id="camara-tipo"
+              class="ui-field py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content w-full"
+              [(ngModel)]="nuevaCamara.tipo"
+            >
               <option value="fija">Fija</option>
               <option value="movil">Móvil</option>
-
             </select>
           </div>
 
-          <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-[13px] [&_label]:font-semibold [&_small]:text-[#888]">
-            <label for="camara-urlStream">Fuente de video</label>
+          <div class="flex min-w-0 flex-col gap-1.75">
+            <label class="text-label font-semibold" for="camara-urlStream">Fuente de video</label>
 
             <input
               type="text"
-              name="urlStream" id="camara-urlStream" class="box-border min-w-0 rounded-lg border border-solid border-[#ddd] bg-white px-3 py-2.5 outline-none focus:border-[#0d0d0d] focus-visible:ring-1 focus-visible:ring-[#0d0d0d] w-full"
+              name="urlStream"
+              id="camara-urlStream"
+              class="ui-field py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content w-full"
               [(ngModel)]="nuevaCamara.urlStream"
-              maxlength="255" placeholder="https://… o rtsp://…"
-              [required]="!camaraEditando">
+              maxlength="255"
+              placeholder="https://… o rtsp://…"
+              [required]="!camaraEditando"
+            />
 
-            <small>
-              {{ camaraEditando ? 'Fuente opcional en esta prueba; no se conecta ni se conserva.' : 'Solo se utiliza para probar el formulario; no hay conexión real.' }}
+            <small class="text-subtle">
+              {{
+                camaraEditando
+                  ? 'Fuente opcional en esta prueba; no se conecta ni se conserva.'
+                  : 'Solo se utiliza para probar el formulario; no hay conexión real.'
+              }}
             </small>
           </div>
 
-          <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-[13px] [&_label]:font-semibold [&_small]:text-[#888]"><label for="camara-estado">Estado</label><select name="estado" id="camara-estado" class="box-border min-w-0 rounded-lg border border-solid border-[#ddd] bg-white px-3 py-2.5 outline-none focus:border-[#0d0d0d] focus-visible:ring-1 focus-visible:ring-[#0d0d0d] w-full" [(ngModel)]="nuevaCamara.estado"><option value="activa">Activa</option><option value="inactiva">Inactiva</option><option value="mantenimiento">Mantenimiento</option></select></div>
-          <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-[13px] [&_label]:font-semibold [&_small]:text-[#888]"><label for="camara-intervalo">Intervalo de muestreo (segundos)</label><input type="number" name="intervalo" id="camara-intervalo" class="box-border min-w-0 rounded-lg border border-solid border-[#ddd] bg-white px-3 py-2.5 outline-none focus:border-[#0d0d0d] focus-visible:ring-1 focus-visible:ring-[#0d0d0d] w-full" min="1" step="1" required [(ngModel)]="nuevaCamara.intervaloMuestreoSeg"></div>
+          <div class="flex min-w-0 flex-col gap-1.75">
+            <label class="text-label font-semibold" for="camara-estado">Estado</label
+            ><select
+              name="estado"
+              id="camara-estado"
+              class="ui-field py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content w-full"
+              [(ngModel)]="nuevaCamara.estado"
+            >
+              <option value="activa">Activa</option>
+              <option value="inactiva">Inactiva</option>
+              <option value="mantenimiento">Mantenimiento</option>
+            </select>
+          </div>
+          <div class="flex min-w-0 flex-col gap-1.75">
+            <label class="text-label font-semibold" for="camara-intervalo"
+              >Intervalo de muestreo (segundos)</label
+            ><input
+              type="number"
+              name="intervalo"
+              id="camara-intervalo"
+              class="ui-field py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content w-full"
+              min="1"
+              step="1"
+              required
+              [(ngModel)]="nuevaCamara.intervaloMuestreoSeg"
+            />
+          </div>
         </div>
 
-        @if (mensaje) { <p role="alert">{{ mensaje }}</p> }
+        @if (mensaje) {
+          <p role="alert">{{ mensaje }}</p>
+        }
 
         <div class="mt-5 flex flex-wrap justify-end gap-2.5">
-
           <button
             type="button"
-            class="cursor-pointer rounded-[7px] border border-solid border-[#ddd] bg-white px-3 py-[7px] hover:bg-[#f5f5f5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d]"
-            (click)="cerrarFormulario()">
+            class="ui-focus cursor-pointer rounded-control border border-solid border-field bg-white px-3 py-1.75 hover:bg-canvas"
+            (click)="cerrarFormulario()"
+          >
             Cancelar
           </button>
 
           <button
             type="submit"
-            class="cursor-pointer rounded-lg border-0 bg-[#0d0d0d] px-[18px] py-[11px] text-white hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d]">
-
+            class="ui-focus cursor-pointer rounded-lg border-0 bg-content px-4.5 py-2.75 text-white hover:opacity-85"
+          >
             {{ camaraEditando ? 'Guardar cambios' : 'Registrar cámara' }}
-
           </button>
-
         </div>
-
       </form>
-
     </div>
-
   }
 
-  <div class="mb-6 grid grid-cols-1 gap-4 min-[761px]:grid-cols-3">
-
-    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-2 p-5 [&_span]:text-[13px] [&_span]:text-[#777] [&_strong]:text-[28px]">
-      <span>Total de cámaras</span>
-      <strong>{{ camaras.length }}</strong>
+  <div class="mb-6 grid grid-cols-1 gap-4 desktop:grid-cols-3">
+    <div class="ui-card flex flex-col gap-2 p-5">
+      <span class="text-label text-muted">Total de cámaras</span>
+      <strong class="text-stat">{{ camaras.length }}</strong>
     </div>
 
-    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-2 p-5 [&_span]:text-[13px] [&_span]:text-[#777] [&_strong]:text-[28px]">
-      <span>Cámaras activas</span>
-      <strong>{{ camarasActivas }}</strong>
+    <div class="ui-card flex flex-col gap-2 p-5">
+      <span class="text-label text-muted">Cámaras activas</span>
+      <strong class="text-stat">{{ camarasActivas }}</strong>
     </div>
 
-    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-2 p-5 [&_span]:text-[13px] [&_span]:text-[#777] [&_strong]:text-[28px]">
-      <span>Analizando</span>
-      <strong>{{ camarasAnalizando }}</strong>
+    <div class="ui-card flex flex-col gap-2 p-5">
+      <span class="text-label text-muted">Analizando</span>
+      <strong class="text-stat">{{ camarasAnalizando }}</strong>
     </div>
-
   </div>
 
-  <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white overflow-hidden">
-
-    <div class="flex flex-col items-start justify-between gap-3 border-0 border-b border-solid border-[#eee] p-5 min-[761px]:flex-row min-[761px]:items-center [&_h3]:mt-0 [&_h3]:mb-[5px] [&_p]:m-0 [&_p]:text-[13px] [&_p]:text-[#777]">
-
+  <div class="ui-card overflow-hidden">
+    <div
+      class="flex flex-col items-start justify-between gap-3 border-0 border-b border-solid border-divider p-5 desktop:flex-row desktop:items-center"
+    >
       <div>
-        <h3>Cámaras registradas</h3>
-        <p>Dispositivos configurados para monitoreo.</p>
+        <h3 class="mt-0 mb-1.25">Cámaras registradas</h3>
+        <p class="m-0 text-label text-muted">Dispositivos configurados para monitoreo.</p>
       </div>
 
       <input
         type="text"
-        class="box-border min-w-0 rounded-lg border border-solid border-[#ddd] bg-white px-3 py-2.5 outline-none focus:border-[#0d0d0d] focus-visible:ring-1 focus-visible:ring-[#0d0d0d] w-full min-[761px]:w-[220px]"
-        placeholder="Buscar cámara..." aria-label="Buscar cámara"
-        [(ngModel)]="busqueda">
-
+        class="ui-field py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content w-full desktop:w-filter"
+        placeholder="Buscar cámara..."
+        aria-label="Buscar cámara"
+        [(ngModel)]="busqueda"
+      />
     </div>
 
-    <div class="w-full overflow-x-auto"><table class="w-full min-w-[660px] border-collapse [&_th]:border-0 [&_th]:border-b [&_th]:border-solid [&_th]:border-[#eee] [&_th]:px-5 [&_th]:py-[15px] [&_th]:text-left [&_th]:text-xs [&_th]:uppercase [&_th]:text-[#777] [&_td]:border-0 [&_td]:border-b [&_td]:border-solid [&_td]:border-[#eee] [&_td]:px-5 [&_td]:py-[15px] [&_td]:text-left [&_td]:text-sm">
-
-      <thead>
-        <tr>
-          <th>Cámara</th>
-          <th>Zona</th>
-          <th>Tipo</th>
-          <th>Estado</th>
-          <th>Muestreo / procesamiento</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-
-      <tbody>
-
-        @for (camara of camarasFiltradas; track camara.id) {
-
+    <div class="w-full overflow-x-auto">
+      <table class="w-full min-w-table border-collapse">
+        <thead>
           <tr>
-
-            <td>
-              <strong>{{ camara.nombre }}</strong>
-            </td>
-
-            <td>{{ obtenerZona(camara.zonaId)?.nombre || 'Sin zona' }}</td>
-
-            <td>
-              <span class="inline-block rounded-[20px] bg-[#f1f1f1] px-2.5 py-[5px] text-xs">
-                {{ camara.tipo }}
-              </span>
-            </td>
-
-            <td>
-              <span
-                class="inline-block rounded-[20px] px-2.5 py-[5px] text-xs"
-                [ngClass]="{ 'bg-[#e8f5e9] text-[#2e7d32]': camara.estado === 'activa', 'bg-[#f5f5f5] text-[#777]': camara.estado === 'inactiva', 'bg-[#fff3cd] text-[#805b00]': camara.estado === 'mantenimiento' }">
-
-                {{ camara.estado | titlecase }}
-
-              </span>
-            </td>
-
-            <td>
-              {{ camara.intervaloMuestreoSeg }} s · {{ estaAnalizando(camara.id) ? 'Procesando' : 'Sin ejecución activa' }}
-            </td>
-
-            <td class="whitespace-nowrap [&_button+button]:ml-[7px] [&_button]:whitespace-nowrap">
-
-              <button
-                class="cursor-pointer rounded-[7px] border border-solid border-[#ddd] bg-white px-3 py-[7px] hover:bg-[#f5f5f5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d]"
-                (click)="editarCamara(camara)">
-                Editar
-              </button>
-
-              <button
-                class="cursor-pointer rounded-[7px] border border-solid border-[#ddd] bg-white px-3 py-[7px] hover:bg-[#f5f5f5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d]"
-                (click)="cambiarEstado(camara)">
-
-                {{ camara.estado === 'activa' ? 'Desactivar' : 'Activar' }}
-
-              </button>
-
-            </td>
-
+            <th class="ui-table-cell py-3.75 text-xs uppercase text-muted">Cámara</th>
+            <th class="ui-table-cell py-3.75 text-xs uppercase text-muted">Zona</th>
+            <th class="ui-table-cell py-3.75 text-xs uppercase text-muted">Tipo</th>
+            <th class="ui-table-cell py-3.75 text-xs uppercase text-muted">Estado</th>
+            <th class="ui-table-cell py-3.75 text-xs uppercase text-muted">
+              Muestreo / procesamiento
+            </th>
+            <th class="ui-table-cell py-3.75 text-xs uppercase text-muted">Acciones</th>
           </tr>
+        </thead>
 
-        }
+        <tbody>
+          @for (camara of camarasFiltradas; track camara.id) {
+            <tr>
+              <td class="ui-table-cell py-3.75 text-sm">
+                <strong>{{ camara.nombre }}</strong>
+              </td>
 
-      </tbody>
+              <td class="ui-table-cell py-3.75 text-sm">
+                {{ obtenerZona(camara.zonaId)?.nombre || 'Sin zona' }}
+              </td>
 
-    </table></div>
+              <td class="ui-table-cell py-3.75 text-sm">
+                <span class="inline-block rounded-badge bg-soft px-2.5 py-1.25 text-xs">
+                  {{ camara.tipo }}
+                </span>
+              </td>
 
+              <td class="ui-table-cell py-3.75 text-sm">
+                <span
+                  class="inline-block rounded-badge px-2.5 py-1.25 text-xs"
+                  [ngClass]="{
+                    'bg-success-soft text-success': camara.estado === 'activa',
+                    'bg-canvas text-muted': camara.estado === 'inactiva',
+                    'bg-maintenance-soft text-maintenance': camara.estado === 'mantenimiento',
+                  }"
+                >
+                  {{ camara.estado | titlecase }}
+                </span>
+              </td>
+
+              <td class="ui-table-cell py-3.75 text-sm">
+                {{ camara.intervaloMuestreoSeg }} s ·
+                {{ estaAnalizando(camara.id) ? 'Procesando' : 'Sin ejecución activa' }}
+              </td>
+
+              <td class="ui-table-cell whitespace-nowrap py-3.75 text-sm">
+                <button
+                  class="ui-focus cursor-pointer rounded-control border border-solid border-field bg-white px-3 py-1.75 hover:bg-canvas whitespace-nowrap"
+                  (click)="editarCamara(camara)"
+                >
+                  Editar
+                </button>
+
+                <button
+                  class="ui-focus cursor-pointer rounded-control border border-solid border-field bg-white px-3 py-1.75 hover:bg-canvas whitespace-nowrap ml-1.75"
+                  (click)="cambiarEstado(camara)"
+                >
+                  {{ camara.estado === 'activa' ? 'Desactivar' : 'Activar' }}
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   </div>
-
 </section>

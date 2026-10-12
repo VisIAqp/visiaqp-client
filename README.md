@@ -1,13 +1,22 @@
 # VisIAqp
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.6.
+This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.
+
+## Tooling
+
+Angular 21, Angular Material/CDK 21, Tailwind CSS 4.3 and pnpm 11.25.0.
+Use Node.js 22.12 or newer within the 22.x series (other supported ranges are in package.json).
+
+Install dependencies with `pnpm install --frozen-lockfile`.
+Tailwind is configured through PostCSS in src/styles.css. Its theme and utilities are enabled; Preflight is omitted to preserve existing Material and custom styles.
+Run headless tests with `pnpm test --watch=false --browsers=ChromeHeadless`.
 
 ## Development server
 
 To start a local development server, run:
 
 ```bash
-ng serve
+pnpm start
 ```
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
@@ -17,7 +26,7 @@ Once the server is running, open your browser and navigate to `http://localhost:
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
 
 ```bash
-ng generate component component-name
+pnpm exec ng generate component component-name
 ```
 
 For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
@@ -31,7 +40,7 @@ ng generate --help
 To build the project run:
 
 ```bash
-ng build
+pnpm build
 ```
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
@@ -41,7 +50,7 @@ This will compile your project and store the build artifacts in the `dist/` dire
 To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
 
 ```bash
-ng test
+pnpm test
 ```
 
 ## Running end-to-end tests
@@ -49,7 +58,7 @@ ng test
 For end-to-end (e2e) testing, run:
 
 ```bash
-ng e2e
+pnpm exec ng e2e
 ```
 
 Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.

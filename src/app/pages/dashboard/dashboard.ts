@@ -7,7 +7,7 @@ import { CamaraService } from '../../core/services/camara';
 import { AnalisisService } from '../../core/services/analisis';
 import { IndicadorService } from '../../core/services/indicador';
 import { PeriodoTipo } from '../../core/models/indicador.model';
-@Component({ selector: 'app-dashboard', imports: [CommonModule, FormsModule], templateUrl: './dashboard.html', styleUrl: './dashboard.css' })
+@Component({ selector: 'app-dashboard', imports: [CommonModule, FormsModule], templateUrl: './dashboard.html' })
 export class Dashboard implements AfterViewInit, OnDestroy {
   private zonaService = inject(ZonaService);
   private camaraService = inject(CamaraService);

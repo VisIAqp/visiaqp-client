@@ -1,168 +1,177 @@
-<section class="mx-auto min-w-0 max-w-[1400px]">
-
-  <div class="mb-6 flex flex-col items-start justify-between gap-3 min-[761px]:flex-row min-[761px]:items-center [&_h2]:mt-0 [&_h2]:mb-[6px] [&_h2]:text-[#0d0d0d] [&_p]:m-0 [&_p]:text-[#777]">
+<section class="mx-auto min-w-0 max-w-page">
+  <div
+    class="mb-6 flex flex-col items-start justify-between gap-3 desktop:flex-row desktop:items-center"
+  >
     <div>
-      <h2>Gestión de zonas</h2>
-      <p>Administra las zonas donde se realizará el monitoreo peatonal.</p>
+      <h2 class="mt-0 mb-1.5 text-content">Gestión de zonas</h2>
+      <p class="m-0 text-muted">Administra las zonas donde se realizará el monitoreo peatonal.</p>
     </div>
 
-    <button class="cursor-pointer rounded-lg border-0 bg-[#0d0d0d] px-[18px] py-[11px] font-medium text-white hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d]" (click)="abrirFormulario()">
-     + Nueva zona
+    <button
+      class="ui-focus cursor-pointer rounded-lg border-0 bg-content px-4.5 py-2.75 font-medium text-white hover:opacity-85"
+      (click)="abrirFormulario()"
+    >
+      + Nueva zona
     </button>
   </div>
 
   @if (mostrarFormulario) {
-
-  <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white mb-6 p-5">
-
-    <div class="mb-5 flex items-start justify-between gap-3 [&_h3]:mt-0 [&_h3]:mb-[5px] [&_p]:m-0 [&_p]:text-[13px] [&_p]:text-[#777]">
-      <div>
-        <h3>
+    <div class="ui-card mb-6 p-5">
+      <div class="mb-5 flex items-start justify-between gap-3">
+        <div>
+          <h3 class="mt-0 mb-1.25">
             {{ zonaEditando ? 'Editar zona' : 'Nueva zona' }}
-        </h3>
-        
-        <p>
+          </h3>
+
+          <p class="m-0 text-label text-muted">
             {{
-                zonaEditando
+              zonaEditando
                 ? 'Modifica los datos de la zona seleccionada.'
                 : 'Registra una nueva zona de monitoreo.'
             }}
-        </p>
-      </div>
-
-      <button
-        class="shrink-0 cursor-pointer border-0 bg-transparent text-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d]"
-        type="button"
-        aria-label="Cerrar formulario"
-        (click)="cerrarFormulario()">
-        ✕
-      </button>
-    </div>
-
-    <form (ngSubmit)="guardarZona()">
-
-      <div class="grid grid-cols-1 gap-5 min-[761px]:grid-cols-2">
-
-        <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-[13px] [&_label]:font-semibold">
-          <label for="nombre">Nombre de la zona</label>
-
-          <input
-            id="nombre"
-            class="box-border min-w-0 rounded-lg border border-solid border-[#ddd] bg-white px-3 outline-none focus:border-[#0d0d0d] focus-visible:ring-1 focus-visible:ring-[#0d0d0d] w-full py-[11px]"
-            type="text"
-            name="nombre"
-            [(ngModel)]="nuevaZona.nombre"
-            maxlength="100" placeholder="Ej. Zona UTP Arequipa"
-            required
-          >
+          </p>
         </div>
-
-        <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-[13px] [&_label]:font-semibold">
-          <label for="ubicacion">Ubicación</label>
-
-          <input
-            id="ubicacion"
-            class="box-border min-w-0 rounded-lg border border-solid border-[#ddd] bg-white px-3 outline-none focus:border-[#0d0d0d] focus-visible:ring-1 focus-visible:ring-[#0d0d0d] w-full py-[11px]"
-            type="text"
-            name="ubicacion"
-            [(ngModel)]="nuevaZona.ubicacion"
-            maxlength="150" placeholder="Ubicación opcional"
-          >
-        </div>
-
-      </div>
-
-      <div class="mt-5 flex flex-wrap justify-end gap-2.5">
 
         <button
+          class="ui-focus shrink-0 cursor-pointer border-0 bg-transparent text-lg"
           type="button"
-          class="cursor-pointer rounded-lg border border-solid border-[#ddd] bg-white px-[18px] py-2.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d]"
-          (click)="cerrarFormulario()">
-          Cancelar
+          aria-label="Cerrar formulario"
+          (click)="cerrarFormulario()"
+        >
+          ✕
         </button>
-
-        <button
-          type="submit"
-          class="cursor-pointer rounded-lg border-0 bg-[#0d0d0d] px-[18px] py-[11px] font-medium text-white hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d]">
-          {{ zonaEditando ? 'Guardar cambios' : 'Guardar zona' }}
-        </button>
-
       </div>
 
-    </form>
+      <form (ngSubmit)="guardarZona()">
+        <div class="grid grid-cols-1 gap-5 desktop:grid-cols-2">
+          <div class="flex min-w-0 flex-col gap-1.75">
+            <label class="text-label font-semibold" for="nombre">Nombre de la zona</label>
 
+            <input
+              id="nombre"
+              class="ui-field focus:border-content focus-visible:ring-1 focus-visible:ring-content w-full py-2.75"
+              type="text"
+              name="nombre"
+              [(ngModel)]="nuevaZona.nombre"
+              maxlength="100"
+              placeholder="Ej. Zona UTP Arequipa"
+              required
+            />
+          </div>
+
+          <div class="flex min-w-0 flex-col gap-1.75">
+            <label class="text-label font-semibold" for="ubicacion">Ubicación</label>
+
+            <input
+              id="ubicacion"
+              class="ui-field focus:border-content focus-visible:ring-1 focus-visible:ring-content w-full py-2.75"
+              type="text"
+              name="ubicacion"
+              [(ngModel)]="nuevaZona.ubicacion"
+              maxlength="150"
+              placeholder="Ubicación opcional"
+            />
+          </div>
+        </div>
+
+        <div class="mt-5 flex flex-wrap justify-end gap-2.5">
+          <button
+            type="button"
+            class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4.5 py-2.5"
+            (click)="cerrarFormulario()"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="ui-focus cursor-pointer rounded-lg border-0 bg-content px-4.5 py-2.75 font-medium text-white hover:opacity-85"
+          >
+            {{ zonaEditando ? 'Guardar cambios' : 'Guardar zona' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+  <div class="mb-6 grid grid-cols-1 gap-4 desktop:grid-cols-3">
+    <div class="ui-card flex flex-col gap-2 p-5">
+      <span class="text-label text-muted">Total de zonas</span>
+      <strong class="text-stat text-content">{{ zonas.length }}</strong>
+    </div>
+
+    <div class="ui-card flex flex-col gap-2 p-5">
+      <span class="text-label text-muted">Zonas activas</span>
+      <strong class="text-stat text-content">{{ zonasActivas }}</strong>
+    </div>
+
+    <div class="ui-card flex flex-col gap-2 p-5">
+      <span class="text-label text-muted">Cámaras asociadas</span>
+      <strong class="text-stat text-content">{{ totalCamaras }}</strong>
+    </div>
   </div>
 
-}
-  <div class="mb-6 grid grid-cols-1 gap-4 min-[761px]:grid-cols-3">
-    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-2 p-5 [&_span]:text-[13px] [&_span]:text-[#777] [&_strong]:text-[28px] [&_strong]:text-[#0d0d0d]">
-      <span>Total de zonas</span>
-      <strong>{{ zonas.length }}</strong>
-    </div>
-
-    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-2 p-5 [&_span]:text-[13px] [&_span]:text-[#777] [&_strong]:text-[28px] [&_strong]:text-[#0d0d0d]">
-      <span>Zonas activas</span>
-      <strong>{{ zonasActivas }}</strong>
-    </div>
-
-    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-2 p-5 [&_span]:text-[13px] [&_span]:text-[#777] [&_strong]:text-[28px] [&_strong]:text-[#0d0d0d]">
-      <span>Cámaras asociadas</span>
-      <strong>{{ totalCamaras }}</strong>
-    </div>
-  </div>
-
-  <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white overflow-hidden">
-
-    <div class="flex flex-col items-start justify-between gap-3 border-0 border-b border-solid border-[#eee] p-5 min-[761px]:flex-row min-[761px]:items-center [&_h3]:mt-0 [&_h3]:mb-[5px] [&_p]:m-0 [&_p]:text-[13px] [&_p]:text-[#777]">
+  <div class="ui-card overflow-hidden">
+    <div
+      class="flex flex-col items-start justify-between gap-3 border-0 border-b border-solid border-divider p-5 desktop:flex-row desktop:items-center"
+    >
       <div>
-        <h3>Zonas registradas</h3>
-        <p>Listado de zonas configuradas en el sistema.</p>
+        <h3 class="mt-0 mb-1.25">Zonas registradas</h3>
+        <p class="m-0 text-label text-muted">Listado de zonas configuradas en el sistema.</p>
       </div>
 
       <input
         type="text"
         placeholder="Buscar zona..."
         aria-label="Buscar zona"
-        class="box-border min-w-0 rounded-lg border border-solid border-[#ddd] bg-white px-3 outline-none focus:border-[#0d0d0d] focus-visible:ring-1 focus-visible:ring-[#0d0d0d] w-full py-2.5 min-[761px]:w-[220px]"
+        class="ui-field focus:border-content focus-visible:ring-1 focus-visible:ring-content w-full py-2.5 desktop:w-filter"
         [(ngModel)]="busqueda"
-      >
+      />
     </div>
 
-    <div class="w-full overflow-x-auto"><table class="w-full min-w-[660px] border-collapse [&_th]:border-0 [&_th]:border-b [&_th]:border-solid [&_th]:border-[#eee] [&_th]:px-5 [&_th]:py-[15px] [&_th]:text-left [&_th]:text-xs [&_th]:font-semibold [&_th]:uppercase [&_th]:text-[#777] [&_td]:border-0 [&_td]:border-b [&_td]:border-solid [&_td]:border-[#eee] [&_td]:px-5 [&_td]:py-[15px] [&_td]:text-left [&_td]:text-sm">
-      <thead>
-        <tr>
-          <th>Zona</th>
-          <th>Ubicación</th>
-          <th>Cámaras</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
+    <div class="w-full overflow-x-auto">
+      <table class="w-full min-w-table border-collapse">
+        <thead>
+          <tr>
+            <th class="ui-table-cell py-3.75 text-xs font-semibold uppercase text-muted">Zona</th>
+            <th class="ui-table-cell py-3.75 text-xs font-semibold uppercase text-muted">
+              Ubicación
+            </th>
+            <th class="ui-table-cell py-3.75 text-xs font-semibold uppercase text-muted">
+              Cámaras
+            </th>
+            <th class="ui-table-cell py-3.75 text-xs font-semibold uppercase text-muted">Estado</th>
+            <th class="ui-table-cell py-3.75 text-xs font-semibold uppercase text-muted">
+              Acciones
+            </th>
+          </tr>
+        </thead>
 
-      <tbody>
-        
-        @for (zona of zonasFiltradas; track zona.id) {
+        <tbody>
+          @for (zona of zonasFiltradas; track zona.id) {
             <tr>
-                <td>{{ zona.nombre }}</td>
-                <td>{{ zona.ubicacion ?? 'Sin ubicación' }}</td>
-                <td>{{ contarCamaras(zona.id) }}</td>
-                <td>
-                    <span class="rounded-[20px] px-2.5 py-[5px] text-xs font-medium" [ngClass]="{ 'bg-[#e8f5e9] text-[#2e7d32]': zona.estado === 'activa' }">
-                        {{ zona.estado === 'activa' ? 'Activa' : 'Inactiva' }}
-                    </span>
-                </td>
-                <td>
-                    <button 
-                        class="cursor-pointer rounded-md border border-solid border-[#ddd] bg-transparent px-3 py-[6px] hover:bg-[#f5f5f5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d]"
-                        (click)="editarZona(zona)">
-                        Editar
-                    </button>
-      </td>
-    </tr>
-    }
+              <td class="ui-table-cell py-3.75 text-sm">{{ zona.nombre }}</td>
+              <td class="ui-table-cell py-3.75 text-sm">{{ zona.ubicacion ?? 'Sin ubicación' }}</td>
+              <td class="ui-table-cell py-3.75 text-sm">{{ contarCamaras(zona.id) }}</td>
+              <td class="ui-table-cell py-3.75 text-sm">
+                <span
+                  class="rounded-badge px-2.5 py-1.25 text-xs font-medium"
+                  [ngClass]="{ 'bg-success-soft text-success': zona.estado === 'activa' }"
+                >
+                  {{ zona.estado === 'activa' ? 'Activa' : 'Inactiva' }}
+                </span>
+              </td>
+              <td class="ui-table-cell py-3.75 text-sm">
+                <button
+                  class="ui-focus cursor-pointer rounded-md border border-solid border-field bg-transparent px-3 py-1.5 hover:bg-canvas"
+                  (click)="editarZona(zona)"
+                >
+                  Editar
+                </button>
+              </td>
+            </tr>
+          }
         </tbody>
-    </table></div>
-
+      </table>
+    </div>
   </div>
-
 </section>

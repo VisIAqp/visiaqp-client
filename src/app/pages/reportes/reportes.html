@@ -1,288 +1,229 @@
-<section class="mx-auto min-w-0 max-w-[1400px]">
-
-  <div class="mb-6 [&_h2]:mt-0 [&_h2]:mb-[6px] [&_p]:m-0 [&_p]:text-[#777]">
-
+<section class="mx-auto min-w-0 max-w-page">
+  <div class="mb-6">
     <div>
-      <h2>Reportes</h2>
+      <h2 class="mt-0 mb-1.5">Reportes</h2>
 
-      <p>
-        Consulta y prepara reportes históricos
-        de concentración peatonal.
+      <p class="m-0 text-muted">
+        Consulta y prepara reportes históricos de concentración peatonal.
       </p>
     </div>
-
   </div>
 
-
-  <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white mb-5 p-5">
-
-    <div class="mb-[18px] [&_h3]:mt-0 [&_h3]:mb-[5px] [&_p]:m-0 [&_p]:text-[13px] [&_p]:text-[#777]">
-      <h3>Filtros del reporte</h3>
-      <p>
-        Selecciona los datos que deseas incluir.
-      </p>
+  <div class="ui-card mb-5 p-5">
+    <div class="mb-4.5">
+      <h3 class="mt-0 mb-1.25">Filtros del reporte</h3>
+      <p class="m-0 text-label text-muted">Selecciona los datos que deseas incluir.</p>
     </div>
 
-
-    <div class="grid grid-cols-1 gap-4 min-[761px]:grid-cols-2 min-[1100px]:grid-cols-4">
-
-      <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-xs [&_label]:font-semibold [&_select]:box-border [&_select]:w-full [&_select]:min-w-0 [&_select]:rounded-lg [&_select]:border [&_select]:border-solid [&_select]:border-[#ddd] [&_select]:bg-white [&_select]:px-3 [&_select]:py-2.5 [&_select]:outline-none [&_select:focus-visible]:ring-1 [&_select:focus-visible]:ring-[#0d0d0d] [&_input]:box-border [&_input]:w-full [&_input]:min-w-0 [&_input]:rounded-lg [&_input]:border [&_input]:border-solid [&_input]:border-[#ddd] [&_input]:bg-white [&_input]:px-3 [&_input]:py-2.5 [&_input]:outline-none [&_input:focus-visible]:ring-1 [&_input:focus-visible]:ring-[#0d0d0d]">
-
-        <label for="reporte-zonaSeleccionada">Zona</label>
+    <div class="grid grid-cols-1 gap-4 desktop:grid-cols-2 expanded:grid-cols-4">
+      <div class="flex min-w-0 flex-col gap-1.75">
+        <label class="text-xs font-semibold" for="reporte-zonaSeleccionada">Zona</label>
 
         <select
-          id="reporte-zonaSeleccionada" [(ngModel)]="zonaSeleccionada"
-          (ngModelChange)="cambiarZona()">
-
-          <option [ngValue]="0">
-            Todas las zonas
-          </option>
+          class="ui-field w-full py-2.5 focus-visible:ring-1 focus-visible:ring-content"
+          id="reporte-zonaSeleccionada"
+          [(ngModel)]="zonaSeleccionada"
+          (ngModelChange)="cambiarZona()"
+        >
+          <option [ngValue]="0">Todas las zonas</option>
 
           @for (zona of zonas; track zona.id) {
-
             <option [ngValue]="zona.id">
               {{ zona.nombre }}
             </option>
-
           }
-
         </select>
-
       </div>
 
-
-      <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-xs [&_label]:font-semibold [&_select]:box-border [&_select]:w-full [&_select]:min-w-0 [&_select]:rounded-lg [&_select]:border [&_select]:border-solid [&_select]:border-[#ddd] [&_select]:bg-white [&_select]:px-3 [&_select]:py-2.5 [&_select]:outline-none [&_select:focus-visible]:ring-1 [&_select:focus-visible]:ring-[#0d0d0d] [&_input]:box-border [&_input]:w-full [&_input]:min-w-0 [&_input]:rounded-lg [&_input]:border [&_input]:border-solid [&_input]:border-[#ddd] [&_input]:bg-white [&_input]:px-3 [&_input]:py-2.5 [&_input]:outline-none [&_input:focus-visible]:ring-1 [&_input:focus-visible]:ring-[#0d0d0d]">
-
-        <label for="reporte-camaraSeleccionada">Cámara</label>
+      <div class="flex min-w-0 flex-col gap-1.75">
+        <label class="text-xs font-semibold" for="reporte-camaraSeleccionada">Cámara</label>
 
         <select
-          id="reporte-camaraSeleccionada" [(ngModel)]="camaraSeleccionada" (ngModelChange)="reiniciarPagina()">
+          class="ui-field w-full py-2.5 focus-visible:ring-1 focus-visible:ring-content"
+          id="reporte-camaraSeleccionada"
+          [(ngModel)]="camaraSeleccionada"
+          (ngModelChange)="reiniciarPagina()"
+        >
+          <option [ngValue]="0">Todas las fuentes</option>
 
-          <option [ngValue]="0">
-            Todas las fuentes
-          </option>
-
-          @for (
-            camara of camarasDisponibles;
-            track camara.id
-          ) {
-
+          @for (camara of camarasDisponibles; track camara.id) {
             <option [ngValue]="camara.id">
               {{ camara.nombre }}
             </option>
-
           }
-
         </select>
-
       </div>
 
-
-      <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-xs [&_label]:font-semibold [&_select]:box-border [&_select]:w-full [&_select]:min-w-0 [&_select]:rounded-lg [&_select]:border [&_select]:border-solid [&_select]:border-[#ddd] [&_select]:bg-white [&_select]:px-3 [&_select]:py-2.5 [&_select]:outline-none [&_select:focus-visible]:ring-1 [&_select:focus-visible]:ring-[#0d0d0d] [&_input]:box-border [&_input]:w-full [&_input]:min-w-0 [&_input]:rounded-lg [&_input]:border [&_input]:border-solid [&_input]:border-[#ddd] [&_input]:bg-white [&_input]:px-3 [&_input]:py-2.5 [&_input]:outline-none [&_input:focus-visible]:ring-1 [&_input:focus-visible]:ring-[#0d0d0d]">
-
-        <label for="reporte-fechaInicio">Fecha inicial</label>
+      <div class="flex min-w-0 flex-col gap-1.75">
+        <label class="text-xs font-semibold" for="reporte-fechaInicio">Fecha inicial</label>
 
         <input
+          class="ui-field w-full py-2.5 focus-visible:ring-1 focus-visible:ring-content"
           type="date"
-          id="reporte-fechaInicio" [(ngModel)]="fechaInicio" (ngModelChange)="reiniciarPagina()">
-
+          id="reporte-fechaInicio"
+          [(ngModel)]="fechaInicio"
+          (ngModelChange)="reiniciarPagina()"
+        />
       </div>
 
-
-      <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-xs [&_label]:font-semibold [&_select]:box-border [&_select]:w-full [&_select]:min-w-0 [&_select]:rounded-lg [&_select]:border [&_select]:border-solid [&_select]:border-[#ddd] [&_select]:bg-white [&_select]:px-3 [&_select]:py-2.5 [&_select]:outline-none [&_select:focus-visible]:ring-1 [&_select:focus-visible]:ring-[#0d0d0d] [&_input]:box-border [&_input]:w-full [&_input]:min-w-0 [&_input]:rounded-lg [&_input]:border [&_input]:border-solid [&_input]:border-[#ddd] [&_input]:bg-white [&_input]:px-3 [&_input]:py-2.5 [&_input]:outline-none [&_input:focus-visible]:ring-1 [&_input:focus-visible]:ring-[#0d0d0d]">
-
-        <label for="reporte-fechaFin">Fecha final</label>
+      <div class="flex min-w-0 flex-col gap-1.75">
+        <label class="text-xs font-semibold" for="reporte-fechaFin">Fecha final</label>
 
         <input
+          class="ui-field w-full py-2.5 focus-visible:ring-1 focus-visible:ring-content"
           type="date"
-          id="reporte-fechaFin" [(ngModel)]="fechaFin" (ngModelChange)="reiniciarPagina()">
-
+          id="reporte-fechaFin"
+          [(ngModel)]="fechaFin"
+          (ngModelChange)="reiniciarPagina()"
+        />
       </div>
-
     </div>
-
 
     <div class="mt-4 flex justify-end">
-
       <button
-        class="cursor-pointer rounded-[7px] border border-solid px-3.5 py-[9px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d] border-[#ddd] bg-white hover:bg-[#f5f5f5]"
-        (click)="limpiarFiltros()">
-
+        class="ui-focus cursor-pointer rounded-control border border-solid px-3.5 py-2.25 border-field bg-white hover:bg-canvas"
+        (click)="limpiarFiltros()"
+      >
         Limpiar filtros
-
       </button>
-
     </div>
-
   </div>
 
-
-  <div class="mb-5 grid grid-cols-1 gap-[15px] min-[761px]:grid-cols-2 min-[1100px]:grid-cols-4">
-
-    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-[7px] p-[18px] [&_span]:text-xs [&_span]:text-[#777] [&_strong]:text-[27px]">
-      <span>Registros</span>
-      <strong>
+  <div class="mb-5 grid grid-cols-1 gap-3.75 desktop:grid-cols-2 expanded:grid-cols-4">
+    <div class="ui-card flex flex-col gap-1.75 p-4.5">
+      <span class="text-xs text-muted">Registros</span>
+      <strong class="text-metric">
         {{ registrosFiltrados.length }}
       </strong>
     </div>
 
-    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-[7px] p-[18px] [&_span]:text-xs [&_span]:text-[#777] [&_strong]:text-[27px]">
-      <span>Suma de conteos</span>
-      <strong>
+    <div class="ui-card flex flex-col gap-1.75 p-4.5">
+      <span class="text-xs text-muted">Suma de conteos</span>
+      <strong class="text-metric">
         {{ registrosFiltrados.length ? totalPeatones : 'Sin datos' }}
       </strong>
     </div>
 
-    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-[7px] p-[18px] [&_span]:text-xs [&_span]:text-[#777] [&_strong]:text-[27px]">
-      <span>Promedio</span>
-      <strong>
+    <div class="ui-card flex flex-col gap-1.75 p-4.5">
+      <span class="text-xs text-muted">Promedio</span>
+      <strong class="text-metric">
         {{ registrosFiltrados.length ? promedioPeatones : 'Sin datos' }}
       </strong>
     </div>
 
-    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-[7px] p-[18px] [&_span]:text-xs [&_span]:text-[#777] [&_strong]:text-[27px]">
-      <span>Máximo</span>
-      <strong>
+    <div class="ui-card flex flex-col gap-1.75 p-4.5">
+      <span class="text-xs text-muted">Máximo</span>
+      <strong class="text-metric">
         {{ registrosFiltrados.length ? maximoPeatones : 'Sin datos' }}
       </strong>
     </div>
-
   </div>
 
-
-  <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white overflow-hidden">
-
-    <div class="flex flex-col items-start justify-between gap-3 border-0 border-b border-solid border-[#eee] px-5 py-[18px] min-[1001px]:flex-row min-[1001px]:items-center [&_h3]:mt-0 [&_h3]:mb-[5px] [&_p]:m-0 [&_p]:text-xs [&_p]:text-[#777]">
-
+  <div class="ui-card overflow-hidden">
+    <div
+      class="flex flex-col items-start justify-between gap-3 border-0 border-b border-solid border-divider px-5 py-4.5 wide:flex-row wide:items-center"
+    >
       <div>
-        <h3>Vista previa del reporte</h3>
+        <h3 class="mt-0 mb-1.25">Vista previa del reporte</h3>
 
-        <p>
-          Registros que serán incluidos
-          en la exportación.
-        </p>
+        <p class="m-0 text-xs text-muted">Registros que serán incluidos en la exportación.</p>
       </div>
-
 
       <div class="flex flex-wrap gap-2.5">
-
         <button
-          class="cursor-pointer rounded-[7px] border border-solid px-3.5 py-[9px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d] border-[#ddd] bg-white hover:bg-[#f5f5f5]"
-          (click)="exportarExcel()">
-
+          class="ui-focus cursor-pointer rounded-control border border-solid px-3.5 py-2.25 border-field bg-white hover:bg-canvas"
+          (click)="exportarExcel()"
+        >
           Exportar Excel
-
         </button>
 
         <button
-          class="cursor-pointer rounded-[7px] border border-solid px-3.5 py-[9px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d] border-[#0d0d0d] bg-[#0d0d0d] text-white hover:opacity-85"
-          (click)="exportarPDF()">
-
+          class="ui-focus cursor-pointer rounded-control border border-solid px-3.5 py-2.25 border-content bg-content text-white hover:opacity-85"
+          (click)="exportarPDF()"
+        >
           Exportar PDF
-
         </button>
-
       </div>
-
     </div>
-
 
     @if (mensaje) {
-
-      <div role="status" class="mx-5 mt-[15px] rounded-lg bg-[#f5f5f5] p-3 text-[13px]">
+      <div role="status" class="mx-5 mt-3.75 rounded-lg bg-canvas p-3 text-label">
         {{ mensaje }}
       </div>
-
     }
 
-
-    <div class="w-full overflow-x-auto"><table class="w-full min-w-[660px] border-collapse [&_th]:border-0 [&_th]:border-b [&_th]:border-solid [&_th]:border-[#eee] [&_th]:px-5 [&_th]:py-3.5 [&_th]:text-left [&_th]:text-[11px] [&_th]:uppercase [&_th]:text-[#777] [&_td]:border-0 [&_td]:border-b [&_td]:border-solid [&_td]:border-[#eee] [&_td]:px-5 [&_td]:py-3.5 [&_td]:text-left [&_td]:text-[13px]">
-
-      <thead>
-
-        <tr>
-          <th>Fecha</th>
-          <th>Ventana (hora Lima)</th>
-          <th>Zona</th>
-          <th>Cámara</th>
-          <th>Peatones</th>
-          <th>Nivel</th>
-        </tr>
-
-      </thead>
-
-
-      <tbody>
-
-        @for (
-          registro of registrosPagina;
-          track registro.id
-        ) {
-
+    <div class="w-full overflow-x-auto">
+      <table class="w-full min-w-table border-collapse">
+        <thead>
           <tr>
-
-            <td>
-              {{ registro.periodoInicio | date:'dd/MM/yyyy':'-0500' }}
-            </td>
-
-            <td>
-              {{ registro.periodoInicio | date:'HH:mm:ss':'-0500' }} – {{ registro.periodoFin | date:'HH:mm:ss':'-0500' }}
-            </td>
-
-            <td>
-              {{ obtenerNombreZona(registro.zonaId) }}
-            </td>
-
-            <td>
-              {{ obtenerNombreCamara(registro.camaraId) }}
-            </td>
-
-            <td>
-              <strong>
-                {{ registro.cantidadPeatones }}
-              </strong>
-            </td>
-
-            <td>
-
-              <span
-                class="inline-block rounded-[20px] px-2.5 py-[5px] text-[11px] font-semibold"
-                [ngClass]="{ 'bg-[#e8f5e9] text-[#2e7d32]': registro.nivel === 'bajo', 'bg-[#fff3e0] text-[#b26a00]': registro.nivel === 'medio', 'bg-[#ffebee] text-[#c62828]': registro.nivel === 'alto' }">
-
-                {{ registro.nivel ? (registro.nivel | titlecase) : 'Sin umbral' }}
-
-              </span>
-
-            </td>
-
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Fecha</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">
+              Ventana (hora Lima)
+            </th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Zona</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Cámara</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Peatones</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Nivel</th>
           </tr>
+        </thead>
 
-        } @empty {
+        <tbody>
+          @for (registro of registrosPagina; track registro.id) {
+            <tr>
+              <td class="ui-table-cell py-3.5 text-label">
+                {{ registro.periodoInicio | date: 'dd/MM/yyyy' : '-0500' }}
+              </td>
 
-          <tr>
+              <td class="ui-table-cell py-3.5 text-label">
+                {{ registro.periodoInicio | date: 'HH:mm:ss' : '-0500' }} –
+                {{ registro.periodoFin | date: 'HH:mm:ss' : '-0500' }}
+              </td>
 
-            <td
-              colspan="6"
-              class="p-10! text-center! text-[#888]">
+              <td class="ui-table-cell py-3.5 text-label">
+                {{ obtenerNombreZona(registro.zonaId) }}
+              </td>
 
-              No existen registros para los
-              filtros seleccionados.
+              <td class="ui-table-cell py-3.5 text-label">
+                {{ obtenerNombreCamara(registro.camaraId) }}
+              </td>
 
-            </td>
+              <td class="ui-table-cell py-3.5 text-label">
+                <strong>
+                  {{ registro.cantidadPeatones }}
+                </strong>
+              </td>
 
-          </tr>
-
-        }
-
-      </tbody>
-
-    </table></div>
-    <div class="flex flex-wrap items-center justify-center gap-4 border-0 border-t border-solid border-[#eee] p-4 text-[13px] [&_button]:cursor-pointer [&_button]:rounded-[7px] [&_button]:border [&_button]:border-solid [&_button]:border-[#ddd] [&_button]:bg-white [&_button]:px-3.5 [&_button]:py-2 [&_button:disabled]:cursor-default [&_button:disabled]:opacity-45 [&_button:focus-visible]:outline-2 [&_button:focus-visible]:outline-offset-2 [&_button:focus-visible]:outline-[#0d0d0d]" aria-label="Paginación de mediciones">
-      <button type="button" (click)="cambiarPagina(-1)" [disabled]="paginaActual === 1">Anterior</button>
-      <span>Página {{ paginaActual }} de {{ totalPaginas }} · {{ registrosFiltrados.length }} ventanas</span>
-      <button type="button" (click)="cambiarPagina(1)" [disabled]="paginaActual === totalPaginas">Siguiente</button>
+              <td class="ui-table-cell py-3.5 text-label">
+                <span
+                  class="inline-block rounded-badge px-2.5 py-1.25 text-caption font-semibold"
+                  [ngClass]="{
+                    'bg-success-soft text-success': registro.nivel === 'bajo',
+                    'bg-warning-soft text-warning': registro.nivel === 'medio',
+                    'bg-danger-soft text-danger': registro.nivel === 'alto',
+                  }"
+                >
+                  {{ registro.nivel ? (registro.nivel | titlecase) : 'Sin umbral' }}
+                </span>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td
+                colspan="6"
+                class="ui-table-cell p-10! text-center! text-subtle py-3.5 text-label"
+              >
+                No existen registros para los filtros seleccionados.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </div>
-
+    <app-pagination
+      [page]="paginaActual"
+      [pages]="totalPaginas"
+      [total]="registrosFiltrados.length"
+      (pageChange)="cambiarPagina($event)"
+    />
   </div>
-
 </section>

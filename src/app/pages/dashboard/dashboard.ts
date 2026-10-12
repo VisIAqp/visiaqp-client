@@ -1,200 +1,128 @@
 import {
   AfterViewInit,
   Component,
+  DestroyRef,
   ElementRef,
+  inject,
   OnDestroy,
   ViewChild,
-  inject
 } from '@angular/core';
-
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import { Chart } from 'chart.js/auto';
-
+import { RequestState } from '../../core/api/request-state';
+import { ApiState } from '../../shared/api-state/api-state';
 import { ZonaService } from '../../core/services/zona';
 import { CamaraService } from '../../core/services/camara';
+import { IndicadorService } from '../../core/services/indicador';
 import { AnalisisService } from '../../core/services/analisis';
-
-import { RegistroAnalisis } from '../../core/models/analisis.model';
-
+import { Zona } from '../../core/models/zona.model';
+import { Camara } from '../../core/models/camara.model';
+import { Indicador, PeriodoTipo } from '../../core/models/indicador.model';
+import { Procesamiento } from '../../core/models/analisis.model';
+import { addDays, limaToday } from '../../core/api/dates';
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, ApiState],
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.css'
 })
 export class Dashboard implements AfterViewInit, OnDestroy {
-
-  private zonaService = inject(ZonaService);
-  private camaraService = inject(CamaraService);
-  private analisisService = inject(AnalisisService);
-
-  @ViewChild('graficoDashboard')
-  graficoDashboard!: ElementRef<HTMLCanvasElement>;
-
+  private zonasApi = inject(ZonaService);
+  private camarasApi = inject(CamaraService);
+  private indicadoresApi = inject(IndicadorService);
+  private procesamientosApi = inject(AnalisisService);
+  readonly request = new RequestState(inject(DestroyRef));
+  zonas: Zona[] = [];
+  camaras: Camara[] = [];
+  procesamientos: Procesamiento[] = [];
+  indicadores: Indicador[] = [];
+  zonaSeleccionada = 0;
+  periodoTipo: PeriodoTipo = 'hora';
+  @ViewChild('graficoDashboard') graficoDashboard!: ElementRef<HTMLCanvasElement>;
   private chart?: Chart;
-
-  zonas = this.zonaService.obtenerZonas();
-  camaras = this.camaraService.obtenerCamaras();
-  registros = this.analisisService.obtenerRegistros();
-
-  get totalZonas(): number {
-    return this.zonas.length;
+  get ultimoIndicador() {
+    return this.indicadores.at(-1);
   }
-
-  get zonasActivas(): number {
-    return this.zonas.filter(zona => zona.activa).length;
+  get camarasActivas() {
+    return this.camaras.filter((c) => c.estado === 'activa').length;
   }
-
-  get totalCamaras(): number {
-    return this.camaras.length;
+  get zonasActivas() {
+    return this.zonas.filter((z) => z.estado === 'activa').length;
   }
-
-  get camarasActivas(): number {
-    return this.camaras.filter(camara => camara.activa).length;
+  get procesando() {
+    return this.procesamientos.filter((p) => p.estado === 'procesando').length;
   }
-
-  get camarasAnalizando(): number {
-    return this.camaras.filter(
-      camara => camara.activa && camara.analisisActivo
-    ).length;
+  ngAfterViewInit() {
+    this.chart = new Chart(this.graficoDashboard.nativeElement, {
+      type: 'line',
+      data: { labels: [], datasets: [{ label: 'Promedio por periodo', data: [], tension: 0.3 }] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { y: { beginAtZero: true } },
+      },
+    });
+    this.cargar();
   }
-
-  get totalPeatones(): number {
-    return this.registros.reduce(
-      (total, registro) =>
-        total + registro.peatonesDetectados,
-      0
+  cargar() {
+    this.request.run(
+      forkJoin({
+        zonas: this.zonasApi.listar(),
+        camaras: this.camarasApi.listar(),
+        procesamientos: this.procesamientosApi.listar(),
+      }),
+      (d) => {
+        this.zonas = d.zonas;
+        this.camaras = d.camaras;
+        this.procesamientos = d.procesamientos;
+        if (!this.zonas.some((z) => z.id === this.zonaSeleccionada))
+          this.zonaSeleccionada = this.zonas[0]?.id || 0;
+        this.actualizarGrafico();
+      },
     );
   }
-
-  get maximoRegistrado(): number {
-
-    if (!this.registros.length) {
-      return 0;
-    }
-
-    return Math.max(
-      ...this.registros.map(
-        registro => registro.peatonesDetectados
-      )
+  actualizarGrafico() {
+    this.indicadores = [];
+    this.renderChart();
+    if (!this.zonaSeleccionada) return;
+    const today = limaToday();
+    this.request.run(
+      this.indicadoresApi.historico(
+        this.zonaSeleccionada,
+        this.periodoTipo,
+        addDays(today, -6) + 'T00:00:00',
+        addDays(today, 1) + 'T00:00:00',
+      ),
+      (rows) => {
+        this.indicadores = rows;
+        this.renderChart();
+      },
     );
   }
-
-  get nivelActual(): string {
-
-    if (!this.registros.length) {
-      return 'Sin datos';
-    }
-
-    const ultimo = [...this.registros].sort(
-      (a, b) =>
-        b.fecha.getTime() - a.fecha.getTime()
-    )[0];
-
-    return ultimo.nivel;
-  }
-
-  get actividadReciente(): RegistroAnalisis[] {
-
-    return [...this.registros]
-      .sort(
-        (a, b) =>
-          b.fecha.getTime() - a.fecha.getTime()
-      )
-      .slice(0, 5);
-  }
-
-  obtenerNombreCamara(camaraId: number): string {
-
-    return (
-      this.camaraService
-        .obtenerCamaraPorId(camaraId)?.nombre ??
-      'Cámara desconocida'
+  private renderChart() {
+    if (!this.chart) return;
+    this.chart.data.labels = this.indicadores.map((i) =>
+      i.periodoInicio.toLocaleString('es-PE', {
+        timeZone: 'America/Lima',
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
     );
+    this.chart.data.datasets[0].data = this.indicadores.map((i) => i.promedioPeatones);
+    this.chart.update();
   }
-
-  obtenerNombreZona(camaraId: number): string {
-
-    const camara =
-      this.camaraService.obtenerCamaraPorId(camaraId);
-
-    if (!camara) {
-      return 'Zona desconocida';
-    }
-
-    return (
-      this.zonaService
-        .obtenerZonaPorId(camara.zonaId)?.nombre ??
-      'Zona desconocida'
-    );
+  nombreZona(id: number) {
+    return this.zonas.find((z) => z.id === id)?.nombre || 'Zona ' + id;
   }
-
-  ngAfterViewInit(): void {
-    this.crearGrafico();
+  nombreCamara(id: number | null) {
+    return id === null
+      ? 'Archivo sin cámara'
+      : this.camaras.find((c) => c.id === id)?.nombre || 'Cámara ' + id;
   }
-
-  ngOnDestroy(): void {
+  ngOnDestroy() {
     this.chart?.destroy();
-  }
-
-  private crearGrafico(): void {
-
-    const datosPorHora = new Map<string, number>();
-
-    for (const registro of this.registros) {
-
-      const hora = registro.fecha.toLocaleTimeString(
-        'es-PE',
-        {
-          hour: '2-digit',
-          minute: '2-digit'
-        }
-      );
-
-      const cantidadActual =
-        datosPorHora.get(hora) ?? 0;
-
-      datosPorHora.set(
-        hora,
-        cantidadActual + registro.peatonesDetectados
-      );
-    }
-
-    this.chart = new Chart(
-      this.graficoDashboard.nativeElement,
-      {
-        type: 'line',
-
-        data: {
-          labels: Array.from(datosPorHora.keys()),
-
-          datasets: [
-            {
-              label: 'Peatones detectados',
-              data: Array.from(datosPorHora.values()),
-              tension: 0.3,
-              fill: false
-            }
-          ]
-        },
-
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-
-          plugins: {
-            legend: {
-              display: true
-            }
-          },
-
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          }
-        }
-      }
-    );
   }
 }

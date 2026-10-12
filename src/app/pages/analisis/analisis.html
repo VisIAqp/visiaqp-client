@@ -1,199 +1,177 @@
-<section class="analisis-page">
-
-  <div class="page-header">
-
-    <div>
-      <h2>Análisis peatonal</h2>
-      <p>
-        Consulta el comportamiento histórico de la
-        concentración peatonal.
-      </p>
-    </div>
-
+<section class="mx-auto min-w-0 max-w-page">
+  <h2 class="mt-0">Análisis peatonal</h2>
+  <p class="text-muted">Solicita análisis de videos y consulta indicadores históricos.</p>
+  <p class="rounded-lg bg-canvas p-4 text-label">
+    El detalle por ventana y por cámara aún no está disponible. Los históricos que se muestran son
+    indicadores calculados por el backend.
+  </p>
+  <div class="ui-card mb-5 p-5">
+    <h3 class="mt-0">Solicitar análisis de video</h3>
+    <p class="text-muted">
+      Selecciona un video del catálogo del motor. No se suben archivos desde el navegador.
+    </p>
+    <app-api-state [loading]="request.loading()" [error]="request.error()" (retry)="cargar()" />
+    <form (ngSubmit)="solicitar()">
+      <fieldset
+        class="grid gap-4 border-0 p-0 desktop:grid-cols-2"
+        [disabled]="saving.loading() || request.loading()"
+      >
+        <label class="flex flex-col gap-2"
+          >Video disponible<select
+            name="video"
+            class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+            [(ngModel)]="videoId"
+            (ngModelChange)="sugerirFecha()"
+            required
+          >
+            <option [ngValue]="0">Selecciona un video</option>
+            @for (v of videos; track v.id_video) {
+              <option [ngValue]="v.id_video">
+                {{ v.nombre_archivo }} ({{ v.tamano_bytes / 1048576 | number: '1.1-1' }} MB)
+              </option>
+            }
+          </select></label
+        >
+        <label class="flex flex-col gap-2"
+          >Cámara activa<select
+            name="camara"
+            class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+            [(ngModel)]="camaraId"
+            required
+          >
+            <option [ngValue]="0">Selecciona una cámara</option>
+            @for (c of activas; track c.id) {
+              <option [ngValue]="c.id">{{ c.nombre }}</option>
+            }
+          </select></label
+        >
+        <label class="flex flex-col gap-2"
+          >Inicio de la grabación (Lima)<input
+            name="fecha"
+            type="datetime-local"
+            step="1"
+            class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+            [(ngModel)]="fechaCaptura"
+            required
+          /><small class="text-muted"
+            >La fecha de modificación es una sugerencia. Confirma cuándo comenzó la
+            grabación.</small
+          ></label
+        >
+      </fieldset>
+      <app-api-state [loading]="saving.loading()" [error]="saving.error()" [retryable]="false" />
+      @if (!request.loading() && !request.error() && !videos.length) {
+        <p>No hay videos disponibles en el catálogo.</p>
+      }
+      <button
+        class="ui-focus cursor-pointer rounded-lg border-0 bg-content px-4 py-2.5 text-white disabled:cursor-default disabled:opacity-45"
+        [disabled]="saving.loading() || request.loading() || !videoId || !camaraId || !fechaCaptura"
+      >
+        Solicitar procesamiento
+      </button>
+    </form>
+    @if (mensaje) {
+      <p role="status">{{ mensaje }}</p>
+    }
   </div>
-
-
-  <div class="filters">
-
-    <div class="filter-group">
-
-      <label>Zona</label>
-
-      <select
-        [(ngModel)]="zonaSeleccionada"
-        (ngModelChange)="aplicarFiltros()">
-
-        <option [ngValue]="0">
-          Todas las zonas
-        </option>
-
-        @for (zona of zonas; track zona.id) {
-
-          <option [ngValue]="zona.id">
-            {{ zona.nombre }}
-          </option>
-
-        }
-
-      </select>
-
+  <div class="ui-card mb-5 overflow-hidden">
+    <div class="flex flex-wrap items-end gap-4 p-5">
+      <h3 class="m-0">Ejecuciones</h3>
+      <label class="flex flex-col gap-2"
+        >Estado<select
+          class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+          [(ngModel)]="filtroEstado"
+          (ngModelChange)="refrescar()"
+        >
+          <option value="">Todos</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="procesando">Procesando</option>
+          <option value="completado">Completado</option>
+          <option value="error">Error</option>
+        </select></label
+      ><label class="flex flex-col gap-2"
+        >Cámara del historial<select
+          class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+          [(ngModel)]="filtroCamara"
+          (ngModelChange)="refrescar()"
+        >
+          <option [ngValue]="0">Todas las fuentes</option>
+          @for (c of camaras; track c.id) {
+            <option [ngValue]="c.id">{{ c.nombre }}</option>
+          }
+        </select></label
+      ><button
+        class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2 disabled:cursor-default disabled:opacity-45"
+        [disabled]="request.loading()"
+        (click)="refrescar()"
+      >
+        Actualizar ejecuciones
+      </button>
     </div>
-
-
-    <div class="filter-group">
-
-      <label>Cámara</label>
-
-      <select
-        [(ngModel)]="camaraSeleccionada"
-        (ngModelChange)="aplicarFiltros()">
-
-        <option [ngValue]="0">
-          Todas las cámaras
-        </option>
-
-        @for (camara of camarasDisponibles; track camara.id) {
-
-          <option [ngValue]="camara.id">
-            {{ camara.nombre }}
-          </option>
-
-        }
-
-      </select>
-
-    </div>
-
-  </div>
-
-
-  <div class="metrics">
-
-    <div class="metric-card">
-      <span>Total detectado</span>
-      <strong>{{ totalPeatones }}</strong>
-      <small>Registros acumulados</small>
-    </div>
-
-    <div class="metric-card">
-      <span>Promedio</span>
-      <strong>{{ promedioPeatones }}</strong>
-      <small>Peatones por medición</small>
-    </div>
-
-    <div class="metric-card">
-      <span>Máximo registrado</span>
-      <strong>{{ maximoPeatones }}</strong>
-      <small>Mayor concentración</small>
-    </div>
-
-    <div class="metric-card">
-      <span>Mediciones</span>
-      <strong>{{ registrosFiltrados.length }}</strong>
-      <small>Registros analizados</small>
-    </div>
-
-  </div>
-
-
-  <div class="chart-card">
-
-    <div class="card-header">
-      <div>
-        <h3>Concentración por hora</h3>
-        <p>
-          Evolución de peatones detectados durante el día.
-        </p>
-      </div>
-    </div>
-
-    <div class="chart-container">
-      <canvas #graficoPeatones></canvas>
-    </div>
-
-  </div>
-
-
-  <div class="table-card">
-
-    <div class="card-header">
-
-      <div>
-        <h3>Historial de mediciones</h3>
-        <p>
-          Detalle de los registros procesados.
-        </p>
-      </div>
-
-    </div>
-
-
-    <table>
-
-      <thead>
-        <tr>
-          <th>Fecha</th>
-          <th>Hora</th>
-          <th>Zona</th>
-          <th>Cámara</th>
-          <th>Peatones</th>
-          <th>Concentración</th>
-        </tr>
-      </thead>
-
-      <tbody>
-
-        @for (
-          registro of registrosFiltrados;
-          track registro.id
-        ) {
-
+    <p class="px-5 text-label text-muted">
+      Hasta 500 ejecuciones. Solo se cancelan solicitudes pendientes. Si el motor deja de responder,
+      una ejecución puede permanecer en proceso.
+    </p>
+    @if (actualizado) {
+      <small class="px-5">Última consulta: {{ actualizado | date: 'HH:mm:ss' : '-0500' }}</small>
+    }
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-table border-collapse">
+        <thead>
           <tr>
-
-            <td>
-              {{ registro.fecha | date:'dd/MM/yyyy' }}
-            </td>
-
-            <td>
-              {{ registro.fecha | date:'HH:mm' }}
-            </td>
-
-            <td>
-              {{ obtenerNombreZona(registro.camaraId) }}
-            </td>
-
-            <td>
-              {{ obtenerNombreCamara(registro.camaraId) }}
-            </td>
-
-            <td>
-              <strong>
-                {{ registro.peatonesDetectados }}
-              </strong>
-            </td>
-
-            <td>
-
-              <span
-                class="level"
-                [class.low]="registro.nivel === 'Bajo'"
-                [class.medium]="registro.nivel === 'Medio'"
-                [class.high]="registro.nivel === 'Alto'">
-
-                {{ registro.nivel }}
-
-              </span>
-
-            </td>
-
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">ID / fuente</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Cámara</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Captura (Lima)</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Estado / detalle</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Acciones</th>
           </tr>
-
-        }
-
-      </tbody>
-
-    </table>
-
+        </thead>
+        <tbody>
+          @for (p of procesamientos; track p.id) {
+            <tr>
+              <td class="ui-table-cell py-3.5 text-label">
+                #{{ p.id }} · {{ p.tipoFuente }}<small class="block">{{ p.rutaArchivo }}</small>
+              </td>
+              <td class="ui-table-cell py-3.5 text-label">{{ nombreCamara(p.camaraId) }}</td>
+              <td class="ui-table-cell py-3.5 text-label">
+                {{ p.fechaCapturaInicio | date: 'dd/MM/yyyy HH:mm' : '-0500' }}
+              </td>
+              <td class="ui-table-cell py-3.5 text-label">
+                {{ p.estado | titlecase }}
+                @if (p.mensajeError) {
+                  <small class="block text-danger">{{ p.mensajeError }}</small>
+                }
+              </td>
+              <td class="ui-table-cell py-3.5 text-label">
+                @if (puedeCancelar(p)) {
+                  <button
+                    class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2 disabled:cursor-default disabled:opacity-45"
+                    [disabled]="saving.loading()"
+                    (click)="cancelar(p)"
+                  >
+                    Cancelar solicitud
+                  </button>
+                } @else {
+                  —
+                }
+              </td>
+            </tr>
+          } @empty {
+            @if (!request.loading() && !request.error()) {
+              <tr>
+                <td colspan="5" class="ui-table-cell py-3.5 text-label">
+                  No hay ejecuciones en esta consulta.
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
   </div>
-
+  <app-indicator-view [query]="history" />
+  <div class="ui-card p-5">
+    <h3 class="mt-0">Promedio por periodo</h3>
+    <div class="relative h-82.5 min-w-0"><canvas #graficoPeatones></canvas></div>
+  </div>
 </section>

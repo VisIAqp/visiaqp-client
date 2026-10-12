@@ -1,0 +1,22 @@
+<div
+  class="flex flex-wrap items-center justify-center gap-4 border-0 border-t border-solid border-divider p-4 text-label"
+  aria-label="Paginación de mediciones"
+>
+  <button
+    type="button"
+    class="ui-focus cursor-pointer rounded-control border border-solid border-field bg-white px-3.5 py-2 disabled:cursor-default disabled:opacity-45"
+    [disabled]="page() === 1"
+    (click)="pageChange.emit(-1)"
+  >
+    Anterior
+  </button>
+  <span>Página {{ page() }} de {{ pages() }} · {{ total() }} {{ unit() }}</span>
+  <button
+    type="button"
+    class="ui-focus cursor-pointer rounded-control border border-solid border-field bg-white px-3.5 py-2 disabled:cursor-default disabled:opacity-45"
+    [disabled]="page() === pages()"
+    (click)="pageChange.emit(1)"
+  >
+    Siguiente
+  </button>
+</div>

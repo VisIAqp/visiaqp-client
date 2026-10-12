@@ -1,16 +1,12 @@
 import { TestBed } from '@angular/core/testing';
-
-import { Analisis } from './analisis';
-
-describe('Analisis', () => {
-  let service: Analisis;
-
-  beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(Analisis);
-  });
-
-  it('should be created', () => {
-    expect(service).toBeTruthy();
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { AnalisisService } from './analisis';
+describe('AnalisisService', () => {
+  it('creates an HTTP service without seeding data', () => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    expect(TestBed.inject(AnalisisService)).toBeTruthy();
   });
 });

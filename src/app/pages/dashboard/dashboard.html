@@ -1,298 +1,98 @@
-<section class="dashboard-page">
-
-  <div class="page-header">
-
-    <div>
-      <h2>Resumen general</h2>
-
-      <p>
-        Estado actual del sistema de análisis
-        de concentración peatonal.
-      </p>
-    </div>
-
-    <div class="system-status">
-      <span class="status-dot"></span>
-      Sistema operativo
-    </div>
-
-  </div>
-
-
-  <!-- KPIs -->
-
-  <div class="metrics">
-
-    <div class="metric-card">
-
-      <span>Peatones detectados</span>
-
-      <strong>
-        {{ totalPeatones }}
-      </strong>
-
-      <small>
-        Total de registros analizados
-      </small>
-
-    </div>
-
-
-    <div class="metric-card">
-
-      <span>Cámaras activas</span>
-
-      <strong>
-        {{ camarasActivas }}/{{ totalCamaras }}
-      </strong>
-
-      <small>
-        {{ camarasAnalizando }} realizando análisis
-      </small>
-
-    </div>
-
-
-    <div class="metric-card">
-
-      <span>Zonas monitoreadas</span>
-
-      <strong>
-        {{ zonasActivas }}
-      </strong>
-
-      <small>
-        {{ totalZonas }} zonas registradas
-      </small>
-
-    </div>
-
-
-    <div class="metric-card">
-
-      <span>Nivel reciente</span>
-
-      <strong
-        [class.level-low]="nivelActual === 'Bajo'"
-        [class.level-medium]="nivelActual === 'Medio'"
-        [class.level-high]="nivelActual === 'Alto'">
-
-        {{ nivelActual }}
-
-      </strong>
-
-      <small>
-        Última medición registrada
-      </small>
-
-    </div>
-
-  </div>
-
-
-  <!-- GRÁFICO + ESTADO -->
-
-  <div class="dashboard-grid">
-
-    <div class="chart-card">
-
-      <div class="card-header">
-
-        <div>
-          <h3>Concentración por hora</h3>
-
-          <p>
-            Total de peatones detectados
-            en todas las cámaras.
-          </p>
-        </div>
-
+<section class="mx-auto min-w-0 max-w-page">
+  <h2 class="mt-0">Resumen general</h2>
+  <p class="text-muted">
+    Indicadores calculados por el backend. Historial de los últimos siete días.
+  </p>
+  <app-api-state [loading]="request.loading()" [error]="request.error()" (retry)="cargar()" />
+  @if (!request.loading() && !request.error()) {
+    <div class="mb-5 grid gap-4 desktop:grid-cols-2 wide:grid-cols-4">
+      <div class="ui-card p-5">
+        <span class="text-muted">Cámaras activas</span
+        ><strong class="mt-2 block text-metric">{{ camarasActivas }}/{{ camaras.length }}</strong>
       </div>
-
-      <div class="chart-container">
-        <canvas #graficoDashboard></canvas>
+      <div class="ui-card p-5">
+        <span class="text-muted">Zonas activas</span
+        ><strong class="mt-2 block text-metric">{{ zonasActivas }}</strong>
       </div>
-
+      <div class="ui-card p-5">
+        <span class="text-muted">Ejecuciones en proceso</span
+        ><strong class="mt-2 block text-metric">{{ procesando }}</strong
+        ><small class="text-subtle">Entre las últimas 500 ejecuciones consultadas</small>
+      </div>
+      <div class="ui-card p-5">
+        <span class="text-muted">Nivel del último periodo</span
+        ><strong class="mt-2 block text-metric">{{
+          ultimoIndicador ? (ultimoIndicador.nivelConcentracion | titlecase) : 'Sin datos'
+        }}</strong>
+      </div>
     </div>
-
-
-    <div class="status-card">
-
-      <div class="card-header">
-
-        <div>
-          <h3>Estado del sistema</h3>
-
-          <p>
-            Resumen de los recursos registrados.
-          </p>
-        </div>
-
-      </div>
-
-
-      <div class="status-list">
-
-        <div class="status-item">
-
-          <div>
-            <span class="indicator active"></span>
-
-            <span>
-              Cámaras activas
-            </span>
-          </div>
-
-          <strong>
-            {{ camarasActivas }}
-          </strong>
-
-        </div>
-
-
-        <div class="status-item">
-
-          <div>
-            <span class="indicator active"></span>
-
-            <span>
-              Cámaras analizando
-            </span>
-          </div>
-
-          <strong>
-            {{ camarasAnalizando }}
-          </strong>
-
-        </div>
-
-
-        <div class="status-item">
-
-          <div>
-            <span class="indicator active"></span>
-
-            <span>
-              Zonas activas
-            </span>
-          </div>
-
-          <strong>
-            {{ zonasActivas }}
-          </strong>
-
-        </div>
-
-
-        <div class="status-item">
-
-          <div>
-            <span class="indicator"></span>
-
-            <span>
-              Máximo registrado
-            </span>
-          </div>
-
-          <strong>
-            {{ maximoRegistrado }}
-          </strong>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- ACTIVIDAD RECIENTE -->
-
-  <div class="activity-card">
-
-    <div class="card-header">
-
-      <div>
-        <h3>Actividad reciente</h3>
-
-        <p>
-          Últimas mediciones procesadas por el sistema.
-        </p>
-      </div>
-
-    </div>
-
-
-    <table>
-
-      <thead>
-
-        <tr>
-          <th>Fecha</th>
-          <th>Hora</th>
-          <th>Zona</th>
-          <th>Cámara</th>
-          <th>Peatones</th>
-          <th>Nivel</th>
-        </tr>
-
-      </thead>
-
-
-      <tbody>
-
-        @for (
-          registro of actividadReciente;
-          track registro.id
-        ) {
-
-          <tr>
-
-            <td>
-              {{ registro.fecha | date:'dd/MM/yyyy' }}
-            </td>
-
-            <td>
-              {{ registro.fecha | date:'HH:mm' }}
-            </td>
-
-            <td>
-              {{ obtenerNombreZona(registro.camaraId) }}
-            </td>
-
-            <td>
-              {{ obtenerNombreCamara(registro.camaraId) }}
-            </td>
-
-            <td>
-              <strong>
-                {{ registro.peatonesDetectados }}
-              </strong>
-            </td>
-
-            <td>
-
-              <span
-                class="level"
-                [class.low]="registro.nivel === 'Bajo'"
-                [class.medium]="registro.nivel === 'Medio'"
-                [class.high]="registro.nivel === 'Alto'">
-
-                {{ registro.nivel }}
-
-              </span>
-
-            </td>
-
-          </tr>
-
+  }
+  <div class="ui-card mb-5 flex flex-wrap gap-4 p-5">
+    <label class="flex min-w-0 flex-col gap-2" for="dashboard-zona"
+      >Zona<select
+        id="dashboard-zona"
+        class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+        [(ngModel)]="zonaSeleccionada"
+        (ngModelChange)="actualizarGrafico()"
+      >
+        @for (z of zonas; track z.id) {
+          <option [ngValue]="z.id">{{ z.nombre }}</option>
+        } @empty {
+          <option [ngValue]="0">No hay zonas</option>
         }
-
-      </tbody>
-
-    </table>
-
+      </select></label
+    ><label class="flex flex-col gap-2" for="dashboard-periodo"
+      >Periodo<select
+        id="dashboard-periodo"
+        class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+        [(ngModel)]="periodoTipo"
+        (ngModelChange)="actualizarGrafico()"
+      >
+        <option value="hora">Hora</option>
+        <option value="dia">Día</option>
+      </select></label
+    >
   </div>
-
+  <div class="ui-card mb-5 p-5">
+    <h3 class="mt-0">Promedio por periodo</h3>
+    @if (!request.loading() && !request.error() && !indicadores.length) {
+      <p>No hay indicadores para esta zona y rango.</p>
+    }
+    <div class="relative h-82.5 min-w-0"><canvas #graficoDashboard></canvas></div>
+  </div>
+  <div class="ui-card overflow-hidden">
+    <h3 class="px-5">Últimas ejecuciones</h3>
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-table border-collapse">
+        <thead>
+          <tr>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Zona</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Cámara</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Captura (Lima)</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of procesamientos.slice(0, 5); track p.id) {
+            <tr>
+              <td class="ui-table-cell py-3.5 text-label">{{ nombreZona(p.zonaId) }}</td>
+              <td class="ui-table-cell py-3.5 text-label">{{ nombreCamara(p.camaraId) }}</td>
+              <td class="ui-table-cell py-3.5 text-label">
+                {{ p.fechaCapturaInicio | date: 'dd/MM/yyyy HH:mm' : '-0500' }}
+              </td>
+              <td class="ui-table-cell py-3.5 text-label">{{ p.estado | titlecase }}</td>
+            </tr>
+          } @empty {
+            @if (!request.loading() && !request.error()) {
+              <tr>
+                <td colspan="4" class="ui-table-cell py-3.5 text-label">
+                  No hay ejecuciones registradas.
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
 </section>

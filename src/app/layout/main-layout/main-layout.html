@@ -1,10 +1,10 @@
-<div class="app-layout">
+<div class="min-h-screen bg-canvas">
   <app-sidebar></app-sidebar>
 
-  <div class="main-content">
+  <div class="min-h-screen min-w-0 desktop:ml-sidebar print:ml-0">
     <app-navbar></app-navbar>
 
-    <main class="page-content">
+    <main class="min-w-0 p-4 desktop:p-6">
       <router-outlet></router-outlet>
     </main>
   </div>

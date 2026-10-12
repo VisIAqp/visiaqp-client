@@ -1,16 +1,12 @@
 import { TestBed } from '@angular/core/testing';
-
-import { Monitoreo } from './monitoreo';
-
-describe('Monitoreo', () => {
-  let service: Monitoreo;
-
-  beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(Monitoreo);
-  });
-
-  it('should be created', () => {
-    expect(service).toBeTruthy();
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { MonitoreoService } from './monitoreo';
+describe('MonitoreoService', () => {
+  it('creates an HTTP service without seeding data', () => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    expect(TestBed.inject(MonitoreoService)).toBeTruthy();
   });
 });

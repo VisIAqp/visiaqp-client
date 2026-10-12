@@ -1,229 +1,92 @@
-<section class="monitoreo-page">
-
-  <div class="page-header">
+<section class="mx-auto min-w-0 max-w-page">
+  <div class="mb-5 flex flex-wrap justify-between gap-3">
     <div>
-      <h2>Monitoreo</h2>
-      <p>
-        Supervisa las cámaras activas y la concentración
-        peatonal detectada.
-      </p>
+      <h2 class="mt-0">Monitoreo</h2>
+      <p class="text-muted">Actualización automática mientras esta pantalla está visible.</p>
+      @if (actualizado) {
+        <small>Última consulta: {{ actualizado | date: 'HH:mm:ss' : '-0500' }} (Lima)</small>
+      }
     </div>
-
-    <span class="system-status">
-      <span class="status-dot"></span>
-      Sistema operativo
-    </span>
+    <button
+      class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2 disabled:cursor-default disabled:opacity-45"
+      [disabled]="request.loading()"
+      (click)="cargar()"
+    >
+      Actualizar
+    </button>
   </div>
-
-
-  <div class="monitor-layout">
-
-    <!-- LISTA DE CÁMARAS -->
-
-    <aside class="camera-list">
-
-      <div class="panel-header">
-        <h3>Cámaras activas</h3>
-        <span>{{ camarasDisponibles.length }}</span>
-      </div>
-
-      @for (camara of camarasDisponibles; track camara.id) {
-
+  <app-api-state [loading]="request.loading()" [error]="request.error()" (retry)="cargar()" />
+  <div class="grid gap-5 desktop:grid-cols-[280px_minmax(0,1fr)]">
+    <aside class="ui-card self-start p-3">
+      <h3>Cámaras activas</h3>
+      @for (c of camarasDisponibles; track c.id) {
         <button
-          class="camera-item"
-          [class.selected]="camaraSeleccionadaId === camara.id"
-          (click)="seleccionarCamara(camara.id)">
-
-          <div class="camera-icon">
-            ●
-          </div>
-
-          <div class="camera-info">
-
-            <strong>
-              {{ camara.nombre }}
-            </strong>
-
-            <span>
-              {{ obtenerZona(camara.zonaId)?.nombre }}
-            </span>
-
-          </div>
-
-          <span class="online-dot"></span>
-
+          class="ui-focus mb-2 w-full cursor-pointer rounded-lg border-0 p-3 text-left"
+          [ngClass]="camaraSeleccionadaId === c.id ? 'bg-selected' : 'bg-white hover:bg-hover'"
+          [attr.aria-pressed]="camaraSeleccionadaId === c.id"
+          (click)="seleccionarCamara(c.id)"
+        >
+          <strong class="block">{{ c.nombre }}</strong
+          ><small class="text-muted">{{ nombreZona(c.zonaId) }}</small>
         </button>
-
+      } @empty {
+        @if (!request.loading() && !request.error()) {
+          <p>No hay cámaras activas.</p>
+        }
       }
-
-      @if (camarasDisponibles.length === 0) {
-
-        <div class="empty-cameras">
-          No hay cámaras disponibles para monitoreo.
-        </div>
-
-      }
-
     </aside>
-
-
-    <!-- ÁREA PRINCIPAL -->
-
-    <div class="monitor-content">
-
-      @if (camaraSeleccionada) {
-
-        <div class="camera-header">
-
-          <div>
-            <h3>
-              {{ camaraSeleccionada.nombre }}
-            </h3>
-
-            <p>
-              {{ obtenerZona(camaraSeleccionada.zonaId)?.nombre }}
-            </p>
-          </div>
-
-          <span class="live-badge">
-            ● EN VIVO
-          </span>
-
-        </div>
-
-
-        <!-- VIDEO -->
-
-        <div class="video-container">
-
-          <div class="video-placeholder">
-
-            <div class="camera-symbol">
-              ◉
-            </div>
-
-            <strong>
-              Vista de cámara
-            </strong>
-
-            <span>
-              La transmisión de video se conectará
-              posteriormente con el backend.
-            </span>
-
-          </div>
-
-
-          @if (monitoreoSeleccionado) {
-
-            <div class="detection-overlay">
-
-              <span>
-                Personas:
-                {{ monitoreoSeleccionado.peatonesDetectados }}
-              </span>
-
-            </div>
-
-          }
-
-        </div>
-
-
-        <!-- INDICADORES -->
-
-        <div class="metrics">
-
-          <div class="metric-card">
-
-            <span>
-              Peatones detectados
-            </span>
-
-            <strong>
-              {{ monitoreoSeleccionado?.peatonesDetectados ?? 0 }}
-            </strong>
-
-          </div>
-
-
-          <div class="metric-card">
-
-            <span>
-              Concentración
-            </span>
-
-            <strong
-              [class.level-low]="monitoreoSeleccionado?.nivel === 'Bajo'"
-              [class.level-medium]="monitoreoSeleccionado?.nivel === 'Medio'"
-              [class.level-high]="monitoreoSeleccionado?.nivel === 'Alto'">
-
-              {{ monitoreoSeleccionado?.nivel ?? 'Sin datos' }}
-
-            </strong>
-
-          </div>
-
-
-          <div class="metric-card">
-
-            <span>
-              Última actualización
-            </span>
-
-            <strong class="time">
-
-              @if (monitoreoSeleccionado) {
-
-                {{
-                  monitoreoSeleccionado.ultimaActualizacion
-                    | date:'HH:mm:ss'
-                }}
-
-              } @else {
-
-                Sin datos
-
-              }
-
-            </strong>
-
-          </div>
-
-        </div>
-
-
-        <!-- TEMPORAL -->
-
-        <button
-          class="simulation-button"
-          (click)="simularDeteccion()">
-
-          Simular nueva detección
-
-        </button>
-
-      } @else {
-
-        <div class="empty-monitor">
-
-          <div class="empty-icon">
-            ◉
-          </div>
-
-          <h3>Selecciona una cámara</h3>
-
-          <p>
-            Elige una cámara activa para visualizar
-            su monitoreo.
+    <div class="ui-card p-5">
+      @if (camaraSeleccionada; as c) {
+        <h3 class="mt-0">{{ c.nombre }}</h3>
+        <p>{{ nombreZona(c.zonaId) }}</p>
+        @if (!c.zonePolygon) {
+          <p class="text-warning">Esta cámara necesita un polígono de análisis.</p>
+        }
+        <p class="rounded-lg bg-canvas p-4">
+          El video en vivo y los conteos por cámara todavía no están disponibles en la API.
+        </p>
+        @if (indicador; as i) {
+          <h4>Último indicador horario de la zona</h4>
+          <p class="text-muted">
+            Este indicador agrega las ventanas de la zona; no es un conteo individual de esta
+            cámara.
           </p>
-
-        </div>
-
+          <div class="grid gap-3 expanded:grid-cols-3">
+            <div class="rounded-lg border border-solid border-divider p-4">
+              <span>Promedio por ventana</span
+              ><strong class="block text-metric">{{ i.promedioPeatones | number: '1.0-2' }}</strong>
+            </div>
+            <div class="rounded-lg border border-solid border-divider p-4">
+              <span>Nivel de zona</span
+              ><strong class="block text-metric">{{ i.nivelConcentracion | titlecase }}</strong>
+            </div>
+            <div class="rounded-lg border border-solid border-divider p-4">
+              <span>Fin del periodo (Lima)</span
+              ><strong class="block">{{ i.periodoFin | date: 'dd/MM HH:mm' : '-0500' }}</strong>
+            </div>
+          </div>
+        } @else {
+          <p>La zona no tiene indicadores disponibles.</p>
+        }
+        <h4>Ejecuciones de esta cámara</h4>
+        <p class="text-label text-muted">Entre las últimas 500 ejecuciones del sistema.</p>
+        @for (p of ejecuciones; track p.id) {
+          <p>
+            #{{ p.id }} · {{ p.estado | titlecase }} ·
+            {{ p.fechaCapturaInicio | date: 'dd/MM HH:mm' : '-0500' }}
+            @if (p.mensajeError) {
+              <span class="block text-danger">{{ p.mensajeError }}</span>
+            }
+          </p>
+        } @empty {
+          <p>No hay ejecuciones en la consulta.</p>
+        }
+      } @else {
+        <h3>Selecciona una cámara</h3>
+        <p class="text-muted">
+          Elige una cámara activa para consultar su estado y los indicadores de su zona.
+        </p>
       }
-
     </div>
-
   </div>
-
 </section>

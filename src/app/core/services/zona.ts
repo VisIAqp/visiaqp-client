@@ -1,65 +1,29 @@
-import { Injectable } from '@angular/core';
-import { Zona } from '../models/zona.model';
-
-@Injectable({
-  providedIn: 'root'
-})
+import { inject, Injectable } from '@angular/core';
+import { map } from 'rxjs';
+import { Api } from '../api/api';
+import { DtoMapper, ZonaDto } from '../api/dto';
+export interface ZonaInput {
+  nombre: string;
+  ubicacion: string | null;
+  descripcion?: string | null;
+  pais?: string;
+  latitud?: number | null;
+  longitud?: number | null;
+  estado?: 'activa' | 'inactiva';
+}
+@Injectable({ providedIn: 'root' })
 export class ZonaService {
-
-  private zonas: Zona[] = [
-    {
-      id: 1,
-      nombre: 'Zona UTP - Sede Principal',
-      ubicacion: 'Av. Tacna y Arica, Arequipa',
-      activa: true
-    },
-    {
-      id: 2,
-      nombre: 'Zona Centro Histórico',
-      ubicacion: 'Plaza de Armas, Arequipa',
-      activa: true
-    },
-    {
-      id: 3,
-      nombre: 'Zona Av. Ejército',
-      ubicacion: 'Av. Ejército, Cayma',
-      activa: true
-    }
-  ];
-
-  obtenerZonas(): Zona[] {
-    return this.zonas;
+  private api = inject(Api);
+  private mapper = inject(DtoMapper);
+  listar() {
+    return this.api
+      .get<ZonaDto[]>('/zonas')
+      .pipe(map((rows) => rows.map((d) => this.mapper.zona(d))));
   }
-
-  obtenerZonaPorId(id: number): Zona | undefined {
-    return this.zonas.find(zona => zona.id === id);
-  }
-
-  agregarZona(nombre: string, ubicacion: string): void {
-    const nuevoId =
-      Math.max(0, ...this.zonas.map(zona => zona.id)) + 1;
-
-    this.zonas.push({
-      id: nuevoId,
-      nombre: nombre.trim(),
-      ubicacion: ubicacion.trim(),
-      activa: true
-    });
-  }
-
-  actualizarZona(
-    id: number,
-    nombre: string,
-    ubicacion: string
-  ): void {
-
-    const zona = this.obtenerZonaPorId(id);
-
-    if (!zona) {
-      return;
-    }
-
-    zona.nombre = nombre.trim();
-    zona.ubicacion = ubicacion.trim();
+  guardar(datos: ZonaInput, id?: number) {
+    const req = id
+      ? this.api.patch<ZonaDto>('/zonas/' + id, datos)
+      : this.api.post<ZonaDto>('/zonas', datos);
+    return req.pipe(map((d) => this.mapper.zona(d)));
   }
 }

@@ -1,11 +1,23 @@
-export type TipoFuente = 'RTSP' | 'HTTP' | 'LOCAL';
-
+export type TipoCamara = 'fija' | 'movil';
+export type EstadoCamara = 'activa' | 'inactiva' | 'mantenimiento';
+// Vista pública: url_stream se envía solo al registrar o reemplazar la fuente.
 export interface Camara {
   id: number;
   nombre: string;
   zonaId: number;
-  tipoFuente: TipoFuente;
-  fuente: string;
-  activa: boolean;
-  analisisActivo: boolean;
+  tipo: TipoCamara;
+  estado: EstadoCamara;
+  intervaloMuestreoSeg: number;
+  zonePolygon: [number, number][] | null;
+  ultimaConexion: Date | null;
+  tieneUrlStream: boolean;
+}
+export interface ConfiguracionCamara {
+  nombre: string;
+  zonaId: number;
+  tipo: TipoCamara;
+  estado: EstadoCamara;
+  intervaloMuestreoSeg: number;
+  urlStream: string;
+  zonePolygon: [number, number][] | null;
 }

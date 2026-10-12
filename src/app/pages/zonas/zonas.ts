@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 
 import { Zona } from '../../core/models/zona.model';
@@ -8,7 +8,7 @@ import { CamaraService } from '../../core/services/camara';
 
 @Component({
   selector: 'app-zonas',
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './zonas.html',
   styleUrl: './zonas.css'
 })

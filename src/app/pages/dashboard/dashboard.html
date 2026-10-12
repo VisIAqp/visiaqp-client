@@ -1,6 +1,6 @@
-<section class="dashboard-page">
+<section class="mx-auto min-w-0 max-w-[1400px]">
 
-  <div class="page-header">
+  <div class="mb-6 flex flex-col items-start justify-between gap-[15px] min-[761px]:flex-row min-[761px]:items-center [&_h2]:mt-0 [&_h2]:mb-[6px] [&_p]:m-0 [&_p]:text-[#777]">
 
     <div>
       <h2>Resumen general</h2>
@@ -11,23 +11,23 @@
       </p>
     </div>
 
-    <div class="system-status">
-      <span class="status-dot"></span>
+    <div class="flex items-center gap-[7px] text-[13px]">
+      <span class="size-2 shrink-0 rounded-full bg-[#2e7d32]"></span>
       Modo de prueba · sin conexión
     </div>
 
   </div>
 
 
-  <div class="filters">
+  <div class="mb-6 flex flex-wrap gap-3 min-[761px]:gap-5 [&_label]:flex [&_label]:items-center [&_label]:gap-2.5 [&_select]:rounded-lg [&_select]:border [&_select]:border-solid [&_select]:border-[#cbd5e1] [&_select]:bg-white [&_select]:p-2.5 [&_select]:text-[#1e293b]">
     <label>Zona <select [(ngModel)]="zonaSeleccionada" (ngModelChange)="actualizarGrafico()">@for (zona of zonas; track zona.id) { <option [ngValue]="zona.id">{{ zona.nombre }}</option> }</select></label>
     <label>Periodo <select [(ngModel)]="periodoTipo" (ngModelChange)="actualizarGrafico()"><option value="hora">Hora</option><option value="dia">Día</option></select></label>
   </div>
   <!-- KPIs -->
 
-  <div class="metrics">
+  <div class="mb-5 grid grid-cols-1 gap-[15px] min-[761px]:grid-cols-2 min-[1001px]:grid-cols-4">
 
-    <div class="metric-card">
+    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-[7px] p-[18px] [&_span]:text-xs [&_span]:text-[#777] [&_strong]:text-[27px] [&_small]:text-[#999]">
 
       <span>Promedio del último periodo</span>
 
@@ -42,7 +42,7 @@
     </div>
 
 
-    <div class="metric-card">
+    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-[7px] p-[18px] [&_span]:text-xs [&_span]:text-[#777] [&_strong]:text-[27px] [&_small]:text-[#999]">
 
       <span>Cámaras activas</span>
 
@@ -57,7 +57,7 @@
     </div>
 
 
-    <div class="metric-card">
+    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-[7px] p-[18px] [&_span]:text-xs [&_span]:text-[#777] [&_strong]:text-[27px] [&_small]:text-[#999]">
 
       <span>Zonas monitoreadas</span>
 
@@ -72,14 +72,12 @@
     </div>
 
 
-    <div class="metric-card">
+    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-[7px] p-[18px] [&_span]:text-xs [&_span]:text-[#777] [&_strong]:text-[27px] [&_small]:text-[#999]">
 
       <span>Nivel reciente</span>
 
       <strong
-        [class.level-low]="nivelActual === 'bajo'"
-        [class.level-medium]="nivelActual === 'medio'"
-        [class.level-high]="nivelActual === 'alto'">
+        [ngClass]="{ 'text-[#2e7d32]': nivelActual === 'bajo', 'text-[#b26a00]': nivelActual === 'medio', 'text-[#c62828]': nivelActual === 'alto' }">
 
         {{ nivelActual | titlecase }}
 
@@ -96,11 +94,11 @@
 
   <!-- GRÁFICO + ESTADO -->
 
-  <div class="dashboard-grid">
+  <div class="mb-5 grid grid-cols-1 gap-5 min-[1001px]:grid-cols-[2fr_1fr]">
 
-    <div class="chart-card">
+    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white">
 
-      <div class="card-header">
+      <div class="border-0 border-b border-solid border-[#eee] px-5 py-[18px] [&_h3]:mt-0 [&_h3]:mb-[5px] [&_p]:m-0 [&_p]:text-xs [&_p]:text-[#777]">
 
         <div>
           <h3>Promedio por periodo</h3>
@@ -112,7 +110,7 @@
 
       </div>
 
-      <div class="chart-container">
+      <div class="box-content h-[330px] min-w-0 p-5">
         @if (!indicadores.length) { <p>Sin datos para esta zona y periodo.</p> }
         <canvas #graficoDashboard></canvas>
       </div>
@@ -120,9 +118,9 @@
     </div>
 
 
-    <div class="status-card">
+    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white">
 
-      <div class="card-header">
+      <div class="border-0 border-b border-solid border-[#eee] px-5 py-[18px] [&_h3]:mt-0 [&_h3]:mb-[5px] [&_p]:m-0 [&_p]:text-xs [&_p]:text-[#777]">
 
         <div>
           <h3>Estado del sistema</h3>
@@ -135,12 +133,12 @@
       </div>
 
 
-      <div class="status-list">
+      <div class="px-5 py-[5px]">
 
-        <div class="status-item">
+        <div class="flex items-center justify-between border-0 border-b border-solid border-[#eee] py-[17px] last:border-b-0 [&>div]:flex [&>div]:items-center [&>div]:gap-[9px] [&_span]:text-[13px] [&_strong]:text-lg">
 
           <div>
-            <span class="indicator active"></span>
+            <span class="size-2 shrink-0 rounded-full bg-[#2e7d32]"></span>
 
             <span>
               Cámaras activas
@@ -154,10 +152,10 @@
         </div>
 
 
-        <div class="status-item">
+        <div class="flex items-center justify-between border-0 border-b border-solid border-[#eee] py-[17px] last:border-b-0 [&>div]:flex [&>div]:items-center [&>div]:gap-[9px] [&_span]:text-[13px] [&_strong]:text-lg">
 
           <div>
-            <span class="indicator active"></span>
+            <span class="size-2 shrink-0 rounded-full bg-[#2e7d32]"></span>
 
             <span>
               Cámaras analizando
@@ -171,10 +169,10 @@
         </div>
 
 
-        <div class="status-item">
+        <div class="flex items-center justify-between border-0 border-b border-solid border-[#eee] py-[17px] last:border-b-0 [&>div]:flex [&>div]:items-center [&>div]:gap-[9px] [&_span]:text-[13px] [&_strong]:text-lg">
 
           <div>
-            <span class="indicator active"></span>
+            <span class="size-2 shrink-0 rounded-full bg-[#2e7d32]"></span>
 
             <span>
               Zonas activas
@@ -188,10 +186,10 @@
         </div>
 
 
-        <div class="status-item">
+        <div class="flex items-center justify-between border-0 border-b border-solid border-[#eee] py-[17px] last:border-b-0 [&>div]:flex [&>div]:items-center [&>div]:gap-[9px] [&_span]:text-[13px] [&_strong]:text-lg">
 
           <div>
-            <span class="indicator"></span>
+            <span class="size-2 shrink-0 rounded-full bg-[#aaa]"></span>
 
             <span>
               Máximo registrado
@@ -213,9 +211,9 @@
 
   <!-- ACTIVIDAD RECIENTE -->
 
-  <div class="activity-card">
+  <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white overflow-hidden">
 
-    <div class="card-header">
+    <div class="border-0 border-b border-solid border-[#eee] px-5 py-[18px] [&_h3]:mt-0 [&_h3]:mb-[5px] [&_p]:m-0 [&_p]:text-xs [&_p]:text-[#777]">
 
       <div>
         <h3>Actividad reciente</h3>
@@ -228,7 +226,7 @@
     </div>
 
 
-    <div class="table-scroll"><table>
+    <div class="w-full overflow-x-auto"><table class="w-full min-w-[660px] border-collapse [&_th]:border-0 [&_th]:border-b [&_th]:border-solid [&_th]:border-[#eee] [&_th]:px-5 [&_th]:py-3.5 [&_th]:text-left [&_th]:text-[11px] [&_th]:uppercase [&_th]:text-[#777] [&_td]:border-0 [&_td]:border-b [&_td]:border-solid [&_td]:border-[#eee] [&_td]:px-5 [&_td]:py-3.5 [&_td]:text-left [&_td]:text-[13px]">
 
       <thead>
 
@@ -278,10 +276,8 @@
             <td>
 
               <span
-                class="level"
-                [class.low]="registro.nivel === 'bajo'"
-                [class.medium]="registro.nivel === 'medio'"
-                [class.high]="registro.nivel === 'alto'">
+                class="inline-block rounded-[20px] px-2.5 py-[5px] text-[11px] font-semibold"
+                [ngClass]="{ 'bg-[#e8f5e9] text-[#2e7d32]': registro.nivel === 'bajo', 'bg-[#fff3e0] text-[#b26a00]': registro.nivel === 'medio', 'bg-[#ffebee] text-[#c62828]': registro.nivel === 'alto' }">
 
                 {{ registro.nivel ? (registro.nivel | titlecase) : 'Sin umbral' }}
 

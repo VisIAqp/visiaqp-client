@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { NgClass } from '@angular/common';
 
 import { FormsModule } from '@angular/forms';
 
@@ -8,9 +9,8 @@ import { CamaraService } from '../../core/services/camara';
 
 @Component({
   selector: 'app-zonas',
-  imports: [FormsModule],
-  templateUrl: './zonas.html',
-  styleUrl: './zonas.css'
+  imports: [FormsModule, NgClass],
+  templateUrl: './zonas.html'
 })
 export class Zonas {
 

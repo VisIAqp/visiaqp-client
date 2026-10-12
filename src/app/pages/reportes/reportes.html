@@ -1,229 +1,27 @@
 <section class="mx-auto min-w-0 max-w-page">
-  <div class="mb-6">
-    <div>
-      <h2 class="mt-0 mb-1.5">Reportes</h2>
-
-      <p class="m-0 text-muted">
-        Consulta y prepara reportes históricos de concentración peatonal.
-      </p>
-    </div>
-  </div>
-
-  <div class="ui-card mb-5 p-5">
-    <div class="mb-4.5">
-      <h3 class="mt-0 mb-1.25">Filtros del reporte</h3>
-      <p class="m-0 text-label text-muted">Selecciona los datos que deseas incluir.</p>
-    </div>
-
-    <div class="grid grid-cols-1 gap-4 desktop:grid-cols-2 expanded:grid-cols-4">
-      <div class="flex min-w-0 flex-col gap-1.75">
-        <label class="text-xs font-semibold" for="reporte-zonaSeleccionada">Zona</label>
-
-        <select
-          class="ui-field w-full py-2.5 focus-visible:ring-1 focus-visible:ring-content"
-          id="reporte-zonaSeleccionada"
-          [(ngModel)]="zonaSeleccionada"
-          (ngModelChange)="cambiarZona()"
-        >
-          <option [ngValue]="0">Todas las zonas</option>
-
-          @for (zona of zonas; track zona.id) {
-            <option [ngValue]="zona.id">
-              {{ zona.nombre }}
-            </option>
-          }
-        </select>
-      </div>
-
-      <div class="flex min-w-0 flex-col gap-1.75">
-        <label class="text-xs font-semibold" for="reporte-camaraSeleccionada">Cámara</label>
-
-        <select
-          class="ui-field w-full py-2.5 focus-visible:ring-1 focus-visible:ring-content"
-          id="reporte-camaraSeleccionada"
-          [(ngModel)]="camaraSeleccionada"
-          (ngModelChange)="reiniciarPagina()"
-        >
-          <option [ngValue]="0">Todas las fuentes</option>
-
-          @for (camara of camarasDisponibles; track camara.id) {
-            <option [ngValue]="camara.id">
-              {{ camara.nombre }}
-            </option>
-          }
-        </select>
-      </div>
-
-      <div class="flex min-w-0 flex-col gap-1.75">
-        <label class="text-xs font-semibold" for="reporte-fechaInicio">Fecha inicial</label>
-
-        <input
-          class="ui-field w-full py-2.5 focus-visible:ring-1 focus-visible:ring-content"
-          type="date"
-          id="reporte-fechaInicio"
-          [(ngModel)]="fechaInicio"
-          (ngModelChange)="reiniciarPagina()"
-        />
-      </div>
-
-      <div class="flex min-w-0 flex-col gap-1.75">
-        <label class="text-xs font-semibold" for="reporte-fechaFin">Fecha final</label>
-
-        <input
-          class="ui-field w-full py-2.5 focus-visible:ring-1 focus-visible:ring-content"
-          type="date"
-          id="reporte-fechaFin"
-          [(ngModel)]="fechaFin"
-          (ngModelChange)="reiniciarPagina()"
-        />
-      </div>
-    </div>
-
-    <div class="mt-4 flex justify-end">
-      <button
-        class="ui-focus cursor-pointer rounded-control border border-solid px-3.5 py-2.25 border-field bg-white hover:bg-canvas"
-        (click)="limpiarFiltros()"
-      >
-        Limpiar filtros
-      </button>
-    </div>
-  </div>
-
-  <div class="mb-5 grid grid-cols-1 gap-3.75 desktop:grid-cols-2 expanded:grid-cols-4">
-    <div class="ui-card flex flex-col gap-1.75 p-4.5">
-      <span class="text-xs text-muted">Registros</span>
-      <strong class="text-metric">
-        {{ registrosFiltrados.length }}
-      </strong>
-    </div>
-
-    <div class="ui-card flex flex-col gap-1.75 p-4.5">
-      <span class="text-xs text-muted">Suma de conteos</span>
-      <strong class="text-metric">
-        {{ registrosFiltrados.length ? totalPeatones : 'Sin datos' }}
-      </strong>
-    </div>
-
-    <div class="ui-card flex flex-col gap-1.75 p-4.5">
-      <span class="text-xs text-muted">Promedio</span>
-      <strong class="text-metric">
-        {{ registrosFiltrados.length ? promedioPeatones : 'Sin datos' }}
-      </strong>
-    </div>
-
-    <div class="ui-card flex flex-col gap-1.75 p-4.5">
-      <span class="text-xs text-muted">Máximo</span>
-      <strong class="text-metric">
-        {{ registrosFiltrados.length ? maximoPeatones : 'Sin datos' }}
-      </strong>
-    </div>
-  </div>
-
-  <div class="ui-card overflow-hidden">
-    <div
-      class="flex flex-col items-start justify-between gap-3 border-0 border-b border-solid border-divider px-5 py-4.5 wide:flex-row wide:items-center"
+  <h2 class="mt-0">Reportes</h2>
+  <p class="text-muted">
+    Consulta y exporta indicadores de zona. El detalle por ventanas aún no está disponible en la
+    API.
+  </p>
+  <div class="mb-5 flex flex-wrap gap-3 print:hidden">
+    <button
+      class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2 disabled:cursor-default disabled:opacity-45"
+      [disabled]="!exportable"
+      (click)="exportarCsv()"
     >
-      <div>
-        <h3 class="mt-0 mb-1.25">Vista previa del reporte</h3>
-
-        <p class="m-0 text-xs text-muted">Registros que serán incluidos en la exportación.</p>
-      </div>
-
-      <div class="flex flex-wrap gap-2.5">
-        <button
-          class="ui-focus cursor-pointer rounded-control border border-solid px-3.5 py-2.25 border-field bg-white hover:bg-canvas"
-          (click)="exportarExcel()"
-        >
-          Exportar Excel
-        </button>
-
-        <button
-          class="ui-focus cursor-pointer rounded-control border border-solid px-3.5 py-2.25 border-content bg-content text-white hover:opacity-85"
-          (click)="exportarPDF()"
-        >
-          Exportar PDF
-        </button>
-      </div>
-    </div>
-
-    @if (mensaje) {
-      <div role="status" class="mx-5 mt-3.75 rounded-lg bg-canvas p-3 text-label">
-        {{ mensaje }}
-      </div>
-    }
-
-    <div class="w-full overflow-x-auto">
-      <table class="w-full min-w-table border-collapse">
-        <thead>
-          <tr>
-            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Fecha</th>
-            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">
-              Ventana (hora Lima)
-            </th>
-            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Zona</th>
-            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Cámara</th>
-            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Peatones</th>
-            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Nivel</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          @for (registro of registrosPagina; track registro.id) {
-            <tr>
-              <td class="ui-table-cell py-3.5 text-label">
-                {{ registro.periodoInicio | date: 'dd/MM/yyyy' : '-0500' }}
-              </td>
-
-              <td class="ui-table-cell py-3.5 text-label">
-                {{ registro.periodoInicio | date: 'HH:mm:ss' : '-0500' }} –
-                {{ registro.periodoFin | date: 'HH:mm:ss' : '-0500' }}
-              </td>
-
-              <td class="ui-table-cell py-3.5 text-label">
-                {{ obtenerNombreZona(registro.zonaId) }}
-              </td>
-
-              <td class="ui-table-cell py-3.5 text-label">
-                {{ obtenerNombreCamara(registro.camaraId) }}
-              </td>
-
-              <td class="ui-table-cell py-3.5 text-label">
-                <strong>
-                  {{ registro.cantidadPeatones }}
-                </strong>
-              </td>
-
-              <td class="ui-table-cell py-3.5 text-label">
-                <span
-                  class="inline-block rounded-badge px-2.5 py-1.25 text-caption font-semibold"
-                  [ngClass]="{
-                    'bg-success-soft text-success': registro.nivel === 'bajo',
-                    'bg-warning-soft text-warning': registro.nivel === 'medio',
-                    'bg-danger-soft text-danger': registro.nivel === 'alto',
-                  }"
-                >
-                  {{ registro.nivel ? (registro.nivel | titlecase) : 'Sin umbral' }}
-                </span>
-              </td>
-            </tr>
-          } @empty {
-            <tr>
-              <td
-                colspan="6"
-                class="ui-table-cell p-10! text-center! text-subtle py-3.5 text-label"
-              >
-                No existen registros para los filtros seleccionados.
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-    <app-pagination
-      [page]="paginaActual"
-      [pages]="totalPaginas"
-      [total]="registrosFiltrados.length"
-      (pageChange)="cambiarPagina($event)"
-    />
+      Descargar CSV</button
+    ><button
+      class="ui-focus cursor-pointer rounded-lg border-0 bg-content px-4 py-2.5 text-white disabled:cursor-default disabled:opacity-45"
+      [disabled]="!exportable"
+      (click)="imprimir()"
+    >
+      Imprimir / guardar PDF
+    </button>
   </div>
+  <p class="text-label text-muted">
+    La exportación incluye todos los periodos devueltos por la consulta (máximo 2000), no solo la
+    página visible. CSV es compatible con hojas de cálculo.
+  </p>
+  <app-indicator-view [query]="history" [printAll]="printing" />
 </section>

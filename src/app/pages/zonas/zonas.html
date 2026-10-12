@@ -1,174 +1,208 @@
 <section class="mx-auto min-w-0 max-w-page">
-  <div
-    class="mb-6 flex flex-col items-start justify-between gap-3 desktop:flex-row desktop:items-center"
-  >
+  <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
     <div>
-      <h2 class="mt-0 mb-1.5 text-content">Gestión de zonas</h2>
-      <p class="m-0 text-muted">Administra las zonas donde se realizará el monitoreo peatonal.</p>
+      <h2 class="mt-0 mb-1">Gestión de zonas</h2>
+      <p class="text-muted">Zonas y umbrales registrados en el sistema.</p>
     </div>
-
-    <button
-      class="ui-focus cursor-pointer rounded-lg border-0 bg-content px-4.5 py-2.75 font-medium text-white hover:opacity-85"
-      (click)="abrirFormulario()"
-    >
-      + Nueva zona
-    </button>
+    @if (auth.isAdmin()) {
+      <button
+        class="ui-focus cursor-pointer rounded-lg border-0 bg-content px-4 py-2.5 text-white disabled:cursor-default disabled:opacity-45"
+        type="button"
+        (click)="abrirFormulario()"
+      >
+        + Nueva zona
+      </button>
+    }
   </div>
-
+  <app-api-state [loading]="request.loading()" [error]="request.error()" (retry)="cargar()" />
+  @if (mensaje) {
+    <p role="status">{{ mensaje }}</p>
+  }
   @if (mostrarFormulario) {
-    <div class="ui-card mb-6 p-5">
-      <div class="mb-5 flex items-start justify-between gap-3">
-        <div>
-          <h3 class="mt-0 mb-1.25">
-            {{ zonaEditando ? 'Editar zona' : 'Nueva zona' }}
-          </h3>
-
-          <p class="m-0 text-label text-muted">
-            {{
-              zonaEditando
-                ? 'Modifica los datos de la zona seleccionada.'
-                : 'Registra una nueva zona de monitoreo.'
-            }}
-          </p>
-        </div>
-
-        <button
-          class="ui-focus shrink-0 cursor-pointer border-0 bg-transparent text-lg"
-          type="button"
-          aria-label="Cerrar formulario"
-          (click)="cerrarFormulario()"
-        >
-          ✕
-        </button>
-      </div>
-
+    <div class="ui-card mb-5 p-5">
+      <h3 class="mt-0">{{ zonaEditando ? 'Editar zona' : 'Nueva zona' }}</h3>
       <form (ngSubmit)="guardarZona()">
-        <div class="grid grid-cols-1 gap-5 desktop:grid-cols-2">
-          <div class="flex min-w-0 flex-col gap-1.75">
-            <label class="text-label font-semibold" for="nombre">Nombre de la zona</label>
-
-            <input
-              id="nombre"
-              class="ui-field focus:border-content focus-visible:ring-1 focus-visible:ring-content w-full py-2.75"
-              type="text"
+        <fieldset
+          class="grid grid-cols-1 gap-4 border-0 p-0 desktop:grid-cols-2"
+          [disabled]="saving.loading()"
+        >
+          <label class="flex flex-col gap-2"
+            >Nombre<input
+              class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
               name="nombre"
               [(ngModel)]="nuevaZona.nombre"
               maxlength="100"
-              placeholder="Ej. Zona UTP Arequipa"
-              required
-            />
-          </div>
-
-          <div class="flex min-w-0 flex-col gap-1.75">
-            <label class="text-label font-semibold" for="ubicacion">Ubicación</label>
-
-            <input
-              id="ubicacion"
-              class="ui-field focus:border-content focus-visible:ring-1 focus-visible:ring-content w-full py-2.75"
-              type="text"
+              required /></label
+          ><label class="flex flex-col gap-2"
+            >Ubicación<input
+              class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
               name="ubicacion"
               [(ngModel)]="nuevaZona.ubicacion"
-              maxlength="150"
-              placeholder="Ubicación opcional"
-            />
-          </div>
-        </div>
-
-        <div class="mt-5 flex flex-wrap justify-end gap-2.5">
+              maxlength="150" /></label
+          ><label class="flex flex-col gap-2"
+            >Descripción<input
+              class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+              name="descripcion"
+              [(ngModel)]="nuevaZona.descripcion"
+              maxlength="255" /></label
+          ><label class="flex flex-col gap-2"
+            >País (ISO)<input
+              class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+              name="pais"
+              [(ngModel)]="nuevaZona.pais"
+              pattern="[A-Z]{2}"
+              maxlength="2"
+              required /></label
+          ><label class="flex flex-col gap-2"
+            >Latitud<input
+              class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+              type="number"
+              name="latitud"
+              [(ngModel)]="nuevaZona.latitud"
+              min="-90"
+              max="90"
+              step="any" /></label
+          ><label class="flex flex-col gap-2"
+            >Longitud<input
+              class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+              type="number"
+              name="longitud"
+              [(ngModel)]="nuevaZona.longitud"
+              min="-180"
+              max="180"
+              step="any"
+          /></label>
+          @if (zonaEditando) {
+            <label class="flex flex-col gap-2"
+              >Estado<select
+                class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+                name="estado"
+                [(ngModel)]="nuevaZona.estado"
+              >
+                <option value="activa">Activa</option>
+                <option value="inactiva">Inactiva</option>
+              </select></label
+            >
+          }
+        </fieldset>
+        <app-api-state [loading]="saving.loading()" [error]="saving.error()" [retryable]="false" />
+        <div class="mt-4 flex justify-end gap-3">
           <button
             type="button"
-            class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4.5 py-2.5"
+            class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2 disabled:cursor-default disabled:opacity-45"
+            [disabled]="saving.loading()"
             (click)="cerrarFormulario()"
           >
-            Cancelar
-          </button>
-
-          <button
+            Cancelar</button
+          ><button
             type="submit"
-            class="ui-focus cursor-pointer rounded-lg border-0 bg-content px-4.5 py-2.75 font-medium text-white hover:opacity-85"
+            class="ui-focus cursor-pointer rounded-lg border-0 bg-content px-4 py-2.5 text-white disabled:cursor-default disabled:opacity-45"
+            [disabled]="saving.loading()"
           >
-            {{ zonaEditando ? 'Guardar cambios' : 'Guardar zona' }}
+            Guardar zona
           </button>
         </div>
       </form>
     </div>
   }
-  <div class="mb-6 grid grid-cols-1 gap-4 desktop:grid-cols-3">
-    <div class="ui-card flex flex-col gap-2 p-5">
-      <span class="text-label text-muted">Total de zonas</span>
-      <strong class="text-stat text-content">{{ zonas.length }}</strong>
+  @if (umbralZona) {
+    <div class="ui-card mb-5 p-5">
+      <h3>Umbral de zona {{ umbralZona }}</h3>
+      <app-api-state
+        [loading]="threshold.loading()"
+        [error]="threshold.error()"
+        (retry)="verUmbral(umbralZona)"
+      />
+      @if (umbralPredeterminado) {
+        <p>Esta zona usa los valores predeterminados del backend: 10 / 30.</p>
+      }
+      <form (ngSubmit)="guardarUmbral()" class="flex flex-wrap items-end gap-4">
+        <label class="flex flex-col gap-2"
+          >Umbral medio<input
+            class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+            type="number"
+            name="medio"
+            [(ngModel)]="medio"
+            min="0"
+            step="1"
+            required
+            [disabled]="!auth.isAdmin() || threshold.loading()" /></label
+        ><label class="flex flex-col gap-2"
+          >Umbral alto<input
+            class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+            type="number"
+            name="alto"
+            [(ngModel)]="alto"
+            min="1"
+            step="1"
+            required
+            [disabled]="!auth.isAdmin() || threshold.loading()"
+        /></label>
+        @if (auth.isAdmin()) {
+          <button
+            class="ui-focus cursor-pointer rounded-lg border-0 bg-content px-4 py-2.5 text-white disabled:cursor-default disabled:opacity-45"
+            [disabled]="threshold.loading() || alto <= medio"
+          >
+            Guardar umbral
+          </button>
+        }
+      </form>
     </div>
-
-    <div class="ui-card flex flex-col gap-2 p-5">
-      <span class="text-label text-muted">Zonas activas</span>
-      <strong class="text-stat text-content">{{ zonasActivas }}</strong>
-    </div>
-
-    <div class="ui-card flex flex-col gap-2 p-5">
-      <span class="text-label text-muted">Cámaras asociadas</span>
-      <strong class="text-stat text-content">{{ totalCamaras }}</strong>
-    </div>
-  </div>
-
+  }
   <div class="ui-card overflow-hidden">
-    <div
-      class="flex flex-col items-start justify-between gap-3 border-0 border-b border-solid border-divider p-5 desktop:flex-row desktop:items-center"
-    >
-      <div>
-        <h3 class="mt-0 mb-1.25">Zonas registradas</h3>
-        <p class="m-0 text-label text-muted">Listado de zonas configuradas en el sistema.</p>
-      </div>
-
-      <input
-        type="text"
-        placeholder="Buscar zona..."
-        aria-label="Buscar zona"
-        class="ui-field focus:border-content focus-visible:ring-1 focus-visible:ring-content w-full py-2.5 desktop:w-filter"
+    <div class="p-5">
+      <label for="buscar-zona">Buscar zona</label
+      ><input
+        id="buscar-zona"
+        class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
         [(ngModel)]="busqueda"
       />
     </div>
-
-    <div class="w-full overflow-x-auto">
+    <div class="overflow-x-auto">
       <table class="w-full min-w-table border-collapse">
         <thead>
           <tr>
-            <th class="ui-table-cell py-3.75 text-xs font-semibold uppercase text-muted">Zona</th>
-            <th class="ui-table-cell py-3.75 text-xs font-semibold uppercase text-muted">
-              Ubicación
-            </th>
-            <th class="ui-table-cell py-3.75 text-xs font-semibold uppercase text-muted">
-              Cámaras
-            </th>
-            <th class="ui-table-cell py-3.75 text-xs font-semibold uppercase text-muted">Estado</th>
-            <th class="ui-table-cell py-3.75 text-xs font-semibold uppercase text-muted">
-              Acciones
-            </th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Zona</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Ubicación</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Cámaras</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Estado</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Acciones</th>
           </tr>
         </thead>
-
         <tbody>
-          @for (zona of zonasFiltradas; track zona.id) {
+          @for (z of zonasFiltradas; track z.id) {
             <tr>
-              <td class="ui-table-cell py-3.75 text-sm">{{ zona.nombre }}</td>
-              <td class="ui-table-cell py-3.75 text-sm">{{ zona.ubicacion ?? 'Sin ubicación' }}</td>
-              <td class="ui-table-cell py-3.75 text-sm">{{ contarCamaras(zona.id) }}</td>
-              <td class="ui-table-cell py-3.75 text-sm">
-                <span
-                  class="rounded-badge px-2.5 py-1.25 text-xs font-medium"
-                  [ngClass]="{ 'bg-success-soft text-success': zona.estado === 'activa' }"
-                >
-                  {{ zona.estado === 'activa' ? 'Activa' : 'Inactiva' }}
-                </span>
-              </td>
-              <td class="ui-table-cell py-3.75 text-sm">
-                <button
-                  class="ui-focus cursor-pointer rounded-md border border-solid border-field bg-transparent px-3 py-1.5 hover:bg-canvas"
-                  (click)="editarZona(zona)"
-                >
-                  Editar
-                </button>
+              <td class="ui-table-cell py-3.5 text-label">{{ z.nombre }}</td>
+              <td class="ui-table-cell py-3.5 text-label">{{ z.ubicacion || 'Sin ubicación' }}</td>
+              <td class="ui-table-cell py-3.5 text-label">{{ contarCamaras(z.id) }}</td>
+              <td class="ui-table-cell py-3.5 text-label">{{ z.estado | titlecase }}</td>
+              <td class="ui-table-cell py-3.5 text-label">
+                <div class="flex gap-2">
+                  @if (auth.isAdmin()) {
+                    <button
+                      class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2 disabled:cursor-default disabled:opacity-45"
+                      (click)="editarZona(z)"
+                    >
+                      Editar
+                    </button>
+                  }
+                  <button
+                    class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2 disabled:cursor-default disabled:opacity-45"
+                    (click)="verUmbral(z.id)"
+                  >
+                    Umbrales
+                  </button>
+                </div>
               </td>
             </tr>
+          } @empty {
+            @if (!request.loading() && !request.error()) {
+              <tr>
+                <td class="ui-table-cell py-3.5 text-label" colspan="5">
+                  No hay zonas para esta búsqueda.
+                </td>
+              </tr>
+            }
           }
         </tbody>
       </table>

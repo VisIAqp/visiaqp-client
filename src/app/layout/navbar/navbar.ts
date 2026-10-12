@@ -1,14 +1,15 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Auth } from '../../core/auth/auth';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-navbar',
   imports: [],
-  templateUrl: './navbar.html'
+  templateUrl: './navbar.html',
 })
 export class Navbar implements OnInit, OnDestroy {
-
+  readonly auth = inject(Auth);
   titulo = 'Dashboard';
 
   private subscription?: Subscription;
@@ -16,23 +17,14 @@ export class Navbar implements OnInit, OnDestroy {
   constructor(private router: Router) {}
 
   ngOnInit(): void {
-
     this.actualizarTitulo(this.router.url);
 
     this.subscription = this.router.events
-      .pipe(
-        filter(
-          event => event instanceof NavigationEnd
-        )
-      )
-      .subscribe(event => {
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event) => {
+        const navigation = event as NavigationEnd;
 
-        const navigation =
-          event as NavigationEnd;
-
-        this.actualizarTitulo(
-          navigation.urlAfterRedirects
-        );
+        this.actualizarTitulo(navigation.urlAfterRedirects);
       });
   }
 
@@ -41,7 +33,6 @@ export class Navbar implements OnInit, OnDestroy {
   }
 
   private actualizarTitulo(url: string): void {
-
     if (url.includes('/zonas')) {
       this.titulo = 'Zonas';
       return;

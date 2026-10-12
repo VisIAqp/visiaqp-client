@@ -1,0 +1,35 @@
+<main class="flex min-h-screen items-center justify-center bg-canvas p-5">
+  <section class="ui-card w-full max-w-md p-7">
+    <h1 class="mt-0 text-title">VisIAqp</h1>
+    <p class="text-muted">Inicia sesión para consultar y gestionar el monitoreo peatonal.</p>
+    <form (ngSubmit)="entrar()" class="flex flex-col gap-4">
+      <label class="flex flex-col gap-2" for="username"
+        >Usuario<input
+          id="username"
+          name="username"
+          class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+          autocomplete="username"
+          [(ngModel)]="username"
+          required
+      /></label>
+      <label class="flex flex-col gap-2" for="password"
+        >Contraseña<input
+          id="password"
+          name="password"
+          type="password"
+          class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+          autocomplete="current-password"
+          [(ngModel)]="password"
+          required
+      /></label>
+      <app-api-state [loading]="request.loading()" [error]="request.error()" [retryable]="false" />
+      <button
+        type="submit"
+        class="ui-focus cursor-pointer rounded-lg border-0 bg-content px-4 py-2.5 text-white disabled:cursor-default disabled:opacity-45"
+        [disabled]="request.loading() || !username.trim() || !password"
+      >
+        {{ request.loading() ? 'Iniciando sesión…' : 'Iniciar sesión' }}
+      </button>
+    </form>
+  </section>
+</main>

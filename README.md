@@ -1,68 +1,31 @@
-# VisIAqp
+# VisIAqp frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.
+Angular 21, pnpm 11.25.0 y Tailwind CSS 4.3.3. Interfaz HTTP para visiaqp-api, sin datos ficticios.
 
-## Tooling
+## Desarrollo
 
-Angular 21, Angular Material/CDK 21, Tailwind CSS 4.3 and pnpm 11.25.0.
-Use Node.js 22.12 or newer within the 22.x series (other supported ranges are in package.json).
+Usar Node.js compatible con Angular 21, por ejemplo 22.12+ dentro de la serie 22.
 
-Install dependencies with `pnpm install --frozen-lockfile`.
-Tailwind is configured through PostCSS in src/styles.css. Its theme and utilities are enabled; Preflight is omitted to preserve existing Material and custom styles.
-Run headless tests with `pnpm test --watch=false --browsers=ChromeHeadless`.
+Instalar: pnpm install --frozen-lockfile
 
-## Development server
+Iniciar: pnpm start
 
-To start a local development server, run:
+Abrir http://localhost:4200. La URL del backend se configura en src/app/core/api/api-config.ts; por defecto http://localhost:8000/api. Debe permitir el origen del frontend y tener un usuario activo. No hay credenciales predeterminadas ni acceso anónimo a pantallas protegidas.
 
-```bash
-pnpm start
-```
+## Verificación
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Compilar: pnpm build
 
-## Code scaffolding
+Pruebas: pnpm test --watch=false --browsers=ChromeHeadless
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Las pruebas usan respuestas HTTP simuladas y no necesitan MySQL ni el motor. La integración real sí necesita FastAPI y su base de datos.
 
-```bash
-pnpm exec ng generate component component-name
-```
+## Funciones
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Login JWT; lectura y gestión por rol de zonas, cámaras y umbrales; indicadores horarios/diarios; catálogo de videos; solicitud y cancelación de pendientes; consulta periódica de estados; CSV e impresión de reportes.
 
-```bash
-ng generate --help
-```
+## Limitaciones
 
-## Building
+La API actual no expone resultados por ventana ni transmisión de video. Las vistas muestran indicadores de zona y ejecuciones, sin inventar resultados por cámara. Los históricos están sujetos a los límites de las consultas. Las fechas sin zona se interpretan con el offset configurable de Lima: confirmar ese contrato antes de desplegar.
 
-To build the project run:
-
-```bash
-pnpm build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-pnpm test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-pnpm exec ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Ver [Integración de API](docs/integracion-api.md) y [Criterios de Tailwind](docs/tailwind.md).

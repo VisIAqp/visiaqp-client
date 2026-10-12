@@ -1,12 +1,21 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { forkJoin } from 'rxjs';
+import { ZonaService } from './zona';
+import { CamaraService } from './camara';
+import { IndicadorService } from './indicador';
 import { AnalisisService } from './analisis';
-import { MonitoreoCamara } from '../models/monitoreo.model';
 @Injectable({ providedIn: 'root' })
 export class MonitoreoService {
-  private analisis = inject(AnalisisService);
-  obtenerPorCamara(camaraId: number): MonitoreoCamara | undefined {
-    const r = this.analisis.obtenerRegistros().filter(r => r.camaraId === camaraId).sort((a,b) => b.periodoFin.getTime() - a.periodoFin.getTime())[0];
-    return r ? { camaraId, cantidadPeatones: r.cantidadPeatones, nivel: r.nivel, periodoInicio: r.periodoInicio, periodoFin: r.periodoFin } : undefined;
+  private zonas = inject(ZonaService);
+  private camaras = inject(CamaraService);
+  private indicadores = inject(IndicadorService);
+  private procesamientos = inject(AnalisisService);
+  consultar() {
+    return forkJoin({
+      zonas: this.zonas.listar(),
+      camaras: this.camaras.listar(),
+      indicadores: this.indicadores.actuales(),
+      procesamientos: this.procesamientos.listar(),
+    });
   }
-  obtenerMonitoreo() { return this.analisis.obtenerProcesamientos().filter(p => p.camaraId !== null).map(p => this.obtenerPorCamara(p.camaraId!)).filter((m): m is MonitoreoCamara => !!m); }
 }

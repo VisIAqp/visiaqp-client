@@ -1,25 +1,17 @@
+import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { MainLayout } from './main-layout';
-
 describe('MainLayout', () => {
-  let component: MainLayout;
-  let fixture: ComponentFixture<MainLayout>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  it('renders the layout shell', () => {
+    TestBed.configureTestingModule({
       imports: [MainLayout],
-      providers: [provideRouter([])]
-    })
-    .compileComponents();
-
-    fixture = TestBed.createComponent(MainLayout);
-    component = fixture.componentInstance;
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    });
+    const fixture = TestBed.createComponent(MainLayout);
     fixture.detectChanges();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
+    fixture.destroy();
   });
 });

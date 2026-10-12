@@ -10,10 +10,8 @@ export interface Indicador {
   promedioPeatones: number;
   maxPeatones: number;
   nivelConcentracion: NivelConcentracion;
-  fechaCalculo: Date;
 }
 export interface UmbralConcentracion {
-  id: number;
   zonaId: number;
   umbralMedio: number;
   umbralAlto: number;

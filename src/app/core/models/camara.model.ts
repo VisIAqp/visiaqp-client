@@ -10,6 +10,7 @@ export interface Camara {
   intervaloMuestreoSeg: number;
   zonePolygon: [number, number][] | null;
   ultimaConexion: Date | null;
+  tieneUrlStream: boolean;
 }
 export interface ConfiguracionCamara {
   nombre: string;
@@ -18,4 +19,5 @@ export interface ConfiguracionCamara {
   estado: EstadoCamara;
   intervaloMuestreoSeg: number;
   urlStream: string;
+  zonePolygon: [number, number][] | null;
 }

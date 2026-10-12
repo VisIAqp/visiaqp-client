@@ -1,120 +1,141 @@
-import { Component, inject } from '@angular/core';
-import { NgClass } from '@angular/common';
-
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-import { Zona } from '../../core/models/zona.model';
+import { forkJoin } from 'rxjs';
+import { Auth } from '../../core/auth/auth';
+import { RequestState } from '../../core/api/request-state';
+import { ApiState } from '../../shared/api-state/api-state';
 import { ZonaService } from '../../core/services/zona';
 import { CamaraService } from '../../core/services/camara';
-
+import { UmbralService } from '../../core/services/umbral';
+import { Zona } from '../../core/models/zona.model';
+import { Camara } from '../../core/models/camara.model';
 @Component({
   selector: 'app-zonas',
-  imports: [FormsModule, NgClass],
-  templateUrl: './zonas.html'
+  imports: [CommonModule, FormsModule, ApiState],
+  templateUrl: './zonas.html',
 })
-export class Zonas {
-
-  private zonaService = inject(ZonaService);
-  private camaraService = inject(CamaraService);
-
-  mostrarFormulario = false;
+export class Zonas implements OnInit {
+  readonly auth = inject(Auth);
+  private api = inject(ZonaService);
+  private camarasApi = inject(CamaraService);
+  private umbralApi = inject(UmbralService);
+  private destroyRef = inject(DestroyRef);
+  readonly request = new RequestState(this.destroyRef);
+  readonly saving = new RequestState(this.destroyRef);
+  readonly threshold = new RequestState(this.destroyRef);
+  zonas: Zona[] = [];
+  camaras: Camara[] = [];
   busqueda = '';
-
+  mostrarFormulario = false;
   zonaEditando: Zona | null = null;
-
+  mensaje = '';
+  umbralZona = 0;
+  medio = 10;
+  alto = 30;
+  umbralPredeterminado = false;
   nuevaZona = {
     nombre: '',
-    ubicacion: ''
+    ubicacion: '',
+    descripcion: '',
+    pais: 'PE',
+    latitud: null as number | null,
+    longitud: null as number | null,
+    estado: 'activa' as 'activa' | 'inactiva',
   };
-
-  zonas = this.zonaService.obtenerZonas();
-
-  get zonasFiltradas(): Zona[] {
-
-    const termino = this.busqueda.toLowerCase().trim();
-
-    if (!termino) {
-      return this.zonas;
-    }
-
-    return this.zonas.filter(zona =>
-      zona.nombre.toLowerCase().includes(termino) ||
-      (zona.ubicacion ?? '').toLowerCase().includes(termino)
+  ngOnInit() {
+    this.cargar();
+  }
+  cargar() {
+    this.request.run(
+      forkJoin({ zonas: this.api.listar(), camaras: this.camarasApi.listar() }),
+      (d) => {
+        this.zonas = d.zonas;
+        this.camaras = d.camaras;
+      },
     );
   }
-
-  get zonasActivas(): number {
-    return this.zonas.filter(zona => zona.estado === 'activa').length;
+  get zonasFiltradas() {
+    const q = this.busqueda.toLowerCase().trim();
+    return this.zonas.filter(
+      (z) => z.nombre.toLowerCase().includes(q) || (z.ubicacion || '').toLowerCase().includes(q),
+    );
   }
-
-  get totalCamaras(): number {
-    return this.camaraService.obtenerCamaras().length;
+  contarCamaras(id: number) {
+    return this.camaras.filter((c) => c.zonaId === id).length;
   }
-
-  contarCamaras(zonaId: number): number {
-    return this.camaraService.contarCamarasPorZona(zonaId);
-  }
-
-  abrirFormulario(): void {
-
+  abrirFormulario() {
+    if (!this.auth.isAdmin()) return;
     this.zonaEditando = null;
-
     this.nuevaZona = {
       nombre: '',
-      ubicacion: ''
+      ubicacion: '',
+      descripcion: '',
+      pais: 'PE',
+      latitud: null,
+      longitud: null,
+      estado: 'activa',
     };
-
     this.mostrarFormulario = true;
+    this.saving.error.set('');
   }
-
-  editarZona(zona: Zona): void {
-
-    this.zonaEditando = zona;
-
+  editarZona(z: Zona) {
+    if (!this.auth.isAdmin()) return;
+    this.zonaEditando = z;
     this.nuevaZona = {
-      nombre: zona.nombre,
-      ubicacion: zona.ubicacion ?? ''
+      nombre: z.nombre,
+      ubicacion: z.ubicacion || '',
+      descripcion: z.descripcion || '',
+      pais: z.pais,
+      latitud: z.latitud,
+      longitud: z.longitud,
+      estado: z.estado,
     };
-
     this.mostrarFormulario = true;
+    this.saving.error.set('');
   }
-
-  guardarZona(): void {
-
-    const nombre = this.nuevaZona.nombre.trim();
-    const ubicacion = this.nuevaZona.ubicacion.trim();
-
-    if (!nombre || nombre.length > 100 || ubicacion.length > 150) {
-      return;
-    }
-
-    if (this.zonaEditando) {
-
-      this.zonaService.actualizarZona(
-        this.zonaEditando.id,
-        nombre,
-        ubicacion
-      );
-
-    } else {
-
-      this.zonaService.agregarZona(
-        nombre,
-        ubicacion
-      );
-    }
-
-    this.cerrarFormulario();
-  }
-
-  cerrarFormulario(): void {
-
+  cerrarFormulario() {
+    if (this.saving.loading()) return;
     this.mostrarFormulario = false;
     this.zonaEditando = null;
-
-    this.nuevaZona = {
-      nombre: '',
-      ubicacion: ''
-    };
+  }
+  guardarZona() {
+    if (!this.auth.isAdmin() || this.saving.loading() || !this.nuevaZona.nombre.trim()) return;
+    const d = this.nuevaZona;
+    this.saving.run(
+      this.api.guardar(
+        {
+          nombre: d.nombre.trim(),
+          ubicacion: d.ubicacion.trim() || null,
+          descripcion: d.descripcion.trim() || null,
+          pais: d.pais,
+          latitud: d.latitud,
+          longitud: d.longitud,
+          ...(this.zonaEditando ? { estado: d.estado } : {}),
+        },
+        this.zonaEditando?.id,
+      ),
+      () => {
+        this.mostrarFormulario = false;
+        this.zonaEditando = null;
+        this.mensaje = 'Zona guardada.';
+        this.cargar();
+      },
+    );
+  }
+  verUmbral(id: number) {
+    this.umbralZona = id;
+    this.threshold.run(this.umbralApi.obtener(id), (u) => {
+      this.umbralPredeterminado = !u;
+      this.medio = u?.umbral_medio ?? 10;
+      this.alto = u?.umbral_alto ?? 30;
+    });
+  }
+  guardarUmbral() {
+    if (!this.auth.isAdmin() || this.threshold.loading() || this.alto <= this.medio) return;
+    this.threshold.run(this.umbralApi.guardar(this.umbralZona, this.medio, this.alto), () => {
+      this.umbralPredeterminado = false;
+      this.mensaje = 'Umbral guardado. El backend recalcula las últimas 48 horas.';
+    });
   }
 }

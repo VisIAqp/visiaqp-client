@@ -1,0 +1,147 @@
+<form class="ui-card mb-5 p-5 print:hidden" (ngSubmit)="query().buscar()">
+  <div class="grid grid-cols-1 gap-4 desktop:grid-cols-2 expanded:grid-cols-4">
+    <label class="flex flex-col gap-2"
+      >Zona<select
+        name="zona"
+        class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+        [(ngModel)]="query().zoneId"
+        required
+      >
+        @for (z of query().zonas; track z.id) {
+          <option [ngValue]="z.id">{{ z.nombre }}</option>
+        } @empty {
+          <option [ngValue]="0">No hay zonas</option>
+        }
+      </select></label
+    >
+    <label class="flex flex-col gap-2"
+      >Periodo<select
+        name="periodo"
+        class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+        [(ngModel)]="query().periodo"
+      >
+        <option value="hora">Hora</option>
+        <option value="dia">Día</option>
+      </select></label
+    >
+    <label class="flex flex-col gap-2"
+      >Fecha inicial<input
+        name="desde"
+        class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+        type="date"
+        [(ngModel)]="query().desde"
+        required /></label
+    ><label class="flex flex-col gap-2"
+      >Fecha final<input
+        name="hasta"
+        class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+        type="date"
+        [(ngModel)]="query().hasta"
+        required
+    /></label>
+  </div>
+  <div class="mt-4 flex justify-end gap-3">
+    <button
+      class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2 disabled:cursor-default disabled:opacity-45"
+      type="button"
+      (click)="query().limpiar()"
+      [disabled]="query().request.loading()"
+    >
+      Restablecer fechas</button
+    ><button
+      class="ui-focus cursor-pointer rounded-lg border-0 bg-content px-4 py-2.5 text-white disabled:cursor-default disabled:opacity-45"
+      [disabled]="query().request.loading() || !query().zoneId"
+    >
+      Consultar
+    </button>
+  </div>
+</form>
+<app-api-state
+  [loading]="query().request.loading()"
+  [error]="query().request.error()"
+  (retry)="query().inicializar()"
+/>
+@if (!query().request.loading() && !query().request.error()) {
+  <div class="mb-5 grid gap-4 desktop:grid-cols-3">
+    <div class="ui-card p-5">
+      <span class="text-muted">Periodos consultados</span
+      ><strong class="block text-metric">{{ query().rows.length }}</strong>
+    </div>
+    <div class="ui-card p-5">
+      <span class="text-muted">Suma de conteos</span
+      ><strong class="block text-metric">{{
+        query().rows.length ? query().sum : 'Sin datos'
+      }}</strong
+      ><small class="text-muted">Puede repetir personas entre ventanas o cámaras</small>
+    </div>
+    <div class="ui-card p-5">
+      <span class="text-muted">Máximo por ventana</span
+      ><strong class="block text-metric">{{ query().max ?? 'Sin datos' }}</strong>
+    </div>
+  </div>
+}
+<div class="ui-card mb-5 overflow-hidden">
+  <h3 class="px-5">Indicadores por {{ query().periodo === 'hora' ? 'hora' : 'día' }}</h3>
+  <p class="px-5 text-label text-muted">
+    Hasta 2000 periodos por consulta, ordenados desde el inicio del rango. Las fechas se muestran en
+    hora de Lima. Los datos son agregados de zona.
+  </p>
+  <div class="overflow-x-auto">
+    <table class="w-full min-w-table border-collapse">
+      <thead>
+        <tr>
+          <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Inicio del periodo</th>
+          <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Zona</th>
+          <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Suma de conteos</th>
+          <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">
+            Promedio por ventana
+          </th>
+          <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Máximo</th>
+          <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Nivel</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (i of printAll() ? query().rows : query().visible; track i.id) {
+          <tr>
+            <td class="ui-table-cell py-3.5 text-label">
+              {{ i.periodoInicio | date: 'dd/MM/yyyy HH:mm' : '-0500' }}
+            </td>
+            <td class="ui-table-cell py-3.5 text-label">{{ query().nombreZona(i.zonaId) }}</td>
+            <td class="ui-table-cell py-3.5 text-label">{{ i.totalPeatones }}</td>
+            <td class="ui-table-cell py-3.5 text-label">
+              {{ i.promedioPeatones | number: '1.0-2' }}
+            </td>
+            <td class="ui-table-cell py-3.5 text-label">{{ i.maxPeatones }}</td>
+            <td class="ui-table-cell py-3.5 text-label">
+              <span
+                class="rounded-badge px-2.5 py-1.25 text-caption"
+                [ngClass]="{
+                  'bg-success-soft text-success': i.nivelConcentracion === 'bajo',
+                  'bg-warning-soft text-warning': i.nivelConcentracion === 'medio',
+                  'bg-danger-soft text-danger': i.nivelConcentracion === 'alto',
+                }"
+                >{{ i.nivelConcentracion | titlecase }}</span
+              >
+            </td>
+          </tr>
+        } @empty {
+          @if (!query().request.loading() && !query().request.error()) {
+            <tr>
+              <td colspan="6" class="ui-table-cell py-3.5 text-label">
+                No hay indicadores para los filtros seleccionados.
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+  <app-pagination
+    class="print:hidden"
+    [unit]="'periodos'"
+    [page]="query().page"
+    [pages]="query().pages"
+    [total]="query().rows.length"
+    (pageChange)="query().cambiarPagina($event)"
+  />
+</div>

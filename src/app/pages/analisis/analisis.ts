@@ -1,204 +1,182 @@
-import { Pagination } from '../../shared/pagination/pagination';
 import {
   AfterViewInit,
   Component,
+  DestroyRef,
   ElementRef,
+  inject,
   OnDestroy,
   ViewChild,
-  inject
 } from '@angular/core';
-
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
+import { forkJoin, filter, timer } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Chart } from 'chart.js/auto';
-
+import { Auth } from '../../core/auth/auth';
+import { API_CONFIG } from '../../core/api/api-config';
+import { DtoMapper, VideoDto } from '../../core/api/dto';
+import { RequestState } from '../../core/api/request-state';
+import { IndicatorQuery } from '../../core/api/indicator-query';
+import { IndicatorView } from '../../shared/indicator-view/indicator-view';
+import { ApiState } from '../../shared/api-state/api-state';
 import { AnalisisService } from '../../core/services/analisis';
 import { CamaraService } from '../../core/services/camara';
-import { ZonaService } from '../../core/services/zona';
-
-import { RegistroAnalisis } from '../../core/models/analisis.model';
-
+import { VideoService } from '../../core/services/video';
+import { Camara } from '../../core/models/camara.model';
+import { Procesamiento, EstadoProcesamiento } from '../../core/models/analisis.model';
 @Component({
   selector: 'app-analisis',
-  imports: [CommonModule, FormsModule, Pagination],
-  templateUrl: './analisis.html'
+  imports: [CommonModule, FormsModule, ApiState, IndicatorView],
+  providers: [IndicatorQuery],
+  templateUrl: './analisis.html',
 })
 export class Analisis implements AfterViewInit, OnDestroy {
-
-  private analisisService = inject(AnalisisService);
-  private camaraService = inject(CamaraService);
-  private zonaService = inject(ZonaService);
-
-  @ViewChild('graficoPeatones')
-  graficoPeatones!: ElementRef<HTMLCanvasElement>;
-
+  readonly auth = inject(Auth);
+  readonly history = inject(IndicatorQuery);
+  private api = inject(AnalisisService);
+  private camarasApi = inject(CamaraService);
+  private videosApi = inject(VideoService);
+  private mapper = inject(DtoMapper);
+  private config = inject(API_CONFIG);
+  private ref = inject(DestroyRef);
+  readonly request = new RequestState(this.ref);
+  readonly saving = new RequestState(this.ref);
+  videos: VideoDto[] = [];
+  camaras: Camara[] = [];
+  procesamientos: Procesamiento[] = [];
+  videoId = 0;
+  camaraId = 0;
+  fechaCaptura = '';
+  filtroEstado: EstadoProcesamiento | '' = '';
+  filtroCamara = 0;
+  mensaje = '';
+  actualizado: Date | null = null;
+  @ViewChild('graficoPeatones') grafico!: ElementRef<HTMLCanvasElement>;
   private chart?: Chart;
-
-  pagina = 1;
-  readonly porPagina = 15;
-  get totalPaginas() { return Math.max(1, Math.ceil(this.registrosFiltrados.length / this.porPagina)); }
-  get paginaActual() { return Math.min(this.pagina, this.totalPaginas); }
-  get registrosPagina() { return [...this.registrosFiltrados].sort((a,b) => b.periodoInicio.getTime() - a.periodoInicio.getTime()).slice((this.paginaActual - 1) * this.porPagina, this.paginaActual * this.porPagina); }
-  cambiarPagina(delta: number) { this.pagina = Math.max(1, Math.min(this.totalPaginas, this.paginaActual + delta)); }
-  reiniciarPagina() { this.pagina = 1; }
-  zonaSeleccionada = 0;
-  camaraSeleccionada = 0;
-
-  zonas = this.zonaService.obtenerZonas();
-  camaras = this.camaraService.obtenerCamaras();
-  registros = this.analisisService.obtenerRegistros();
-  procesamientos = this.analisisService.obtenerProcesamientos();
-  get procesamientosFiltrados() { return this.procesamientos.filter(p => (!this.zonaSeleccionada || p.zonaId === Number(this.zonaSeleccionada)) && (!this.camaraSeleccionada || p.camaraId === Number(this.camaraSeleccionada))); }
-
-  ngAfterViewInit(): void {
-    this.crearGrafico();
-  }
-
-  ngOnDestroy(): void {
-    this.chart?.destroy();
-  }
-
-  get camarasDisponibles() {
-
-    if (!this.zonaSeleccionada) {
-      return this.camaras;
-    }
-
-    return this.camaras.filter(
-      camara => camara.zonaId === Number(this.zonaSeleccionada)
-    );
-  }
-
-  get registrosFiltrados(): RegistroAnalisis[] {
-
-    return this.registros.filter(registro => {
-
-      const coincideZona =
-        !this.zonaSeleccionada ||
-        registro.zonaId === Number(this.zonaSeleccionada);
-
-      const coincideCamara =
-        !this.camaraSeleccionada ||
-        registro.camaraId === Number(this.camaraSeleccionada);
-
-      return coincideZona && coincideCamara;
+  ngAfterViewInit() {
+    this.chart = new Chart(this.grafico.nativeElement, {
+      type: 'line',
+      data: { labels: [], datasets: [{ label: 'Promedio por periodo', data: [], tension: 0.3 }] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { y: { beginAtZero: true } },
+      },
     });
-  }
-
-  get totalPeatones(): number {
-
-    return this.registrosFiltrados.reduce(
-      (total, registro) =>
-        total + registro.cantidadPeatones,
-      0
-    );
-  }
-
-  get promedioPeatones(): number {
-
-    if (!this.registrosFiltrados.length) {
-      return 0;
-    }
-
-    return Math.round(
-      this.totalPeatones / this.registrosFiltrados.length
-    );
-  }
-
-  get maximoPeatones(): number {
-
-    if (!this.registrosFiltrados.length) {
-      return 0;
-    }
-
-    return Math.max(
-      ...this.registrosFiltrados.map(
-        registro => registro.cantidadPeatones
+    this.history.changed = () => this.renderChart();
+    this.history.inicializar();
+    this.cargar();
+    timer(this.config.pollMs, this.config.pollMs)
+      .pipe(
+        filter(
+          () =>
+            !document.hidden &&
+            this.auth.validToken() &&
+            !this.request.loading() &&
+            !this.saving.loading(),
+        ),
+        takeUntilDestroyed(this.ref),
       )
+      .subscribe(() => this.refrescar());
+  }
+  cargar() {
+    this.request.run(
+      forkJoin({
+        videos: this.videosApi.listar(),
+        camaras: this.camarasApi.listar(),
+        procesamientos: this.api.listar(
+          this.filtroEstado || undefined,
+          this.filtroCamara || undefined,
+        ),
+      }),
+      (d) => {
+        this.videos = d.videos;
+        this.camaras = d.camaras;
+        this.procesamientos = d.procesamientos;
+        this.actualizado = new Date();
+      },
     );
   }
-
-  obtenerNombreCamara(camaraId: number | null): string {
-
-    return (
-      this.camaraService.obtenerCamaraPorId(camaraId ?? 0)?.nombre ??
-      'Archivo sin cámara'
+  refrescar() {
+    this.request.run(
+      this.api.listar(this.filtroEstado || undefined, this.filtroCamara || undefined),
+      (rows) => {
+        this.procesamientos = rows;
+        this.actualizado = new Date();
+      },
     );
   }
-
-  obtenerNombreZona(zonaId: number): string {
-    return this.zonaService.obtenerZonaPorId(zonaId)?.nombre ?? 'Zona desconocida';
+  get activas() {
+    return this.camaras.filter((c) => c.estado === 'activa');
   }
-
-  aplicarFiltros(): void {
-    this.reiniciarPagina();
-
-    if (
-      this.camaraSeleccionada &&
-      !this.camarasDisponibles.some(
-        camara => camara.id === Number(this.camaraSeleccionada)
-      )
-    ) {
-      this.camaraSeleccionada = 0;
-    }
-
-    this.actualizarGrafico();
+  sugerirFecha() {
+    const video = this.videos.find((v) => v.id_video === this.videoId);
+    this.fechaCaptura = video?.fecha_modificacion.slice(0, 16) || '';
   }
-
-  private crearGrafico(): void {
-
-    this.chart = new Chart(
-      this.graficoPeatones.nativeElement,
-      {
-        type: 'line',
-
-        data: {
-          labels: [],
-          datasets: [
-            {
-              label: 'Peatones detectados',
-              data: [],
-              tension: 0.3
-            }
-          ]
-        },
-
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-
-          plugins: {
-            legend: {
-              display: true
-            }
-          },
-
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          }
-        }
-      }
-    );
-
-    this.actualizarGrafico();
-  }
-
-  private actualizarGrafico(): void {
-
-    if (!this.chart) {
+  solicitar() {
+    if (this.saving.loading()) return;
+    const camara = this.activas.find((c) => c.id === this.camaraId);
+    const video = this.videos.find((v) => v.id_video === this.videoId && v.disponible);
+    if (!camara || !video || !this.fechaCaptura) {
+      this.saving.error.set(
+        'Selecciona un video disponible, una cámara activa y la fecha de captura.',
+      );
       return;
     }
-
-    const registros = [...this.registrosFiltrados].sort((a,b) => a.periodoInicio.getTime() - b.periodoInicio.getTime());
-    const instantes = [...new Set(registros.map(r => r.periodoInicio.getTime()))].sort((a,b) => a-b);
-    this.chart.data.labels = instantes.map(t => new Date(t).toLocaleString('es-PE', { timeZone: 'America/Lima', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }));
-    this.chart.data.datasets = [...new Set(registros.map(r => r.procesamientoId))].map(id => {
-      const ventanas = registros.filter(r => r.procesamientoId === id);
-      return { label: this.obtenerNombreZona(ventanas[0].zonaId) + ' · ' + this.obtenerNombreCamara(ventanas[0].camaraId) + ' · ejecución ' + id, data: instantes.map(t => ventanas.find(r => r.periodoInicio.getTime() === t)?.cantidadPeatones ?? null), tension: 0.3, spanGaps: false };
+    if (!camara.zonePolygon) {
+      this.saving.error.set('Configura el polígono de la cámara antes de solicitar el análisis.');
+      return;
+    }
+    const epoch = this.mapper.date(this.fechaCaptura).getTime();
+    if (!Number.isFinite(epoch) || epoch > Date.now() + 300000) {
+      this.saving.error.set('La fecha de captura no puede ser futura.');
+      return;
+    }
+    this.saving.run(
+      this.api.solicitar(
+        this.videoId,
+        this.camaraId,
+        this.fechaCaptura.length === 16 ? this.fechaCaptura + ':00' : this.fechaCaptura,
+      ),
+      (p) => {
+        this.mensaje = 'Solicitud #' + p.id + ' registrada: ' + p.estado + '.';
+        this.refrescar();
+      },
+    );
+  }
+  puedeCancelar(p: Procesamiento) {
+    return (
+      p.estado === 'pendiente' &&
+      (this.auth.isAdmin() || p.usuarioId === this.auth.user()?.id_usuario)
+    );
+  }
+  cancelar(p: Procesamiento) {
+    if (!this.puedeCancelar(p) || this.saving.loading()) return;
+    this.saving.run(this.api.cancelar(p.id), () => {
+      this.mensaje = 'Solicitud cancelada.';
+      this.refrescar();
     });
+  }
+  nombreCamara(id: number | null) {
+    return id === null
+      ? 'Archivo sin cámara'
+      : this.camaras.find((c) => c.id === id)?.nombre || 'Cámara ' + id;
+  }
+  private renderChart() {
+    if (!this.chart) return;
+    this.chart.data.labels = this.history.rows.map((i) =>
+      i.periodoInicio.toLocaleString('es-PE', {
+        timeZone: 'America/Lima',
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+    );
+    this.chart.data.datasets[0].data = this.history.rows.map((i) => i.promedioPeatones);
     this.chart.update();
+  }
+  ngOnDestroy() {
+    this.chart?.destroy();
   }
 }

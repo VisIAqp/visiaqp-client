@@ -1,31 +1,27 @@
 import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter, Router } from '@angular/router';
 import { App } from './app';
 import { routes } from './app.routes';
-
-describe('App', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+describe('App authentication', () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+    TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideRouter(routes)],
-    }).compileComponents();
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter(routes)],
+    });
   });
-
-  it('should create the app', () => {
-    expect(TestBed.createComponent(App).componentInstance).toBeTruthy();
-  });
-
-  it('should redirect the home page to the dashboard', async () => {
+  it('redirects anonymous users to login without rendering protected data', async () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const router = TestBed.inject(Router);
-    await router.navigateByUrl('/');
+    await router.navigateByUrl('/dashboard');
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(router.url).toBe('/dashboard');
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('app-sidebar')).not.toBeNull();
-    expect(compiled.querySelector('h2')?.textContent).toContain('Resumen general');
+    expect(router.url).toContain('/login');
+    expect(fixture.nativeElement.textContent).toContain('Iniciar sesión');
+    expect(fixture.nativeElement.querySelector('app-sidebar')).toBeNull();
     fixture.destroy();
   });
 });

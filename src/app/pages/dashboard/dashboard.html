@@ -1,36 +1,50 @@
 <section class="mx-auto min-w-0 max-w-page">
-  <div
-    class="mb-6 flex flex-col items-start justify-between gap-3.75 desktop:flex-row desktop:items-center"
-  >
-    <div>
-      <h2 class="mt-0 mb-1.5">Resumen general</h2>
-
-      <p class="m-0 text-muted">Estado actual del sistema de análisis de concentración peatonal.</p>
+  <h2 class="mt-0">Resumen general</h2>
+  <p class="text-muted">
+    Indicadores calculados por el backend. Historial de los últimos siete días.
+  </p>
+  <app-api-state [loading]="request.loading()" [error]="request.error()" (retry)="cargar()" />
+  @if (!request.loading() && !request.error()) {
+    <div class="mb-5 grid gap-4 desktop:grid-cols-2 wide:grid-cols-4">
+      <div class="ui-card p-5">
+        <span class="text-muted">Cámaras activas</span
+        ><strong class="mt-2 block text-metric">{{ camarasActivas }}/{{ camaras.length }}</strong>
+      </div>
+      <div class="ui-card p-5">
+        <span class="text-muted">Zonas activas</span
+        ><strong class="mt-2 block text-metric">{{ zonasActivas }}</strong>
+      </div>
+      <div class="ui-card p-5">
+        <span class="text-muted">Ejecuciones en proceso</span
+        ><strong class="mt-2 block text-metric">{{ procesando }}</strong
+        ><small class="text-subtle">Entre las últimas 500 ejecuciones consultadas</small>
+      </div>
+      <div class="ui-card p-5">
+        <span class="text-muted">Nivel del último periodo</span
+        ><strong class="mt-2 block text-metric">{{
+          ultimoIndicador ? (ultimoIndicador.nivelConcentracion | titlecase) : 'Sin datos'
+        }}</strong>
+      </div>
     </div>
-
-    <div class="flex items-center gap-1.75 text-label">
-      <span class="size-2 shrink-0 rounded-full bg-success"></span>
-      Modo de prueba · sin conexión
-    </div>
-  </div>
-
-  <div class="mb-6 flex flex-wrap gap-3 desktop:gap-5">
-    <label class="flex items-center gap-2.5"
-      >Zona
-      <select
-        class="rounded-lg border border-solid border-input-border bg-white p-2.5 text-input-content"
+  }
+  <div class="ui-card mb-5 flex flex-wrap gap-4 p-5">
+    <label class="flex min-w-0 flex-col gap-2" for="dashboard-zona"
+      >Zona<select
+        id="dashboard-zona"
+        class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
         [(ngModel)]="zonaSeleccionada"
         (ngModelChange)="actualizarGrafico()"
       >
-        @for (zona of zonas; track zona.id) {
-          <option [ngValue]="zona.id">{{ zona.nombre }}</option>
+        @for (z of zonas; track z.id) {
+          <option [ngValue]="z.id">{{ z.nombre }}</option>
+        } @empty {
+          <option [ngValue]="0">No hay zonas</option>
         }
       </select></label
-    >
-    <label class="flex items-center gap-2.5"
-      >Periodo
-      <select
-        class="rounded-lg border border-solid border-input-border bg-white p-2.5 text-input-content"
+    ><label class="flex flex-col gap-2" for="dashboard-periodo"
+      >Periodo<select
+        id="dashboard-periodo"
+        class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
         [(ngModel)]="periodoTipo"
         (ngModelChange)="actualizarGrafico()"
       >
@@ -39,214 +53,43 @@
       </select></label
     >
   </div>
-  <!-- KPIs -->
-
-  <div class="mb-5 grid grid-cols-1 gap-3.75 desktop:grid-cols-2 wide:grid-cols-4">
-    <div class="ui-card flex flex-col gap-1.75 p-4.5">
-      <span class="text-xs text-muted">Promedio del último periodo</span>
-
-      <strong class="text-metric">
-        {{ ultimoIndicador ? (ultimoIndicador.promedioPeatones | number: '1.0-2') : 'Sin datos' }}
-      </strong>
-
-      <small class="text-faint"> Zona y periodo seleccionados </small>
-    </div>
-
-    <div class="ui-card flex flex-col gap-1.75 p-4.5">
-      <span class="text-xs text-muted">Cámaras activas</span>
-
-      <strong class="text-metric"> {{ camarasActivas }}/{{ totalCamaras }} </strong>
-
-      <small class="text-faint"> {{ camarasAnalizando }} realizando análisis </small>
-    </div>
-
-    <div class="ui-card flex flex-col gap-1.75 p-4.5">
-      <span class="text-xs text-muted">Zonas monitoreadas</span>
-
-      <strong class="text-metric">
-        {{ zonasActivas }}
-      </strong>
-
-      <small class="text-faint"> {{ totalZonas }} zonas registradas </small>
-    </div>
-
-    <div class="ui-card flex flex-col gap-1.75 p-4.5">
-      <span class="text-xs text-muted">Nivel reciente</span>
-
-      <strong
-        class="text-metric"
-        [ngClass]="{
-          'text-success': nivelActual === 'bajo',
-          'text-warning': nivelActual === 'medio',
-          'text-danger': nivelActual === 'alto',
-        }"
-      >
-        {{ nivelActual | titlecase }}
-      </strong>
-
-      <small class="text-faint"> Último indicador de la zona seleccionada </small>
-    </div>
+  <div class="ui-card mb-5 p-5">
+    <h3 class="mt-0">Promedio por periodo</h3>
+    @if (!request.loading() && !request.error() && !indicadores.length) {
+      <p>No hay indicadores para esta zona y rango.</p>
+    }
+    <div class="relative h-82.5 min-w-0"><canvas #graficoDashboard></canvas></div>
   </div>
-
-  <!-- GRÁFICO + ESTADO -->
-
-  <div class="mb-5 grid grid-cols-1 gap-5 wide:grid-cols-[2fr_1fr]">
-    <div class="ui-card">
-      <div class="border-0 border-b border-solid border-divider px-5 py-4.5">
-        <div>
-          <h3 class="mt-0 mb-1.25">Promedio por periodo</h3>
-
-          <p class="m-0 text-xs text-muted">
-            Indicadores de la zona seleccionada. Horarios de Lima.
-          </p>
-        </div>
-      </div>
-
-      <div class="box-content h-82.5 min-w-0 p-5">
-        @if (!indicadores.length) {
-          <p>Sin datos para esta zona y periodo.</p>
-        }
-        <canvas #graficoDashboard></canvas>
-      </div>
-    </div>
-
-    <div class="ui-card">
-      <div class="border-0 border-b border-solid border-divider px-5 py-4.5">
-        <div>
-          <h3 class="mt-0 mb-1.25">Estado del sistema</h3>
-
-          <p class="m-0 text-xs text-muted">Resumen de los recursos registrados.</p>
-        </div>
-      </div>
-
-      <div class="px-5 py-1.25">
-        <div
-          class="flex items-center justify-between border-0 border-b border-solid border-divider py-4.25 last:border-b-0"
-        >
-          <div class="flex items-center gap-2.25">
-            <span class="size-2 shrink-0 rounded-full bg-success text-label"></span>
-
-            <span class="text-label"> Cámaras activas </span>
-          </div>
-
-          <strong class="text-lg">
-            {{ camarasActivas }}
-          </strong>
-        </div>
-
-        <div
-          class="flex items-center justify-between border-0 border-b border-solid border-divider py-4.25 last:border-b-0"
-        >
-          <div class="flex items-center gap-2.25">
-            <span class="size-2 shrink-0 rounded-full bg-success text-label"></span>
-
-            <span class="text-label"> Cámaras analizando </span>
-          </div>
-
-          <strong class="text-lg">
-            {{ camarasAnalizando }}
-          </strong>
-        </div>
-
-        <div
-          class="flex items-center justify-between border-0 border-b border-solid border-divider py-4.25 last:border-b-0"
-        >
-          <div class="flex items-center gap-2.25">
-            <span class="size-2 shrink-0 rounded-full bg-success text-label"></span>
-
-            <span class="text-label"> Zonas activas </span>
-          </div>
-
-          <strong class="text-lg">
-            {{ zonasActivas }}
-          </strong>
-        </div>
-
-        <div
-          class="flex items-center justify-between border-0 border-b border-solid border-divider py-4.25 last:border-b-0"
-        >
-          <div class="flex items-center gap-2.25">
-            <span class="size-2 shrink-0 rounded-full bg-dimmed text-label"></span>
-
-            <span class="text-label"> Máximo registrado </span>
-          </div>
-
-          <strong class="text-lg">
-            {{ maximoRegistrado }}
-          </strong>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ACTIVIDAD RECIENTE -->
-
   <div class="ui-card overflow-hidden">
-    <div class="border-0 border-b border-solid border-divider px-5 py-4.5">
-      <div>
-        <h3 class="mt-0 mb-1.25">Actividad reciente</h3>
-
-        <p class="m-0 text-xs text-muted">Últimas mediciones procesadas por el sistema.</p>
-      </div>
-    </div>
-
-    <div class="w-full overflow-x-auto">
+    <h3 class="px-5">Últimas ejecuciones</h3>
+    <div class="overflow-x-auto">
       <table class="w-full min-w-table border-collapse">
         <thead>
           <tr>
-            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Fecha</th>
-            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Hora</th>
             <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Zona</th>
             <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Cámara</th>
-            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Peatones</th>
-            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Nivel</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Captura (Lima)</th>
+            <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Estado</th>
           </tr>
         </thead>
-
         <tbody>
-          @for (registro of actividadReciente; track registro.id) {
+          @for (p of procesamientos.slice(0, 5); track p.id) {
             <tr>
+              <td class="ui-table-cell py-3.5 text-label">{{ nombreZona(p.zonaId) }}</td>
+              <td class="ui-table-cell py-3.5 text-label">{{ nombreCamara(p.camaraId) }}</td>
               <td class="ui-table-cell py-3.5 text-label">
-                {{ registro.periodoInicio | date: 'dd/MM/yyyy' : '-0500' }}
+                {{ p.fechaCapturaInicio | date: 'dd/MM/yyyy HH:mm' : '-0500' }}
               </td>
-
-              <td class="ui-table-cell py-3.5 text-label">
-                {{ registro.periodoInicio | date: 'HH:mm' : '-0500' }}
-              </td>
-
-              <td class="ui-table-cell py-3.5 text-label">
-                {{ obtenerNombreZona(registro.zonaId) }}
-              </td>
-
-              <td class="ui-table-cell py-3.5 text-label">
-                {{ obtenerNombreCamara(registro.camaraId) }}
-              </td>
-
-              <td class="ui-table-cell py-3.5 text-label">
-                <strong>
-                  {{ registro.cantidadPeatones }}
-                </strong>
-              </td>
-
-              <td class="ui-table-cell py-3.5 text-label">
-                <span
-                  class="inline-block rounded-badge px-2.5 py-1.25 text-caption font-semibold"
-                  [ngClass]="{
-                    'bg-success-soft text-success': registro.nivel === 'bajo',
-                    'bg-warning-soft text-warning': registro.nivel === 'medio',
-                    'bg-danger-soft text-danger': registro.nivel === 'alto',
-                  }"
-                >
-                  {{ registro.nivel ? (registro.nivel | titlecase) : 'Sin umbral' }}
-                </span>
-              </td>
+              <td class="ui-table-cell py-3.5 text-label">{{ p.estado | titlecase }}</td>
             </tr>
           } @empty {
-            <tr>
-              <td class="ui-table-cell py-3.5 text-label" colspan="6">
-                Sin ventanas para esta zona.
-              </td>
-            </tr>
+            @if (!request.loading() && !request.error()) {
+              <tr>
+                <td colspan="4" class="ui-table-cell py-3.5 text-label">
+                  No hay ejecuciones registradas.
+                </td>
+              </tr>
+            }
           }
         </tbody>
       </table>

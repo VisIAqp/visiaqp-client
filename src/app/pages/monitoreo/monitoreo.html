@@ -1,174 +1,91 @@
 <section class="mx-auto min-w-0 max-w-page">
-  <div
-    class="mb-6 flex flex-col items-start justify-between gap-3 desktop:flex-row desktop:items-center"
-  >
+  <div class="mb-5 flex flex-wrap justify-between gap-3">
     <div>
-      <h2 class="mt-0 mb-1.5">Monitoreo</h2>
-      <p class="m-0 text-muted">
-        Supervisa las cámaras activas y la concentración peatonal detectada.
-      </p>
-    </div>
-
-    <span class="flex items-center gap-1.75 text-label">
-      <span class="size-2 shrink-0 rounded-full bg-success"></span>
-      Modo de prueba · sin conexión
-    </span>
-  </div>
-
-  <div class="grid grid-cols-1 gap-5 desktop:grid-cols-[280px_minmax(0,1fr)]">
-    <!-- LISTA DE CÁMARAS -->
-
-    <aside class="ui-card self-start overflow-hidden">
-      <div
-        class="flex items-center justify-between border-0 border-b border-solid border-divider p-4.5"
-      >
-        <h3 class="m-0 text-panel">Cámaras activas</h3>
-        <span class="rounded-badge bg-soft px-2.25 py-0.75 text-xs">{{
-          camarasDisponibles.length
-        }}</span>
-      </div>
-
-      @for (camara of camarasDisponibles; track camara.id) {
-        <button
-          class="box-border flex w-full cursor-pointer items-center gap-2.5 border-0 border-b border-solid border-divider p-3.75 text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-content"
-          [attr.aria-pressed]="camaraSeleccionadaId === camara.id"
-          [ngClass]="camaraSeleccionadaId === camara.id ? 'bg-selected' : 'bg-white hover:bg-hover'"
-          (click)="seleccionarCamara(camara.id)"
-        >
-          <div class="flex size-8.75 shrink-0 items-center justify-center rounded-lg bg-divider">
-            ●
-          </div>
-
-          <div class="flex min-w-0 flex-1 flex-col gap-0.75 break-words">
-            <strong class="text-label">
-              {{ camara.nombre }}
-            </strong>
-
-            <span class="text-caption text-muted">
-              {{ obtenerZona(camara.zonaId)?.nombre }}
-            </span>
-          </div>
-
-          <span class="size-2 shrink-0 rounded-full bg-success"></span>
-        </button>
+      <h2 class="mt-0">Monitoreo</h2>
+      <p class="text-muted">Actualización automática mientras esta pantalla está visible.</p>
+      @if (actualizado) {
+        <small>Última consulta: {{ actualizado | date: 'HH:mm:ss' : '-0500' }} (Lima)</small>
       }
-
-      @if (camarasDisponibles.length === 0) {
-        <div class="p-6.25 text-center text-label text-muted">
-          No hay cámaras disponibles para monitoreo.
-        </div>
+    </div>
+    <button
+      class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2 disabled:cursor-default disabled:opacity-45"
+      [disabled]="request.loading()"
+      (click)="cargar()"
+    >
+      Actualizar
+    </button>
+  </div>
+  <app-api-state [loading]="request.loading()" [error]="request.error()" (retry)="cargar()" />
+  <div class="grid gap-5 desktop:grid-cols-[280px_minmax(0,1fr)]">
+    <aside class="ui-card self-start p-3">
+      <h3>Cámaras activas</h3>
+      @for (c of camarasDisponibles; track c.id) {
+        <button
+          class="ui-focus mb-2 w-full cursor-pointer rounded-lg border-0 p-3 text-left"
+          [ngClass]="camaraSeleccionadaId === c.id ? 'bg-selected' : 'bg-white hover:bg-hover'"
+          [attr.aria-pressed]="camaraSeleccionadaId === c.id"
+          (click)="seleccionarCamara(c.id)"
+        >
+          <strong class="block">{{ c.nombre }}</strong
+          ><small class="text-muted">{{ nombreZona(c.zonaId) }}</small>
+        </button>
+      } @empty {
+        @if (!request.loading() && !request.error()) {
+          <p>No hay cámaras activas.</p>
+        }
       }
     </aside>
-
-    <!-- ÁREA PRINCIPAL -->
-
-    <div class="ui-card min-h-150 p-5">
-      @if (camaraSeleccionada) {
-        <div class="mb-4 flex flex-wrap justify-between gap-3">
-          <div>
-            <h3 class="mt-0 mb-1">
-              {{ camaraSeleccionada.nombre }}
-            </h3>
-
-            <p class="m-0 text-label text-muted">
-              {{ obtenerZona(camaraSeleccionada.zonaId)?.nombre }}
-            </p>
-          </div>
-
-          <span class="text-caption font-semibold">
-            {{
-              estaAnalizando(camaraSeleccionada.id) ? 'PROCESANDO (PRUEBA)' : 'SIN EJECUCIÓN ACTIVA'
-            }}
-          </span>
-        </div>
-
-        <!-- VIDEO -->
-
-        <div class="relative h-97.5 overflow-hidden rounded-panel bg-video">
-          <div
-            class="box-border flex h-full flex-col items-center justify-center gap-2 px-4 text-center text-dimmed"
-          >
-            <div class="text-symbol-small">◉</div>
-
-            <strong class="text-white"> Vista de cámara </strong>
-
-            <span class="text-xs">
-              La transmisión de video se conectará posteriormente con el backend.
-            </span>
-          </div>
-
-          @if (monitoreoSeleccionado) {
-            <div
-              class="absolute top-3.75 left-3.75 rounded-md bg-black/70 px-3 py-2 text-xs text-white"
-            >
-              <span>
-                Personas:
-                {{ monitoreoSeleccionado.cantidadPeatones }}
-              </span>
+    <div class="ui-card p-5">
+      @if (camaraSeleccionada; as c) {
+        <h3 class="mt-0">{{ c.nombre }}</h3>
+        <p>{{ nombreZona(c.zonaId) }}</p>
+        @if (!c.zonePolygon) {
+          <p class="text-warning">Esta cámara necesita un polígono de análisis.</p>
+        }
+        <p class="rounded-lg bg-canvas p-4">
+          El video en vivo y los conteos por cámara todavía no están disponibles en la API.
+        </p>
+        @if (indicador; as i) {
+          <h4>Último indicador horario de la zona</h4>
+          <p class="text-muted">
+            Este indicador agrega las ventanas de la zona; no es un conteo individual de esta
+            cámara.
+          </p>
+          <div class="grid gap-3 expanded:grid-cols-3">
+            <div class="rounded-lg border border-solid border-divider p-4">
+              <span>Promedio por ventana</span
+              ><strong class="block text-metric">{{ i.promedioPeatones | number: '1.0-2' }}</strong>
             </div>
-          }
-        </div>
-
-        <!-- INDICADORES -->
-
-        <div class="mt-4 grid grid-cols-1 gap-3 expanded:grid-cols-3">
-          <div
-            class="flex min-w-0 flex-col gap-1.75 rounded-panel border border-solid border-divider p-4"
-          >
-            <span class="text-xs text-muted"> Peatones detectados </span>
-
-            <strong class="text-indicator">
-              {{ monitoreoSeleccionado?.cantidadPeatones ?? 'Sin datos' }}
-            </strong>
+            <div class="rounded-lg border border-solid border-divider p-4">
+              <span>Nivel de zona</span
+              ><strong class="block text-metric">{{ i.nivelConcentracion | titlecase }}</strong>
+            </div>
+            <div class="rounded-lg border border-solid border-divider p-4">
+              <span>Fin del periodo (Lima)</span
+              ><strong class="block">{{ i.periodoFin | date: 'dd/MM HH:mm' : '-0500' }}</strong>
+            </div>
           </div>
-
-          <div
-            class="flex min-w-0 flex-col gap-1.75 rounded-panel border border-solid border-divider p-4"
-          >
-            <span class="text-xs text-muted"> Concentración </span>
-
-            <strong
-              class="text-indicator"
-              [ngClass]="{
-                'text-success': monitoreoSeleccionado?.nivel === 'bajo',
-                'text-warning': monitoreoSeleccionado?.nivel === 'medio',
-                'text-danger': monitoreoSeleccionado?.nivel === 'alto',
-              }"
-            >
-              {{
-                monitoreoSeleccionado
-                  ? monitoreoSeleccionado.nivel
-                    ? (monitoreoSeleccionado.nivel | titlecase)
-                    : 'Sin umbral'
-                  : 'Sin datos'
-              }}
-            </strong>
-          </div>
-
-          <div
-            class="flex min-w-0 flex-col gap-1.75 rounded-panel border border-solid border-divider p-4"
-          >
-            <span class="text-xs text-muted"> Fin de última ventana (Lima) </span>
-
-            <strong class="text-time">
-              @if (monitoreoSeleccionado) {
-                {{ monitoreoSeleccionado.periodoFin | date: 'dd/MM HH:mm:ss' : '-0500' }}
-              } @else {
-                Sin datos
-              }
-            </strong>
-          </div>
-        </div>
-
-        <!-- TEMPORAL -->
+        } @else {
+          <p>La zona no tiene indicadores disponibles.</p>
+        }
+        <h4>Ejecuciones de esta cámara</h4>
+        <p class="text-label text-muted">Entre las últimas 500 ejecuciones del sistema.</p>
+        @for (p of ejecuciones; track p.id) {
+          <p>
+            #{{ p.id }} · {{ p.estado | titlecase }} ·
+            {{ p.fechaCapturaInicio | date: 'dd/MM HH:mm' : '-0500' }}
+            @if (p.mensajeError) {
+              <span class="block text-danger">{{ p.mensajeError }}</span>
+            }
+          </p>
+        } @empty {
+          <p>No hay ejecuciones en la consulta.</p>
+        }
       } @else {
-        <div class="flex h-125 flex-col items-center justify-center text-center text-muted">
-          <div class="text-symbol">◉</div>
-
-          <h3 class="mb-1.25 text-heading">Selecciona una cámara</h3>
-
-          <p class="m-0">Elige una cámara activa para visualizar su monitoreo.</p>
-        </div>
+        <h3>Selecciona una cámara</h3>
+        <p class="text-muted">
+          Elige una cámara activa para consultar su estado y los indicadores de su zona.
+        </p>
       }
     </div>
   </div>

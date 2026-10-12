@@ -6,7 +6,7 @@ import { CamaraService } from '../../core/services/camara';
 import { ZonaService } from '../../core/services/zona';
 import { AnalisisService } from '../../core/services/analisis';
 const formulario = (): ConfiguracionCamara => ({ nombre: '', zonaId: 0, tipo: 'fija', estado: 'activa', intervaloMuestreoSeg: 60, urlStream: '' });
-@Component({ selector: 'app-camaras', imports: [CommonModule, FormsModule], templateUrl: './camaras.html', styleUrl: './camaras.css' })
+@Component({ selector: 'app-camaras', imports: [CommonModule, FormsModule], templateUrl: './camaras.html' })
 export class Camaras {
   private camaraService = inject(CamaraService);
   private zonaService = inject(ZonaService);

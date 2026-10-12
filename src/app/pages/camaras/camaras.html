@@ -1,13 +1,13 @@
-<section class="camaras-page">
+<section class="mx-auto min-w-0 max-w-[1400px]">
 
-  <div class="page-header">
+  <div class="mb-6 flex flex-col items-start justify-between gap-3 min-[761px]:flex-row min-[761px]:items-center [&_h2]:mt-0 [&_h2]:mb-[6px] [&_p]:m-0 [&_p]:text-[#777]">
     <div>
       <h2>Gestión de cámaras</h2>
       <p>Administra las cámaras utilizadas para el monitoreo peatonal.</p>
     </div>
 
     <button
-      class="primary-button"
+      class="cursor-pointer rounded-lg border-0 bg-[#0d0d0d] px-[18px] py-[11px] text-white hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d]"
       (click)="abrirFormulario()">
       + Nueva cámara
     </button>
@@ -15,9 +15,9 @@
 
   @if (mostrarFormulario) {
 
-    <div class="form-card">
+    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white mb-6 p-5">
 
-      <div class="form-header">
+      <div class="mb-5 flex items-center justify-between gap-3 [&_h3]:mt-0 [&_h3]:mb-[5px] [&_p]:m-0 [&_p]:text-[13px] [&_p]:text-[#777]">
         <div>
           <h3>
             {{ camaraEditando ? 'Editar cámara' : 'Nueva cámara' }}
@@ -29,7 +29,8 @@
         </div>
 
         <button
-          class="close-button"
+          class="shrink-0 cursor-pointer border-0 bg-transparent text-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d]"
+          type="button" aria-label="Cerrar formulario"
           (click)="cerrarFormulario()">
           ✕
         </button>
@@ -37,24 +38,24 @@
 
       <form (ngSubmit)="guardarCamara()">
 
-        <div class="form-grid">
+        <div class="grid grid-cols-1 gap-5 min-[761px]:grid-cols-2">
 
-          <div class="form-group">
-            <label>Nombre</label>
+          <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-[13px] [&_label]:font-semibold [&_small]:text-[#888]">
+            <label for="camara-nombre">Nombre</label>
 
             <input
               type="text"
-              name="nombre"
+              name="nombre" id="camara-nombre" class="box-border min-w-0 rounded-lg border border-solid border-[#ddd] bg-white px-3 py-2.5 outline-none focus:border-[#0d0d0d] focus-visible:ring-1 focus-visible:ring-[#0d0d0d] w-full"
               maxlength="100" [(ngModel)]="nuevaCamara.nombre"
               placeholder="Ej. Cámara UTP 01"
               required>
           </div>
 
-          <div class="form-group">
-            <label>Zona</label>
+          <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-[13px] [&_label]:font-semibold [&_small]:text-[#888]">
+            <label for="camara-zonaId">Zona</label>
 
             <select
-              name="zonaId"
+              name="zonaId" id="camara-zonaId" class="box-border min-w-0 rounded-lg border border-solid border-[#ddd] bg-white px-3 py-2.5 outline-none focus:border-[#0d0d0d] focus-visible:ring-1 focus-visible:ring-[#0d0d0d] w-full"
               [(ngModel)]="nuevaCamara.zonaId"
               required>
 
@@ -69,11 +70,11 @@
             </select>
           </div>
 
-          <div class="form-group">
-            <label>Tipo de cámara</label>
+          <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-[13px] [&_label]:font-semibold [&_small]:text-[#888]">
+            <label for="camara-tipo">Tipo de cámara</label>
 
             <select
-              name="tipo"
+              name="tipo" id="camara-tipo" class="box-border min-w-0 rounded-lg border border-solid border-[#ddd] bg-white px-3 py-2.5 outline-none focus:border-[#0d0d0d] focus-visible:ring-1 focus-visible:ring-[#0d0d0d] w-full"
               [(ngModel)]="nuevaCamara.tipo">
 
               <option value="fija">Fija</option>
@@ -82,12 +83,12 @@
             </select>
           </div>
 
-          <div class="form-group">
-            <label>Fuente de video</label>
+          <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-[13px] [&_label]:font-semibold [&_small]:text-[#888]">
+            <label for="camara-urlStream">Fuente de video</label>
 
             <input
               type="text"
-              name="urlStream"
+              name="urlStream" id="camara-urlStream" class="box-border min-w-0 rounded-lg border border-solid border-[#ddd] bg-white px-3 py-2.5 outline-none focus:border-[#0d0d0d] focus-visible:ring-1 focus-visible:ring-[#0d0d0d] w-full"
               [(ngModel)]="nuevaCamara.urlStream"
               maxlength="255" placeholder="https://… o rtsp://…"
               [required]="!camaraEditando">
@@ -97,24 +98,24 @@
             </small>
           </div>
 
-          <div class="form-group"><label>Estado</label><select name="estado" [(ngModel)]="nuevaCamara.estado"><option value="activa">Activa</option><option value="inactiva">Inactiva</option><option value="mantenimiento">Mantenimiento</option></select></div>
-          <div class="form-group"><label>Intervalo de muestreo (segundos)</label><input type="number" name="intervalo" min="1" step="1" required [(ngModel)]="nuevaCamara.intervaloMuestreoSeg"></div>
+          <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-[13px] [&_label]:font-semibold [&_small]:text-[#888]"><label for="camara-estado">Estado</label><select name="estado" id="camara-estado" class="box-border min-w-0 rounded-lg border border-solid border-[#ddd] bg-white px-3 py-2.5 outline-none focus:border-[#0d0d0d] focus-visible:ring-1 focus-visible:ring-[#0d0d0d] w-full" [(ngModel)]="nuevaCamara.estado"><option value="activa">Activa</option><option value="inactiva">Inactiva</option><option value="mantenimiento">Mantenimiento</option></select></div>
+          <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-[13px] [&_label]:font-semibold [&_small]:text-[#888]"><label for="camara-intervalo">Intervalo de muestreo (segundos)</label><input type="number" name="intervalo" id="camara-intervalo" class="box-border min-w-0 rounded-lg border border-solid border-[#ddd] bg-white px-3 py-2.5 outline-none focus:border-[#0d0d0d] focus-visible:ring-1 focus-visible:ring-[#0d0d0d] w-full" min="1" step="1" required [(ngModel)]="nuevaCamara.intervaloMuestreoSeg"></div>
         </div>
 
         @if (mensaje) { <p role="alert">{{ mensaje }}</p> }
 
-        <div class="form-actions">
+        <div class="mt-5 flex flex-wrap justify-end gap-2.5">
 
           <button
             type="button"
-            class="secondary-button"
+            class="cursor-pointer rounded-[7px] border border-solid border-[#ddd] bg-white px-3 py-[7px] hover:bg-[#f5f5f5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d]"
             (click)="cerrarFormulario()">
             Cancelar
           </button>
 
           <button
             type="submit"
-            class="primary-button">
+            class="cursor-pointer rounded-lg border-0 bg-[#0d0d0d] px-[18px] py-[11px] text-white hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d]">
 
             {{ camaraEditando ? 'Guardar cambios' : 'Registrar cámara' }}
 
@@ -128,28 +129,28 @@
 
   }
 
-  <div class="stats">
+  <div class="mb-6 grid grid-cols-1 gap-4 min-[761px]:grid-cols-3">
 
-    <div class="stat-card">
+    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-2 p-5 [&_span]:text-[13px] [&_span]:text-[#777] [&_strong]:text-[28px]">
       <span>Total de cámaras</span>
       <strong>{{ camaras.length }}</strong>
     </div>
 
-    <div class="stat-card">
+    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-2 p-5 [&_span]:text-[13px] [&_span]:text-[#777] [&_strong]:text-[28px]">
       <span>Cámaras activas</span>
       <strong>{{ camarasActivas }}</strong>
     </div>
 
-    <div class="stat-card">
+    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-2 p-5 [&_span]:text-[13px] [&_span]:text-[#777] [&_strong]:text-[28px]">
       <span>Analizando</span>
       <strong>{{ camarasAnalizando }}</strong>
     </div>
 
   </div>
 
-  <div class="table-container">
+  <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white overflow-hidden">
 
-    <div class="table-header">
+    <div class="flex flex-col items-start justify-between gap-3 border-0 border-b border-solid border-[#eee] p-5 min-[761px]:flex-row min-[761px]:items-center [&_h3]:mt-0 [&_h3]:mb-[5px] [&_p]:m-0 [&_p]:text-[13px] [&_p]:text-[#777]">
 
       <div>
         <h3>Cámaras registradas</h3>
@@ -158,13 +159,13 @@
 
       <input
         type="text"
-        class="search-input"
-        placeholder="Buscar cámara..."
+        class="box-border min-w-0 rounded-lg border border-solid border-[#ddd] bg-white px-3 py-2.5 outline-none focus:border-[#0d0d0d] focus-visible:ring-1 focus-visible:ring-[#0d0d0d] w-full min-[761px]:w-[220px]"
+        placeholder="Buscar cámara..." aria-label="Buscar cámara"
         [(ngModel)]="busqueda">
 
     </div>
 
-    <div class="table-scroll"><table>
+    <div class="w-full overflow-x-auto"><table class="w-full min-w-[660px] border-collapse [&_th]:border-0 [&_th]:border-b [&_th]:border-solid [&_th]:border-[#eee] [&_th]:px-5 [&_th]:py-[15px] [&_th]:text-left [&_th]:text-xs [&_th]:uppercase [&_th]:text-[#777] [&_td]:border-0 [&_td]:border-b [&_td]:border-solid [&_td]:border-[#eee] [&_td]:px-5 [&_td]:py-[15px] [&_td]:text-left [&_td]:text-sm">
 
       <thead>
         <tr>
@@ -190,16 +191,15 @@
             <td>{{ obtenerZona(camara.zonaId)?.nombre || 'Sin zona' }}</td>
 
             <td>
-              <span class="source-type">
+              <span class="inline-block rounded-[20px] bg-[#f1f1f1] px-2.5 py-[5px] text-xs">
                 {{ camara.tipo }}
               </span>
             </td>
 
             <td>
               <span
-                class="status"
-                [class.active]="camara.estado === 'activa'"
-                [class.inactive]="camara.estado === 'inactiva'" [class.maintenance]="camara.estado === 'mantenimiento'">
+                class="inline-block rounded-[20px] px-2.5 py-[5px] text-xs"
+                [ngClass]="{ 'bg-[#e8f5e9] text-[#2e7d32]': camara.estado === 'activa', 'bg-[#f5f5f5] text-[#777]': camara.estado === 'inactiva', 'bg-[#fff3cd] text-[#805b00]': camara.estado === 'mantenimiento' }">
 
                 {{ camara.estado | titlecase }}
 
@@ -210,16 +210,16 @@
               {{ camara.intervaloMuestreoSeg }} s · {{ estaAnalizando(camara.id) ? 'Procesando' : 'Sin ejecución activa' }}
             </td>
 
-            <td class="actions">
+            <td class="whitespace-nowrap [&_button+button]:ml-[7px] [&_button]:whitespace-nowrap">
 
               <button
-                class="action-button"
+                class="cursor-pointer rounded-[7px] border border-solid border-[#ddd] bg-white px-3 py-[7px] hover:bg-[#f5f5f5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d]"
                 (click)="editarCamara(camara)">
                 Editar
               </button>
 
               <button
-                class="action-button"
+                class="cursor-pointer rounded-[7px] border border-solid border-[#ddd] bg-white px-3 py-[7px] hover:bg-[#f5f5f5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d]"
                 (click)="cambiarEstado(camara)">
 
                 {{ camara.estado === 'activa' ? 'Desactivar' : 'Activar' }}

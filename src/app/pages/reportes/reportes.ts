@@ -11,8 +11,7 @@ import { RegistroAnalisis } from '../../core/models/analisis.model';
 @Component({
   selector: 'app-reportes',
   imports: [CommonModule, FormsModule],
-  templateUrl: './reportes.html',
-  styleUrl: './reportes.css'
+  templateUrl: './reportes.html'
 })
 export class Reportes {
 

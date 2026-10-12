@@ -13,26 +13,30 @@
 
     <div class="system-status">
       <span class="status-dot"></span>
-      Sistema operativo
+      Modo de prueba · sin conexión
     </div>
 
   </div>
 
 
+  <div class="filters">
+    <label>Zona <select [(ngModel)]="zonaSeleccionada" (ngModelChange)="actualizarGrafico()">@for (zona of zonas; track zona.id) { <option [ngValue]="zona.id">{{ zona.nombre }}</option> }</select></label>
+    <label>Periodo <select [(ngModel)]="periodoTipo" (ngModelChange)="actualizarGrafico()"><option value="hora">Hora</option><option value="dia">Día</option></select></label>
+  </div>
   <!-- KPIs -->
 
   <div class="metrics">
 
     <div class="metric-card">
 
-      <span>Peatones detectados</span>
+      <span>Promedio del último periodo</span>
 
       <strong>
-        {{ totalPeatones }}
+        {{ ultimoIndicador ? (ultimoIndicador.promedioPeatones | number:'1.0-2') : 'Sin datos' }}
       </strong>
 
       <small>
-        Total de registros analizados
+        Zona y periodo seleccionados
       </small>
 
     </div>
@@ -73,16 +77,16 @@
       <span>Nivel reciente</span>
 
       <strong
-        [class.level-low]="nivelActual === 'Bajo'"
-        [class.level-medium]="nivelActual === 'Medio'"
-        [class.level-high]="nivelActual === 'Alto'">
+        [class.level-low]="nivelActual === 'bajo'"
+        [class.level-medium]="nivelActual === 'medio'"
+        [class.level-high]="nivelActual === 'alto'">
 
-        {{ nivelActual }}
+        {{ nivelActual | titlecase }}
 
       </strong>
 
       <small>
-        Última medición registrada
+        Último indicador de la zona seleccionada
       </small>
 
     </div>
@@ -99,17 +103,17 @@
       <div class="card-header">
 
         <div>
-          <h3>Concentración por hora</h3>
+          <h3>Promedio por periodo</h3>
 
           <p>
-            Total de peatones detectados
-            en todas las cámaras.
+            Indicadores de la zona seleccionada. Horarios de Lima.
           </p>
         </div>
 
       </div>
 
       <div class="chart-container">
+        @if (!indicadores.length) { <p>Sin datos para esta zona y periodo.</p> }
         <canvas #graficoDashboard></canvas>
       </div>
 
@@ -224,7 +228,7 @@
     </div>
 
 
-    <table>
+    <div class="table-scroll"><table>
 
       <thead>
 
@@ -250,15 +254,15 @@
           <tr>
 
             <td>
-              {{ registro.fecha | date:'dd/MM/yyyy' }}
+              {{ registro.periodoInicio | date:'dd/MM/yyyy':'-0500' }}
             </td>
 
             <td>
-              {{ registro.fecha | date:'HH:mm' }}
+              {{ registro.periodoInicio | date:'HH:mm':'-0500' }}
             </td>
 
             <td>
-              {{ obtenerNombreZona(registro.camaraId) }}
+              {{ obtenerNombreZona(registro.zonaId) }}
             </td>
 
             <td>
@@ -267,7 +271,7 @@
 
             <td>
               <strong>
-                {{ registro.peatonesDetectados }}
+                {{ registro.cantidadPeatones }}
               </strong>
             </td>
 
@@ -275,11 +279,11 @@
 
               <span
                 class="level"
-                [class.low]="registro.nivel === 'Bajo'"
-                [class.medium]="registro.nivel === 'Medio'"
-                [class.high]="registro.nivel === 'Alto'">
+                [class.low]="registro.nivel === 'bajo'"
+                [class.medium]="registro.nivel === 'medio'"
+                [class.high]="registro.nivel === 'alto'">
 
-                {{ registro.nivel }}
+                {{ registro.nivel ? (registro.nivel | titlecase) : 'Sin umbral' }}
 
               </span>
 
@@ -287,11 +291,11 @@
 
           </tr>
 
-        }
+        } @empty { <tr><td colspan="6">Sin ventanas para esta zona.</td></tr> }
 
       </tbody>
 
-    </table>
+    </table></div>
 
   </div>
 

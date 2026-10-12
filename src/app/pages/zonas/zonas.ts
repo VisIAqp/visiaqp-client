@@ -39,12 +39,12 @@ export class Zonas {
 
     return this.zonas.filter(zona =>
       zona.nombre.toLowerCase().includes(termino) ||
-      zona.ubicacion.toLowerCase().includes(termino)
+      (zona.ubicacion ?? '').toLowerCase().includes(termino)
     );
   }
 
   get zonasActivas(): number {
-    return this.zonas.filter(zona => zona.activa).length;
+    return this.zonas.filter(zona => zona.estado === 'activa').length;
   }
 
   get totalCamaras(): number {
@@ -73,7 +73,7 @@ export class Zonas {
 
     this.nuevaZona = {
       nombre: zona.nombre,
-      ubicacion: zona.ubicacion
+      ubicacion: zona.ubicacion ?? ''
     };
 
     this.mostrarFormulario = true;
@@ -84,7 +84,7 @@ export class Zonas {
     const nombre = this.nuevaZona.nombre.trim();
     const ubicacion = this.nuevaZona.ubicacion.trim();
 
-    if (!nombre || !ubicacion) {
+    if (!nombre || nombre.length > 100 || ubicacion.length > 150) {
       return;
     }
 

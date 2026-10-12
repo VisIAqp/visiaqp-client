@@ -35,12 +35,21 @@ export class Analisis implements AfterViewInit, OnDestroy {
 
   private chart?: Chart;
 
+  pagina = 1;
+  readonly porPagina = 15;
+  get totalPaginas() { return Math.max(1, Math.ceil(this.registrosFiltrados.length / this.porPagina)); }
+  get paginaActual() { return Math.min(this.pagina, this.totalPaginas); }
+  get registrosPagina() { return [...this.registrosFiltrados].sort((a,b) => b.periodoInicio.getTime() - a.periodoInicio.getTime()).slice((this.paginaActual - 1) * this.porPagina, this.paginaActual * this.porPagina); }
+  cambiarPagina(delta: number) { this.pagina = Math.max(1, Math.min(this.totalPaginas, this.paginaActual + delta)); }
+  reiniciarPagina() { this.pagina = 1; }
   zonaSeleccionada = 0;
   camaraSeleccionada = 0;
 
   zonas = this.zonaService.obtenerZonas();
   camaras = this.camaraService.obtenerCamaras();
   registros = this.analisisService.obtenerRegistros();
+  procesamientos = this.analisisService.obtenerProcesamientos();
+  get procesamientosFiltrados() { return this.procesamientos.filter(p => (!this.zonaSeleccionada || p.zonaId === Number(this.zonaSeleccionada)) && (!this.camaraSeleccionada || p.camaraId === Number(this.camaraSeleccionada))); }
 
   ngAfterViewInit(): void {
     this.crearGrafico();
@@ -65,17 +74,9 @@ export class Analisis implements AfterViewInit, OnDestroy {
 
     return this.registros.filter(registro => {
 
-      const camara = this.camaraService.obtenerCamaraPorId(
-        registro.camaraId
-      );
-
-      if (!camara) {
-        return false;
-      }
-
       const coincideZona =
         !this.zonaSeleccionada ||
-        camara.zonaId === Number(this.zonaSeleccionada);
+        registro.zonaId === Number(this.zonaSeleccionada);
 
       const coincideCamara =
         !this.camaraSeleccionada ||
@@ -89,7 +90,7 @@ export class Analisis implements AfterViewInit, OnDestroy {
 
     return this.registrosFiltrados.reduce(
       (total, registro) =>
-        total + registro.peatonesDetectados,
+        total + registro.cantidadPeatones,
       0
     );
   }
@@ -113,35 +114,25 @@ export class Analisis implements AfterViewInit, OnDestroy {
 
     return Math.max(
       ...this.registrosFiltrados.map(
-        registro => registro.peatonesDetectados
+        registro => registro.cantidadPeatones
       )
     );
   }
 
-  obtenerNombreCamara(camaraId: number): string {
+  obtenerNombreCamara(camaraId: number | null): string {
 
     return (
-      this.camaraService.obtenerCamaraPorId(camaraId)?.nombre ??
-      'Cámara desconocida'
+      this.camaraService.obtenerCamaraPorId(camaraId ?? 0)?.nombre ??
+      'Archivo sin cámara'
     );
   }
 
-  obtenerNombreZona(camaraId: number): string {
-
-    const camara =
-      this.camaraService.obtenerCamaraPorId(camaraId);
-
-    if (!camara) {
-      return 'Zona desconocida';
-    }
-
-    return (
-      this.zonaService.obtenerZonaPorId(camara.zonaId)?.nombre ??
-      'Zona desconocida'
-    );
+  obtenerNombreZona(zonaId: number): string {
+    return this.zonaService.obtenerZonaPorId(zonaId)?.nombre ?? 'Zona desconocida';
   }
 
   aplicarFiltros(): void {
+    this.reiniciarPagina();
 
     if (
       this.camaraSeleccionada &&
@@ -201,24 +192,13 @@ export class Analisis implements AfterViewInit, OnDestroy {
       return;
     }
 
-    const registros = this.registrosFiltrados;
-
-    this.chart.data.labels = registros.map(
-      registro =>
-        registro.fecha.toLocaleTimeString(
-          'es-PE',
-          {
-            hour: '2-digit',
-            minute: '2-digit'
-          }
-        )
-    );
-
-    this.chart.data.datasets[0].data =
-      registros.map(
-        registro => registro.peatonesDetectados
-      );
-
+    const registros = [...this.registrosFiltrados].sort((a,b) => a.periodoInicio.getTime() - b.periodoInicio.getTime());
+    const instantes = [...new Set(registros.map(r => r.periodoInicio.getTime()))].sort((a,b) => a-b);
+    this.chart.data.labels = instantes.map(t => new Date(t).toLocaleString('es-PE', { timeZone: 'America/Lima', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }));
+    this.chart.data.datasets = [...new Set(registros.map(r => r.procesamientoId))].map(id => {
+      const ventanas = registros.filter(r => r.procesamientoId === id);
+      return { label: this.obtenerNombreZona(ventanas[0].zonaId) + ' · ' + this.obtenerNombreCamara(ventanas[0].camaraId) + ' · ejecución ' + id, data: instantes.map(t => ventanas.find(r => r.periodoInicio.getTime() === t)?.cantidadPeatones ?? null), tension: 0.3, spanGaps: false };
+    });
     this.chart.update();
   }
 }

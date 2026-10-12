@@ -24,6 +24,13 @@ export class Reportes {
   camaras = this.camaraService.obtenerCamaras();
   registros = this.analisisService.obtenerRegistros();
 
+  pagina = 1;
+  readonly porPagina = 15;
+  get totalPaginas() { return Math.max(1, Math.ceil(this.registrosFiltrados.length / this.porPagina)); }
+  get paginaActual() { return Math.min(this.pagina, this.totalPaginas); }
+  get registrosPagina() { return [...this.registrosFiltrados].sort((a,b) => b.periodoInicio.getTime() - a.periodoInicio.getTime()).slice((this.paginaActual - 1) * this.porPagina, this.paginaActual * this.porPagina); }
+  cambiarPagina(delta: number) { this.pagina = Math.max(1, Math.min(this.totalPaginas, this.paginaActual + delta)); }
+  reiniciarPagina() { this.pagina = 1; }
   zonaSeleccionada = 0;
   camaraSeleccionada = 0;
 
@@ -48,18 +55,9 @@ export class Reportes {
 
     return this.registros.filter(registro => {
 
-      const camara =
-        this.camaraService.obtenerCamaraPorId(
-          registro.camaraId
-        );
-
-      if (!camara) {
-        return false;
-      }
-
       const coincideZona =
         !this.zonaSeleccionada ||
-        camara.zonaId === Number(this.zonaSeleccionada);
+        registro.zonaId === Number(this.zonaSeleccionada);
 
       const coincideCamara =
         !this.camaraSeleccionada ||
@@ -71,21 +69,21 @@ export class Reportes {
       if (this.fechaInicio) {
 
         const inicio = new Date(
-          this.fechaInicio + 'T00:00:00'
+          this.fechaInicio + 'T00:00:00-05:00'
         );
 
         coincideFechaInicio =
-          registro.fecha >= inicio;
+          registro.periodoInicio >= inicio;
       }
 
       if (this.fechaFin) {
 
         const fin = new Date(
-          this.fechaFin + 'T23:59:59'
+          this.fechaFin + 'T23:59:59.999-05:00'
         );
 
         coincideFechaFin =
-          registro.fecha <= fin;
+          registro.periodoInicio <= fin;
       }
 
       return (
@@ -101,7 +99,7 @@ export class Reportes {
 
     return this.registrosFiltrados.reduce(
       (total, registro) =>
-        total + registro.peatonesDetectados,
+        total + registro.cantidadPeatones,
       0
     );
   }
@@ -114,7 +112,7 @@ export class Reportes {
 
     return Math.max(
       ...this.registrosFiltrados.map(
-        registro => registro.peatonesDetectados
+        registro => registro.cantidadPeatones
       )
     );
   }
@@ -131,32 +129,21 @@ export class Reportes {
     );
   }
 
-  obtenerNombreCamara(camaraId: number): string {
+  obtenerNombreCamara(camaraId: number | null): string {
 
     return (
       this.camaraService
-        .obtenerCamaraPorId(camaraId)?.nombre ??
-      'Cámara desconocida'
+        .obtenerCamaraPorId(camaraId ?? 0)?.nombre ??
+      'Archivo sin cámara'
     );
   }
 
-  obtenerNombreZona(camaraId: number): string {
-
-    const camara =
-      this.camaraService.obtenerCamaraPorId(camaraId);
-
-    if (!camara) {
-      return 'Zona desconocida';
-    }
-
-    return (
-      this.zonaService
-        .obtenerZonaPorId(camara.zonaId)?.nombre ??
-      'Zona desconocida'
-    );
+  obtenerNombreZona(zonaId: number): string {
+    return this.zonaService.obtenerZonaPorId(zonaId)?.nombre ?? 'Zona desconocida';
   }
 
   cambiarZona(): void {
+    this.reiniciarPagina();
 
     if (
       this.camaraSeleccionada &&
@@ -172,6 +159,7 @@ export class Reportes {
   }
 
   limpiarFiltros(): void {
+    this.reiniciarPagina();
 
     this.zonaSeleccionada = 0;
     this.camaraSeleccionada = 0;

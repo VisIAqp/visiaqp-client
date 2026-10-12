@@ -11,7 +11,7 @@
 
     <span class="system-status">
       <span class="status-dot"></span>
-      Sistema operativo
+      Modo de prueba · sin conexión
     </span>
   </div>
 
@@ -86,7 +86,7 @@
           </div>
 
           <span class="live-badge">
-            ● EN VIVO
+            {{ estaAnalizando(camaraSeleccionada.id) ? 'PROCESANDO (PRUEBA)' : 'SIN EJECUCIÓN ACTIVA' }}
           </span>
 
         </div>
@@ -120,7 +120,7 @@
 
               <span>
                 Personas:
-                {{ monitoreoSeleccionado.peatonesDetectados }}
+                {{ monitoreoSeleccionado.cantidadPeatones }}
               </span>
 
             </div>
@@ -141,7 +141,7 @@
             </span>
 
             <strong>
-              {{ monitoreoSeleccionado?.peatonesDetectados ?? 0 }}
+              {{ monitoreoSeleccionado?.cantidadPeatones ?? 'Sin datos' }}
             </strong>
 
           </div>
@@ -154,11 +154,11 @@
             </span>
 
             <strong
-              [class.level-low]="monitoreoSeleccionado?.nivel === 'Bajo'"
-              [class.level-medium]="monitoreoSeleccionado?.nivel === 'Medio'"
-              [class.level-high]="monitoreoSeleccionado?.nivel === 'Alto'">
+              [class.level-low]="monitoreoSeleccionado?.nivel === 'bajo'"
+              [class.level-medium]="monitoreoSeleccionado?.nivel === 'medio'"
+              [class.level-high]="monitoreoSeleccionado?.nivel === 'alto'">
 
-              {{ monitoreoSeleccionado?.nivel ?? 'Sin datos' }}
+              {{ monitoreoSeleccionado ? (monitoreoSeleccionado.nivel ? (monitoreoSeleccionado.nivel | titlecase) : 'Sin umbral') : 'Sin datos' }}
 
             </strong>
 
@@ -168,7 +168,7 @@
           <div class="metric-card">
 
             <span>
-              Última actualización
+              Fin de última ventana (Lima)
             </span>
 
             <strong class="time">
@@ -176,8 +176,8 @@
               @if (monitoreoSeleccionado) {
 
                 {{
-                  monitoreoSeleccionado.ultimaActualizacion
-                    | date:'HH:mm:ss'
+                  monitoreoSeleccionado.periodoFin
+                    | date:'dd/MM HH:mm:ss':'-0500'
                 }}
 
               } @else {
@@ -195,13 +195,7 @@
 
         <!-- TEMPORAL -->
 
-        <button
-          class="simulation-button"
-          (click)="simularDeteccion()">
 
-          Simular nueva detección
-
-        </button>
 
       } @else {
 

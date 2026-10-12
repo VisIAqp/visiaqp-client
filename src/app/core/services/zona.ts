@@ -1,65 +1,21 @@
+import { zonasAdicionales } from '../data/demo';
 import { Injectable } from '@angular/core';
 import { Zona } from '../models/zona.model';
-
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class ZonaService {
-
   private zonas: Zona[] = [
-    {
-      id: 1,
-      nombre: 'Zona UTP - Sede Principal',
-      ubicacion: 'Av. Tacna y Arica, Arequipa',
-      activa: true
-    },
-    {
-      id: 2,
-      nombre: 'Zona Centro Histórico',
-      ubicacion: 'Plaza de Armas, Arequipa',
-      activa: true
-    },
-    {
-      id: 3,
-      nombre: 'Zona Av. Ejército',
-      ubicacion: 'Av. Ejército, Cayma',
-      activa: true
-    }
+    { id: 1, nombre: 'Plaza de Armas', descripcion: 'Zona de prueba', ubicacion: 'Arequipa, Perú', pais: 'PE', latitud: -16.3988, longitud: -71.5369, estado: 'activa' },
+    { id: 2, nombre: 'Zona UTP', descripcion: null, ubicacion: 'Arequipa, Perú', pais: 'PE', latitud: null, longitud: null, estado: 'activa' },
+    { id: 3, nombre: 'Zona sin muestras', descripcion: null, ubicacion: null, pais: 'PE', latitud: null, longitud: null, estado: 'inactiva' },
+    ...zonasAdicionales
   ];
-
-  obtenerZonas(): Zona[] {
-    return this.zonas;
-  }
-
-  obtenerZonaPorId(id: number): Zona | undefined {
-    return this.zonas.find(zona => zona.id === id);
-  }
-
+  obtenerZonas() { return this.zonas; }
+  obtenerZonaPorId(id: number) { return this.zonas.find(z => z.id === id); }
   agregarZona(nombre: string, ubicacion: string): void {
-    const nuevoId =
-      Math.max(0, ...this.zonas.map(zona => zona.id)) + 1;
-
-    this.zonas.push({
-      id: nuevoId,
-      nombre: nombre.trim(),
-      ubicacion: ubicacion.trim(),
-      activa: true
-    });
+    this.zonas.push({ id: Math.max(0, ...this.zonas.map(z => z.id)) + 1, nombre: nombre.trim(), ubicacion: ubicacion.trim() || null, descripcion: null, pais: 'PE', latitud: null, longitud: null, estado: 'activa' });
   }
-
-  actualizarZona(
-    id: number,
-    nombre: string,
-    ubicacion: string
-  ): void {
-
+  actualizarZona(id: number, nombre: string, ubicacion: string): void {
     const zona = this.obtenerZonaPorId(id);
-
-    if (!zona) {
-      return;
-    }
-
-    zona.nombre = nombre.trim();
-    zona.ubicacion = ubicacion.trim();
+    if (zona) Object.assign(zona, { nombre: nombre.trim(), ubicacion: ubicacion.trim() || null });
   }
 }

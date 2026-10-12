@@ -1,6 +1,6 @@
-<section class="analisis-page">
+<section class="mx-auto min-w-0 max-w-[1400px]">
 
-  <div class="page-header">
+  <div class="mb-6 [&_h2]:mt-0 [&_h2]:mb-[6px] [&_p]:m-0 [&_p]:text-[#777]">
 
     <div>
       <h2>Análisis peatonal</h2>
@@ -13,13 +13,13 @@
   </div>
 
 
-  <div class="filters">
+  <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white mb-5 flex flex-wrap gap-4 p-[18px]">
 
-    <div class="filter-group">
+    <div class="flex min-w-0 flex-1 flex-col gap-[7px] min-[761px]:min-w-[220px] min-[761px]:flex-none [&_label]:text-xs [&_label]:font-semibold [&_select]:box-border [&_select]:w-full [&_select]:min-w-0 [&_select]:rounded-lg [&_select]:border [&_select]:border-solid [&_select]:border-[#ddd] [&_select]:bg-white [&_select]:px-3 [&_select]:py-2.5 [&_select]:outline-none [&_select:focus-visible]:ring-1 [&_select:focus-visible]:ring-[#0d0d0d]">
 
-      <label>Zona</label>
+      <label for="analisis-zona">Zona</label>
 
-      <select
+      <select id="analisis-zona"
         [(ngModel)]="zonaSeleccionada"
         (ngModelChange)="aplicarFiltros()">
 
@@ -40,11 +40,11 @@
     </div>
 
 
-    <div class="filter-group">
+    <div class="flex min-w-0 flex-1 flex-col gap-[7px] min-[761px]:min-w-[220px] min-[761px]:flex-none [&_label]:text-xs [&_label]:font-semibold [&_select]:box-border [&_select]:w-full [&_select]:min-w-0 [&_select]:rounded-lg [&_select]:border [&_select]:border-solid [&_select]:border-[#ddd] [&_select]:bg-white [&_select]:px-3 [&_select]:py-2.5 [&_select]:outline-none [&_select:focus-visible]:ring-1 [&_select:focus-visible]:ring-[#0d0d0d]">
 
-      <label>Cámara</label>
+      <label for="analisis-camara">Cámara</label>
 
-      <select
+      <select id="analisis-camara"
         [(ngModel)]="camaraSeleccionada"
         (ngModelChange)="aplicarFiltros()">
 
@@ -67,27 +67,27 @@
   </div>
 
 
-  <div class="metrics">
+  <div class="mb-5 grid grid-cols-1 gap-[15px] min-[761px]:grid-cols-2 min-[1100px]:grid-cols-4">
 
-    <div class="metric-card">
+    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-[7px] p-[18px] [&_span]:text-xs [&_span]:text-[#777] [&_strong]:text-[27px] [&_small]:text-[#999]">
       <span>Suma de conteos</span>
       <strong>{{ registrosFiltrados.length ? totalPeatones : 'Sin datos' }}</strong>
       <small>Puede contar personas repetidas</small>
     </div>
 
-    <div class="metric-card">
+    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-[7px] p-[18px] [&_span]:text-xs [&_span]:text-[#777] [&_strong]:text-[27px] [&_small]:text-[#999]">
       <span>Promedio</span>
       <strong>{{ registrosFiltrados.length ? promedioPeatones : 'Sin datos' }}</strong>
       <small>Conteo por ventana</small>
     </div>
 
-    <div class="metric-card">
+    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-[7px] p-[18px] [&_span]:text-xs [&_span]:text-[#777] [&_strong]:text-[27px] [&_small]:text-[#999]">
       <span>Máximo registrado</span>
       <strong>{{ registrosFiltrados.length ? maximoPeatones : 'Sin datos' }}</strong>
       <small>Máximo por ventana</small>
     </div>
 
-    <div class="metric-card">
+    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-[7px] p-[18px] [&_span]:text-xs [&_span]:text-[#777] [&_strong]:text-[27px] [&_small]:text-[#999]">
       <span>Mediciones</span>
       <strong>{{ registrosFiltrados.length }}</strong>
       <small>Registros analizados</small>
@@ -96,9 +96,9 @@
   </div>
 
 
-  <div class="chart-card">
+  <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white mb-5 overflow-hidden">
 
-    <div class="card-header">
+    <div class="border-0 border-b border-solid border-[#eee] px-5 py-[18px] [&_h3]:mt-0 [&_h3]:mb-[5px] [&_p]:m-0 [&_p]:text-xs [&_p]:text-[#777]">
       <div>
         <h3>Conteos por ventana</h3>
         <p>
@@ -107,7 +107,7 @@
       </div>
     </div>
 
-    <div class="chart-container">
+    <div class="box-content h-[330px] min-w-0 p-5">
       @if (!registrosFiltrados.length) { <p>Sin datos para los filtros seleccionados.</p> }
       <canvas #graficoPeatones></canvas>
     </div>
@@ -115,9 +115,9 @@
   </div>
 
 
-  <div class="table-card">
+  <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white mb-5 overflow-hidden">
 
-    <div class="card-header">
+    <div class="border-0 border-b border-solid border-[#eee] px-5 py-[18px] [&_h3]:mt-0 [&_h3]:mb-[5px] [&_p]:m-0 [&_p]:text-xs [&_p]:text-[#777]">
 
       <div>
         <h3>Historial de mediciones</h3>
@@ -129,7 +129,7 @@
     </div>
 
 
-    <div class="table-scroll"><table>
+    <div class="w-full overflow-x-auto"><table class="w-full min-w-[660px] border-collapse [&_th]:border-0 [&_th]:border-b [&_th]:border-solid [&_th]:border-[#eee] [&_th]:px-5 [&_th]:py-3.5 [&_th]:text-left [&_th]:text-[11px] [&_th]:uppercase [&_th]:text-[#777] [&_td]:border-0 [&_td]:border-b [&_td]:border-solid [&_td]:border-[#eee] [&_td]:px-5 [&_td]:py-3.5 [&_td]:text-left [&_td]:text-[13px]">
 
       <thead>
         <tr>
@@ -176,10 +176,8 @@
             <td>
 
               <span
-                class="level"
-                [class.low]="registro.nivel === 'bajo'"
-                [class.medium]="registro.nivel === 'medio'"
-                [class.high]="registro.nivel === 'alto'">
+                class="inline-block rounded-[20px] px-2.5 py-[5px] text-[11px] font-semibold"
+                [ngClass]="{ 'bg-[#e8f5e9] text-[#2e7d32]': registro.nivel === 'bajo', 'bg-[#fff3e0] text-[#b26a00]': registro.nivel === 'medio', 'bg-[#ffebee] text-[#c62828]': registro.nivel === 'alto' }">
 
                 {{ registro.nivel ? (registro.nivel | titlecase) : 'Sin umbral' }}
 
@@ -194,7 +192,7 @@
       </tbody>
 
     </table></div>
-    <div class="pagination" aria-label="Paginación de mediciones">
+    <div class="flex flex-wrap items-center justify-center gap-4 border-0 border-t border-solid border-[#eee] p-4 text-[13px] [&_button]:cursor-pointer [&_button]:rounded-[7px] [&_button]:border [&_button]:border-solid [&_button]:border-[#ddd] [&_button]:bg-white [&_button]:px-3.5 [&_button]:py-2 [&_button:disabled]:cursor-default [&_button:disabled]:opacity-45 [&_button:focus-visible]:outline-2 [&_button:focus-visible]:outline-offset-2 [&_button:focus-visible]:outline-[#0d0d0d]" aria-label="Paginación de mediciones">
       <button type="button" (click)="cambiarPagina(-1)" [disabled]="paginaActual === 1">Anterior</button>
       <span>Página {{ paginaActual }} de {{ totalPaginas }} · {{ registrosFiltrados.length }} ventanas</span>
       <button type="button" (click)="cambiarPagina(1)" [disabled]="paginaActual === totalPaginas">Siguiente</button>
@@ -202,9 +200,9 @@
 
   </div>
 
-  <div class="table-card">
+  <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white mb-5 overflow-hidden">
     <h3>Ejecuciones de análisis</h3>
-    <div class="table-scroll"><table><thead><tr><th>Zona / fuente</th><th>Cámara</th><th>Captura (Lima)</th><th>Inicio de proceso (Lima)</th><th>Estado</th><th>Detalle</th></tr></thead><tbody>
+    <div class="w-full overflow-x-auto"><table class="w-full min-w-[660px] border-collapse [&_th]:border-0 [&_th]:border-b [&_th]:border-solid [&_th]:border-[#eee] [&_th]:px-5 [&_th]:py-3.5 [&_th]:text-left [&_th]:text-[11px] [&_th]:uppercase [&_th]:text-[#777] [&_td]:border-0 [&_td]:border-b [&_td]:border-solid [&_td]:border-[#eee] [&_td]:px-5 [&_td]:py-3.5 [&_td]:text-left [&_td]:text-[13px]"><thead><tr><th>Zona / fuente</th><th>Cámara</th><th>Captura (Lima)</th><th>Inicio de proceso (Lima)</th><th>Estado</th><th>Detalle</th></tr></thead><tbody>
     @for (p of procesamientosFiltrados; track p.id) {
       <tr><td>{{ obtenerNombreZona(p.zonaId) }} · {{ p.tipoFuente }}</td><td>{{ obtenerNombreCamara(p.camaraId) }}</td><td>{{ p.fechaCapturaInicio | date:'dd/MM/yyyy HH:mm':'-0500' }}</td><td>{{ p.fechaInicioProceso | date:'dd/MM/yyyy HH:mm':'-0500' }}</td><td>{{ p.estado | titlecase }}</td><td>{{ p.mensajeError ?? '—' }}</td></tr>
     } @empty { <tr><td colspan="6">Sin ejecuciones para los filtros seleccionados.</td></tr> }

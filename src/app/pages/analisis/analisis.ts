@@ -21,8 +21,7 @@ import { RegistroAnalisis } from '../../core/models/analisis.model';
 @Component({
   selector: 'app-analisis',
   imports: [CommonModule, FormsModule],
-  templateUrl: './analisis.html',
-  styleUrl: './analisis.css'
+  templateUrl: './analisis.html'
 })
 export class Analisis implements AfterViewInit, OnDestroy {
 

@@ -14,8 +14,7 @@ import { MonitoreoService } from '../../core/services/monitoreo';
 @Component({
   selector: 'app-monitoreo',
   imports: [CommonModule, FormsModule],
-  templateUrl: './monitoreo.html',
-  styleUrl: './monitoreo.css'
+  templateUrl: './monitoreo.html'
 })
 export class Monitoreo {
 

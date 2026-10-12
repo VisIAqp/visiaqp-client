@@ -1,6 +1,6 @@
-<section class="reportes-page">
+<section class="mx-auto min-w-0 max-w-[1400px]">
 
-  <div class="page-header">
+  <div class="mb-6 [&_h2]:mt-0 [&_h2]:mb-[6px] [&_p]:m-0 [&_p]:text-[#777]">
 
     <div>
       <h2>Reportes</h2>
@@ -14,9 +14,9 @@
   </div>
 
 
-  <div class="filter-card">
+  <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white mb-5 p-5">
 
-    <div class="filter-header">
+    <div class="mb-[18px] [&_h3]:mt-0 [&_h3]:mb-[5px] [&_p]:m-0 [&_p]:text-[13px] [&_p]:text-[#777]">
       <h3>Filtros del reporte</h3>
       <p>
         Selecciona los datos que deseas incluir.
@@ -24,14 +24,14 @@
     </div>
 
 
-    <div class="filter-grid">
+    <div class="grid grid-cols-1 gap-4 min-[761px]:grid-cols-2 min-[1100px]:grid-cols-4">
 
-      <div class="form-group">
+      <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-xs [&_label]:font-semibold [&_select]:box-border [&_select]:w-full [&_select]:min-w-0 [&_select]:rounded-lg [&_select]:border [&_select]:border-solid [&_select]:border-[#ddd] [&_select]:bg-white [&_select]:px-3 [&_select]:py-2.5 [&_select]:outline-none [&_select:focus-visible]:ring-1 [&_select:focus-visible]:ring-[#0d0d0d] [&_input]:box-border [&_input]:w-full [&_input]:min-w-0 [&_input]:rounded-lg [&_input]:border [&_input]:border-solid [&_input]:border-[#ddd] [&_input]:bg-white [&_input]:px-3 [&_input]:py-2.5 [&_input]:outline-none [&_input:focus-visible]:ring-1 [&_input:focus-visible]:ring-[#0d0d0d]">
 
-        <label>Zona</label>
+        <label for="reporte-zonaSeleccionada">Zona</label>
 
         <select
-          [(ngModel)]="zonaSeleccionada"
+          id="reporte-zonaSeleccionada" [(ngModel)]="zonaSeleccionada"
           (ngModelChange)="cambiarZona()">
 
           <option [ngValue]="0">
@@ -51,12 +51,12 @@
       </div>
 
 
-      <div class="form-group">
+      <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-xs [&_label]:font-semibold [&_select]:box-border [&_select]:w-full [&_select]:min-w-0 [&_select]:rounded-lg [&_select]:border [&_select]:border-solid [&_select]:border-[#ddd] [&_select]:bg-white [&_select]:px-3 [&_select]:py-2.5 [&_select]:outline-none [&_select:focus-visible]:ring-1 [&_select:focus-visible]:ring-[#0d0d0d] [&_input]:box-border [&_input]:w-full [&_input]:min-w-0 [&_input]:rounded-lg [&_input]:border [&_input]:border-solid [&_input]:border-[#ddd] [&_input]:bg-white [&_input]:px-3 [&_input]:py-2.5 [&_input]:outline-none [&_input:focus-visible]:ring-1 [&_input:focus-visible]:ring-[#0d0d0d]">
 
-        <label>Cámara</label>
+        <label for="reporte-camaraSeleccionada">Cámara</label>
 
         <select
-          [(ngModel)]="camaraSeleccionada" (ngModelChange)="reiniciarPagina()">
+          id="reporte-camaraSeleccionada" [(ngModel)]="camaraSeleccionada" (ngModelChange)="reiniciarPagina()">
 
           <option [ngValue]="0">
             Todas las fuentes
@@ -78,34 +78,34 @@
       </div>
 
 
-      <div class="form-group">
+      <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-xs [&_label]:font-semibold [&_select]:box-border [&_select]:w-full [&_select]:min-w-0 [&_select]:rounded-lg [&_select]:border [&_select]:border-solid [&_select]:border-[#ddd] [&_select]:bg-white [&_select]:px-3 [&_select]:py-2.5 [&_select]:outline-none [&_select:focus-visible]:ring-1 [&_select:focus-visible]:ring-[#0d0d0d] [&_input]:box-border [&_input]:w-full [&_input]:min-w-0 [&_input]:rounded-lg [&_input]:border [&_input]:border-solid [&_input]:border-[#ddd] [&_input]:bg-white [&_input]:px-3 [&_input]:py-2.5 [&_input]:outline-none [&_input:focus-visible]:ring-1 [&_input:focus-visible]:ring-[#0d0d0d]">
 
-        <label>Fecha inicial</label>
+        <label for="reporte-fechaInicio">Fecha inicial</label>
 
         <input
           type="date"
-          [(ngModel)]="fechaInicio" (ngModelChange)="reiniciarPagina()">
+          id="reporte-fechaInicio" [(ngModel)]="fechaInicio" (ngModelChange)="reiniciarPagina()">
 
       </div>
 
 
-      <div class="form-group">
+      <div class="flex min-w-0 flex-col gap-[7px] [&_label]:text-xs [&_label]:font-semibold [&_select]:box-border [&_select]:w-full [&_select]:min-w-0 [&_select]:rounded-lg [&_select]:border [&_select]:border-solid [&_select]:border-[#ddd] [&_select]:bg-white [&_select]:px-3 [&_select]:py-2.5 [&_select]:outline-none [&_select:focus-visible]:ring-1 [&_select:focus-visible]:ring-[#0d0d0d] [&_input]:box-border [&_input]:w-full [&_input]:min-w-0 [&_input]:rounded-lg [&_input]:border [&_input]:border-solid [&_input]:border-[#ddd] [&_input]:bg-white [&_input]:px-3 [&_input]:py-2.5 [&_input]:outline-none [&_input:focus-visible]:ring-1 [&_input:focus-visible]:ring-[#0d0d0d]">
 
-        <label>Fecha final</label>
+        <label for="reporte-fechaFin">Fecha final</label>
 
         <input
           type="date"
-          [(ngModel)]="fechaFin" (ngModelChange)="reiniciarPagina()">
+          id="reporte-fechaFin" [(ngModel)]="fechaFin" (ngModelChange)="reiniciarPagina()">
 
       </div>
 
     </div>
 
 
-    <div class="filter-actions">
+    <div class="mt-4 flex justify-end">
 
       <button
-        class="secondary-button"
+        class="cursor-pointer rounded-[7px] border border-solid px-3.5 py-[9px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d] border-[#ddd] bg-white hover:bg-[#f5f5f5]"
         (click)="limpiarFiltros()">
 
         Limpiar filtros
@@ -117,30 +117,30 @@
   </div>
 
 
-  <div class="metrics">
+  <div class="mb-5 grid grid-cols-1 gap-[15px] min-[761px]:grid-cols-2 min-[1100px]:grid-cols-4">
 
-    <div class="metric-card">
+    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-[7px] p-[18px] [&_span]:text-xs [&_span]:text-[#777] [&_strong]:text-[27px]">
       <span>Registros</span>
       <strong>
         {{ registrosFiltrados.length }}
       </strong>
     </div>
 
-    <div class="metric-card">
+    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-[7px] p-[18px] [&_span]:text-xs [&_span]:text-[#777] [&_strong]:text-[27px]">
       <span>Suma de conteos</span>
       <strong>
         {{ registrosFiltrados.length ? totalPeatones : 'Sin datos' }}
       </strong>
     </div>
 
-    <div class="metric-card">
+    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-[7px] p-[18px] [&_span]:text-xs [&_span]:text-[#777] [&_strong]:text-[27px]">
       <span>Promedio</span>
       <strong>
         {{ registrosFiltrados.length ? promedioPeatones : 'Sin datos' }}
       </strong>
     </div>
 
-    <div class="metric-card">
+    <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white flex flex-col gap-[7px] p-[18px] [&_span]:text-xs [&_span]:text-[#777] [&_strong]:text-[27px]">
       <span>Máximo</span>
       <strong>
         {{ registrosFiltrados.length ? maximoPeatones : 'Sin datos' }}
@@ -150,9 +150,9 @@
   </div>
 
 
-  <div class="report-card">
+  <div class="min-w-0 rounded-xl border border-solid border-[#e5e5e5] bg-white overflow-hidden">
 
-    <div class="report-header">
+    <div class="flex flex-col items-start justify-between gap-3 border-0 border-b border-solid border-[#eee] px-5 py-[18px] min-[1001px]:flex-row min-[1001px]:items-center [&_h3]:mt-0 [&_h3]:mb-[5px] [&_p]:m-0 [&_p]:text-xs [&_p]:text-[#777]">
 
       <div>
         <h3>Vista previa del reporte</h3>
@@ -164,10 +164,10 @@
       </div>
 
 
-      <div class="export-actions">
+      <div class="flex flex-wrap gap-2.5">
 
         <button
-          class="secondary-button"
+          class="cursor-pointer rounded-[7px] border border-solid px-3.5 py-[9px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d] border-[#ddd] bg-white hover:bg-[#f5f5f5]"
           (click)="exportarExcel()">
 
           Exportar Excel
@@ -175,7 +175,7 @@
         </button>
 
         <button
-          class="primary-button"
+          class="cursor-pointer rounded-[7px] border border-solid px-3.5 py-[9px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d0d0d] border-[#0d0d0d] bg-[#0d0d0d] text-white hover:opacity-85"
           (click)="exportarPDF()">
 
           Exportar PDF
@@ -189,14 +189,14 @@
 
     @if (mensaje) {
 
-      <div class="message">
+      <div role="status" class="mx-5 mt-[15px] rounded-lg bg-[#f5f5f5] p-3 text-[13px]">
         {{ mensaje }}
       </div>
 
     }
 
 
-    <div class="table-scroll"><table>
+    <div class="w-full overflow-x-auto"><table class="w-full min-w-[660px] border-collapse [&_th]:border-0 [&_th]:border-b [&_th]:border-solid [&_th]:border-[#eee] [&_th]:px-5 [&_th]:py-3.5 [&_th]:text-left [&_th]:text-[11px] [&_th]:uppercase [&_th]:text-[#777] [&_td]:border-0 [&_td]:border-b [&_td]:border-solid [&_td]:border-[#eee] [&_td]:px-5 [&_td]:py-3.5 [&_td]:text-left [&_td]:text-[13px]">
 
       <thead>
 
@@ -246,10 +246,8 @@
             <td>
 
               <span
-                class="level"
-                [class.low]="registro.nivel === 'bajo'"
-                [class.medium]="registro.nivel === 'medio'"
-                [class.high]="registro.nivel === 'alto'">
+                class="inline-block rounded-[20px] px-2.5 py-[5px] text-[11px] font-semibold"
+                [ngClass]="{ 'bg-[#e8f5e9] text-[#2e7d32]': registro.nivel === 'bajo', 'bg-[#fff3e0] text-[#b26a00]': registro.nivel === 'medio', 'bg-[#ffebee] text-[#c62828]': registro.nivel === 'alto' }">
 
                 {{ registro.nivel ? (registro.nivel | titlecase) : 'Sin umbral' }}
 
@@ -265,7 +263,7 @@
 
             <td
               colspan="6"
-              class="empty-table">
+              class="p-10! text-center! text-[#888]">
 
               No existen registros para los
               filtros seleccionados.
@@ -279,7 +277,7 @@
       </tbody>
 
     </table></div>
-    <div class="pagination" aria-label="Paginación de mediciones">
+    <div class="flex flex-wrap items-center justify-center gap-4 border-0 border-t border-solid border-[#eee] p-4 text-[13px] [&_button]:cursor-pointer [&_button]:rounded-[7px] [&_button]:border [&_button]:border-solid [&_button]:border-[#ddd] [&_button]:bg-white [&_button]:px-3.5 [&_button]:py-2 [&_button:disabled]:cursor-default [&_button:disabled]:opacity-45 [&_button:focus-visible]:outline-2 [&_button:focus-visible]:outline-offset-2 [&_button:focus-visible]:outline-[#0d0d0d]" aria-label="Paginación de mediciones">
       <button type="button" (click)="cambiarPagina(-1)" [disabled]="paginaActual === 1">Anterior</button>
       <span>Página {{ paginaActual }} de {{ totalPaginas }} · {{ registrosFiltrados.length }} ventanas</span>
       <button type="button" (click)="cambiarPagina(1)" [disabled]="paginaActual === totalPaginas">Siguiente</button>

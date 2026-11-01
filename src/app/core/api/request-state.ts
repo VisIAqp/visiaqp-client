@@ -9,6 +9,12 @@ export class RequestState {
   private sequence = 0;
   private subscription?: Subscription;
   constructor(private readonly destroyRef: DestroyRef) {}
+  cancel(): void {
+    ++this.sequence;
+    this.subscription?.unsubscribe();
+    this.subscription = undefined;
+    this.loading.set(false);
+  }
   run<T>(source: Observable<T>, success: (data: T) => void): void {
     const id = ++this.sequence;
     this.subscription?.unsubscribe();

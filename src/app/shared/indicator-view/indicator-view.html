@@ -84,7 +84,9 @@
   <h3 class="px-5">Indicadores por {{ query().periodo === 'hora' ? 'hora' : 'día' }}</h3>
   <p class="px-5 text-label text-muted">
     Hasta 2000 periodos por consulta, ordenados desde el inicio del rango. Las fechas se muestran en
-    hora de Lima. Los datos son agregados de zona.
+    hora de Lima. Los datos son agregados de zona. La suma de identificadores puede repetir personas;
+    no mide entradas ni visitantes únicos. La ocupación requiere nuevas mediciones y una única vista
+    consolidable; los periodos antiguos o con varias fuentes se muestran sin ocupación.
   </p>
   <div class="overflow-x-auto">
     <table class="w-full min-w-table border-collapse">
@@ -97,7 +99,7 @@
             Promedio por ventana
           </th>
           <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Máximo</th>
-          <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Nivel</th>
+          <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Ocupación: promedio / máximo / nivel</th>
         </tr>
       </thead>
       <tbody>
@@ -116,11 +118,11 @@
               <span
                 class="rounded-badge px-2.5 py-1.25 text-caption"
                 [ngClass]="{
-                  'bg-success-soft text-success': i.nivelConcentracion === 'bajo',
-                  'bg-warning-soft text-warning': i.nivelConcentracion === 'medio',
-                  'bg-danger-soft text-danger': i.nivelConcentracion === 'alto',
+                  'bg-success-soft text-success': i.nivelOcupacion === 'bajo',
+                  'bg-warning-soft text-warning': i.nivelOcupacion === 'medio',
+                  'bg-danger-soft text-danger': i.nivelOcupacion === 'alto',
                 }"
-                >{{ i.nivelConcentracion | titlecase }}</span
+                >{{ i.promedioPresentes === null || i.promedioPresentes === undefined ? 'Sin medición consolidada' : (i.promedioPresentes | number: '1.0-2') }} / {{ i.maxPresentes ?? '—' }} / {{ i.nivelOcupacion ? (i.nivelOcupacion | titlecase) : 'Sin nivel' }}</span
               >
             </td>
           </tr>

@@ -75,19 +75,29 @@ describe('Integrated page behavior with HTTP test responses', () => {
     );
   }
 
-  it('selects the returned zone rather than assuming a fabricated ID', () => {
+  it('starts with all zones and loads aggregate metrics without a fabricated ID', () => {
     const fixture = TestBed.createComponent(Dashboard);
     fixture.detectChanges();
     http.expectOne(base + '/zonas').flush([zone]);
     http.expectOne(base + '/admin/camaras').flush([camera]);
-    http.expectOne((r) => r.url === base + '/procesamientos').flush([]);
-    const query = http.expectOne((r) => r.url === base + '/indicadores');
-    expect(query.request.params.get('id_zona')).toBe('23');
-    query.flush([]);
+    const consultas = http.match((r) => r.url.includes('/metricas/'));
+    expect(consultas.length).toBe(6);
+    for (const consulta of consultas) {
+      expect(consulta.request.params.has('id_zona')).toBeFalse();
+      if (consulta.request.url.endsWith('/resumen')) {
+        consulta.flush({ desde: '2026-10-25T00:00:00', hasta: '2026-11-01T00:00:00',
+          consultado_en: '2026-10-31T18:00:00', cantidad_ventanas: 0, suma_identificadores: 0,
+          ventanas_con_ocupacion: 0, zonas_con_resultados: 0, camaras_con_resultados: 0,
+          procesamientos_con_resultados: 0, ultima_ventana_fin: null, ultima_recepcion: null,
+          camaras_habilitadas: 1, camaras_registradas: 1, zonas_activas: 1,
+          procesamientos_en_curso: 0, videos_pendientes: 0, transmisiones_reportando: 0 });
+      } else consulta.flush({ datos: [], total: 0, limite: 200, desplazamiento: 0,
+        tiene_mas: false, consultado_en: '2026-10-31T18:00:00', zona_horaria: 'America/Lima' });
+    }
     fixture.detectChanges();
-    expect(fixture.componentInstance.zonaSeleccionada).toBe(23);
+    expect(fixture.componentInstance.zonaSeleccionada).toBe(0);
     expect(fixture.nativeElement.textContent).toContain('Zona contrato');
-    expect(fixture.nativeElement.textContent).toContain('No hay indicadores');
+    expect(fixture.nativeElement.textContent).toContain('No hay series');
     fixture.destroy();
   });
   it('hides camera writes from analysts', () => {

@@ -1,1 +1,51 @@
-/* Dashboard styles are expressed with Tailwind utilities in dashboard.html. */
+:host { display: block; }
+.cabecera, .titulo, .contexto { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+.cabecera { margin-bottom: 1.5rem; }
+.cabecera h2 { margin: .3rem 0 .5rem; font-size: 1.75rem; }
+.kicker { font-size: var(--text-caption); color: var(--color-muted); }
+.boton { border: 1px solid var(--color-field); border-radius: .5rem; padding: .7rem 1rem; background: white; color: var(--color-content); cursor: pointer; font: inherit; font-size: var(--text-label); }
+.boton:hover { background: var(--color-hover); }
+.boton:disabled { opacity: .5; cursor: default; }
+.boton-principal { background: var(--color-content); color: white; }
+.boton-principal:hover { background: var(--color-heading); }
+.boton:focus-visible, summary:focus-visible, .tabla-scroll:focus-visible { outline: 2px solid var(--color-content); outline-offset: 3px; }
+.filtros { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; padding: 1.25rem; margin-bottom: 1.25rem; align-items: end; }
+.filtros label, .titulo label { display: flex; flex-direction: column; gap: .45rem; min-width: 0; font-size: var(--text-label); }
+.filtros .ui-field, .titulo .ui-field { width: 100%; min-height: 2.65rem; font: inherit; }
+.titulo label { max-width: 30rem; width: min(100%, 26rem); }
+.filtros-nota { grid-column: 1 / -1; }
+.contexto { font-size: var(--text-label); margin: 1rem 0; }
+.metricas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+.metrica { padding: 1.2rem; }
+.metrica > span { font-size: var(--text-label); color: var(--color-muted); }
+.metrica strong { display: block; font-size: var(--text-stat); margin: .6rem 0; font-variant-numeric: tabular-nums; }
+.metrica small { display: block; color: var(--color-muted); line-height: 1.5; }
+.aviso { background: var(--color-canvas); border-radius: .5rem; padding: 1rem; font-size: var(--text-label); line-height: 1.65; }
+.panel { margin: 1.25rem 0; padding: 1.25rem; }
+.panel h3 { margin: 0 0 .6rem; font-size: var(--text-time); }
+.panel > p, .titulo p { font-size: var(--text-label); line-height: 1.6; }
+.grafico { position: relative; height: 22rem; min-width: 0; margin: 1rem 0; }
+.grafico-corto { height: 17rem; }
+.grafico[hidden] { display: none; }
+.nota { font-size: var(--text-label); }
+.tabla-scroll { overflow-x: auto; max-width: 100%; margin: 1rem 0; }
+.tabla { width: 100%; min-width: 32rem; border-collapse: collapse; font-size: var(--text-label); }
+.tabla th { font-size: var(--text-caption); color: var(--color-muted); text-transform: uppercase; letter-spacing: .04em; }
+.tabla th, .tabla td { text-align: left; padding: .85rem .65rem; border-bottom: 1px solid var(--color-divider); vertical-align: top; line-height: 1.5; }
+.tabla small { display: block; color: var(--color-muted); margin-top: .2rem; }
+.panel summary { cursor: pointer; font-size: var(--text-label); padding: .5rem 0; }
+.lista-niveles { list-style: none; padding: 0; margin: 1rem 0; font-size: var(--text-label); }
+.lista-niveles li { display: flex; justify-content: space-between; gap: 1rem; padding: .6rem 0; border-bottom: 1px solid var(--color-divider); }
+.calor { width: 100%; border-collapse: separate; border-spacing: .2rem; font-size: var(--text-caption); font-variant-numeric: tabular-nums; }
+.calor caption { text-align: left; color: var(--color-muted); padding: .5rem 0 1rem; font-size: var(--text-label); line-height: 1.6; }
+.calor th, .calor td { min-width: 2.4rem; height: 2.4rem; text-align: center; padding: .25rem; border-radius: .25rem; }
+.calor th { color: var(--color-muted); }
+.sin-medicion { background: var(--color-canvas); color: var(--color-muted); }
+.nivel-bajo { background: var(--color-success-soft); color: var(--color-success); }
+.nivel-medio { background: var(--color-warning-soft); color: var(--color-warning); }
+.nivel-alto { background: var(--color-danger-soft); color: var(--color-danger); }
+.estado { display: inline-block; padding: .2rem .5rem; border-radius: var(--radius-badge); }
+@media (min-width: 62.5625rem) { .filtros { grid-template-columns: repeat(4, minmax(0, 1fr)); } .metricas { grid-template-columns: repeat(3, minmax(0, 1fr)); } .dos-columnas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.25rem; } .dos-columnas .panel { margin: 0; } }
+@media (max-width: 28rem) { .filtros, .metricas { grid-template-columns: minmax(0, 1fr); } .panel { padding: 1rem; } }
+
+details .tabla-scroll { max-height: 24rem; overflow: auto; }

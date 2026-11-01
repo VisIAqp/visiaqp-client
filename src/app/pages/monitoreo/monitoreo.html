@@ -1,92 +1,57 @@
 <section class="mx-auto min-w-0 max-w-page">
   <div class="mb-5 flex flex-wrap justify-between gap-3">
-    <div>
-      <h2 class="mt-0">Monitoreo</h2>
-      <p class="text-muted">Actualización automática mientras esta pantalla está visible.</p>
-      @if (actualizado) {
-        <small>Última consulta: {{ actualizado | date: 'HH:mm:ss' : '-0500' }} (Lima)</small>
-      }
+    <div><h2 class="mt-0">Monitoreo</h2><p class="text-muted">Actividad de las transmisiones y ocupación observada por cámara.</p>
+      @if (actualizado) { <small>Última consulta del catálogo: {{ actualizado | date:'HH:mm:ss':'-0500' }} (Lima). Se actualiza mientras esta pantalla está visible.</small> }
     </div>
-    <button
-      class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2 disabled:cursor-default disabled:opacity-45"
-      [disabled]="request.loading()"
-      (click)="cargar()"
-    >
-      Actualizar
-    </button>
+    <button class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2 disabled:opacity-45" [disabled]="request.loading()" (click)="cargar()">Actualizar</button>
   </div>
   <app-api-state [loading]="request.loading()" [error]="request.error()" (retry)="cargar()" />
   <div class="grid gap-5 desktop:grid-cols-[280px_minmax(0,1fr)]">
-    <aside class="ui-card self-start p-3">
-      <h3>Cámaras activas</h3>
+    <aside class="ui-card self-start p-3"><h3>Cámaras habilitadas</h3>
       @for (c of camarasDisponibles; track c.id) {
-        <button
-          class="ui-focus mb-2 w-full cursor-pointer rounded-lg border-0 p-3 text-left"
-          [ngClass]="camaraSeleccionadaId === c.id ? 'bg-selected' : 'bg-white hover:bg-hover'"
-          [attr.aria-pressed]="camaraSeleccionadaId === c.id"
-          (click)="seleccionarCamara(c.id)"
-        >
-          <strong class="block">{{ c.nombre }}</strong
-          ><small class="text-muted">{{ nombreZona(c.zonaId) }}</small>
+        <button class="ui-focus mb-2 w-full cursor-pointer rounded-lg border-0 p-3 text-left" [ngClass]="camaraSeleccionadaId === c.id ? 'bg-selected' : 'bg-white hover:bg-hover'" [attr.aria-pressed]="camaraSeleccionadaId === c.id" (click)="seleccionarCamara(c.id)">
+          <strong class="block">{{ c.nombre }}</strong><small class="text-muted">{{ nombreZona(c.zonaId) }}</small>
         </button>
-      } @empty {
-        @if (!request.loading() && !request.error()) {
-          <p>No hay cámaras activas.</p>
-        }
-      }
+      } @empty { @if (!request.loading() && !request.error()) { <p>No hay cámaras habilitadas.</p> } }
     </aside>
     <div class="ui-card p-5">
       @if (camaraSeleccionada; as c) {
-        <h3 class="mt-0">{{ c.nombre }}</h3>
-        <p>{{ nombreZona(c.zonaId) }}</p>
-        @if (!c.zonePolygon) {
-          <p class="text-warning">Esta cámara necesita un polígono de análisis.</p>
-        }
-        <p class="rounded-lg bg-canvas p-4">
-          El video en vivo y los conteos por cámara todavía no están disponibles en la API.
-        </p>
-        @if (indicador; as i) {
-          <h4>Último indicador horario de la zona</h4>
-          <p class="text-muted">
-            Este indicador agrega las ventanas de la zona; no es un conteo individual de esta
-            cámara.
-          </p>
-          <div class="grid gap-3 expanded:grid-cols-3">
-            <div class="rounded-lg border border-solid border-divider p-4">
-              <span>Promedio por ventana</span
-              ><strong class="block text-metric">{{ i.promedioPeatones | number: '1.0-2' }}</strong>
-            </div>
-            <div class="rounded-lg border border-solid border-divider p-4">
-              <span>Nivel de zona</span
-              ><strong class="block text-metric">{{ i.nivelConcentracion | titlecase }}</strong>
-            </div>
-            <div class="rounded-lg border border-solid border-divider p-4">
-              <span>Fin del periodo (Lima)</span
-              ><strong class="block">{{ i.periodoFin | date: 'dd/MM HH:mm' : '-0500' }}</strong>
-            </div>
+        <h3 class="mt-0">{{ c.nombre }}</h3><p class="text-muted">{{ nombreZona(c.zonaId) }}</p>
+        <p role="status"><strong>{{ estadoTransmision }}</strong></p>
+        <app-api-state [loading]="actividadRequest.loading()" [error]="actividadRequest.error()" (retry)="consultarSeleccion()" />
+        @if (estadoActual; as t) {
+          <div class="mb-5 grid gap-3 expanded:grid-cols-3">
+            <div class="rounded-lg border border-solid border-divider p-4"><span>Última actividad (Lima)</span><strong class="mt-2 block">{{ fecha(t.ultima_actividad) }}</strong></div>
+            <div class="rounded-lg border border-solid border-divider p-4"><span>FPS efectivos</span><strong class="mt-2 block text-metric">{{ t.fps_procesamiento === null ? 'Sin medición' : (t.fps_procesamiento | number:'1.0-2') }}</strong></div>
+            <div class="rounded-lg border border-solid border-divider p-4"><span>Edad de imagen</span><strong class="mt-2 block text-metric">{{ t.edad_imagen_seg === null ? 'Sin medición' : (t.edad_imagen_seg | number:'1.0-2') }} s</strong></div>
           </div>
-        } @else {
-          <p>La zona no tiene indicadores disponibles.</p>
+          <p class="text-label text-muted">La edad se mide desde la recepción local hasta procesar la imagen, sin incluir el retraso previo de la cámara o la red. El estado proviene de la última transmisión registrada, independientemente de los videos analizados.</p>
         }
-        <h4>Ejecuciones de esta cámara</h4>
-        <p class="text-label text-muted">Entre las últimas 500 ejecuciones del sistema.</p>
-        @for (p of ejecuciones; track p.id) {
-          <p>
-            #{{ p.id }} · {{ p.estado | titlecase }} ·
-            {{ p.fechaCapturaInicio | date: 'dd/MM HH:mm' : '-0500' }}
-            @if (p.mensajeError) {
-              <span class="block text-danger">{{ p.mensajeError }}</span>
-            }
+        @if (!c.zonePolygon) { <p class="text-warning">Esta cámara necesita un polígono de análisis.</p> }
+        <h4>Ocupación de la última transmisión</h4>
+        <p class="text-label text-muted">Último periodo disponible de hoy o ayer en Lima. No combina cámaras ni ejecuciones distintas.</p>
+        <app-api-state [loading]="medicionRequest.loading()" [error]="medicionRequest.error()" (retry)="consultarMedicion()" />
+        @if (ultimaMedicion; as m) {
+          <p>{{ estadoMedicion(m.estado_ocupacion) }} · {{ m.periodo_cerrado ? 'Periodo cerrado' : 'Periodo abierto' }}</p>
+          <div class="grid gap-3 expanded:grid-cols-3">
+            <div class="rounded-lg border border-solid border-divider p-4"><span>Personas presentes · promedio</span><strong class="mt-2 block text-metric">{{ m.promedio_presentes === null ? 'Sin medición' : (m.promedio_presentes | number:'1.0-2') }}</strong></div>
+            <div class="rounded-lg border border-solid border-divider p-4"><span>Máximo observado</span><strong class="mt-2 block text-metric">{{ m.max_presentes ?? 'Sin medición' }}</strong></div>
+            <div class="rounded-lg border border-solid border-divider p-4"><span>Nivel de ocupación</span><strong class="mt-2 block text-metric">{{ m.nivel_ocupacion ? (m.nivel_ocupacion | titlecase) : 'Sin nivel' }}</strong></div>
+          </div>
+          <p class="text-label text-muted">Captura: {{ fecha(m.primera_ventana_inicio) }} → {{ fecha(m.ultima_ventana_fin) }}. Recepción: {{ fecha(m.ultima_recepcion) }}. {{ m.segundos_observados === null ? 'Sin duración consolidada' : (m.segundos_observados | number:'1.0-1') + ' s observados' }}. Un periodo cerrado no garantiza cobertura completa.</p>
+        } @else if (!medicionRequest.loading() && !medicionRequest.error() && !actividadRequest.loading() && !actividadRequest.error()) {
+          <p>No hay ocupación registrada para esta transmisión en el rango consultado. Esto no equivale a cero personas.</p>
+        }
+        <p class="rounded-lg bg-canvas p-4 text-label">Esta pantalla muestra actividad y mediciones; la imagen en vivo no está disponible aquí.</p>
+        <h4>Ejecuciones de esta cámara</h4><p class="text-label text-muted">Historial reciente de la cámara seleccionada.</p>
+        <app-api-state [loading]="historialRequest.loading()" [error]="historialRequest.error()" (retry)="consultarSeleccion()" />
+        @for (p of ejecuciones.slice(0, 10); track p.id) {
+          <p>#{{ p.id }} · {{ p.tipoFuente }} · {{ p.estado | titlecase }} · {{ p.fechaCapturaInicio | date:'dd/MM HH:mm':'-0500' }}
+            @if (p.mensajeError) { <span class="block text-danger">{{ p.mensajeError }}</span> }
           </p>
-        } @empty {
-          <p>No hay ejecuciones en la consulta.</p>
-        }
-      } @else {
-        <h3>Selecciona una cámara</h3>
-        <p class="text-muted">
-          Elige una cámara activa para consultar su estado y los indicadores de su zona.
-        </p>
-      }
+        } @empty { @if (!historialRequest.loading() && !historialRequest.error()) { <p>No hay ejecuciones en la consulta.</p> } }
+        @if (ejecuciones.length > 10) { <p class="text-label text-muted">Se muestran las diez más recientes. Consulta Análisis para revisar el historial.</p> }
+      } @else { <h3>Selecciona una cámara</h3><p class="text-muted">Elige una cámara habilitada para consultar actividad y ocupación observada.</p> }
     </div>
   </div>
 </section>

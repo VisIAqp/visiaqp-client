@@ -37,6 +37,11 @@ export interface IndicadorDto {
   promedio_peatones: number;
   max_peatones: number;
   nivel_concentracion: NivelConcentracion;
+  promedio_presentes?: number | null;
+  max_presentes?: number | null;
+  segundos_observados?: number | null;
+  nivel_ocupacion?: NivelConcentracion | null;
+  estado_ocupacion?: string;
   nombre_zona?: string;
 }
 export interface ProcesamientoDto {
@@ -51,6 +56,11 @@ export interface ProcesamientoDto {
   fecha_fin_proceso: string | null;
   estado: EstadoProcesamiento;
   mensaje_error: string | null;
+  inactividad_limite_seg?: number;
+  ultima_actividad?: string | null;
+  ultima_muestra?: string | null;
+  fps_procesamiento?: number | null;
+  retraso_seg?: number | null;
 }
 export interface VideoDto {
   id_video: number;
@@ -107,6 +117,11 @@ export class DtoMapper {
       promedioPeatones: d.promedio_peatones,
       maxPeatones: d.max_peatones,
       nivelConcentracion: d.nivel_concentracion,
+      promedioPresentes: d.promedio_presentes ?? null,
+      maxPresentes: d.max_presentes ?? null,
+      segundosObservados: d.segundos_observados ?? null,
+      nivelOcupacion: d.nivel_ocupacion ?? null,
+      estadoOcupacion: d.estado_ocupacion ?? 'sin_datos',
     };
   }
   procesamiento(d: ProcesamientoDto): Procesamiento {
@@ -122,6 +137,11 @@ export class DtoMapper {
       fechaFinProceso: d.fecha_fin_proceso ? this.date(d.fecha_fin_proceso) : null,
       estado: d.estado,
       mensajeError: d.mensaje_error,
+      limiteInactividadSeg: d.inactividad_limite_seg ?? 120,
+      ultimaActividad: d.ultima_actividad ? this.date(d.ultima_actividad) : null,
+      ultimaMuestra: d.ultima_muestra ? this.date(d.ultima_muestra) : null,
+      fpsProcesamiento: d.fps_procesamiento ?? null,
+      retrasoSeg: d.retraso_seg ?? null,
     };
   }
 }

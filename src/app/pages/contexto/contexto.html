@@ -1,0 +1,105 @@
+<section class="mx-auto min-w-0 max-w-page">
+  @if (!filtros) {
+  <header class="encabezado"><div><h2>Calendario y clima</h2><p class="text-muted">Contexto de la actividad peatonal según la zona y la hora de captura.</p></div></header>
+  }
+  <app-api-state [loading]="request.loading()" [error]="request.error()" (retry)="cargar()" />
+  @if (!filtros) {
+  <form class="ui-card panel" (ngSubmit)="consultar()">
+    <fieldset class="filtros" [disabled]="ocupado || request.loading()">
+      <label>Zona<select class="ui-field" name="zona" [(ngModel)]="zonaId"><option [ngValue]="0">Solo calendario nacional</option>@for (z of zonas; track z.id) { <option [ngValue]="z.id">{{ z.nombre }}</option> }</select></label>
+      <label>Clima desde<input class="ui-field" name="desde" type="date" min="1940-01-01" [max]="hoy" [(ngModel)]="desde" required /></label>
+      <label>Clima hasta<input class="ui-field" name="hasta" type="date" min="1940-01-01" [max]="hoy" [(ngModel)]="hasta" required /></label>
+      <label>Año del calendario<input class="ui-field" name="anio" type="number" min="1940" max="2100" step="1" [(ngModel)]="anio" required /></label>
+      <button class="boton principal" type="submit">Consultar guardados</button>
+    </fieldset>
+    <p class="nota text-muted">Hasta 31 días de clima, sin fechas futuras. Consultar usa los datos guardados; Sincronizar actualiza las fuentes externas.</p>
+  </form>
+  }
+  @if (errorFiltros) { <p class="aviso text-danger" role="alert">{{ errorFiltros }}</p> }
+  @if (aplicado; as a) {
+    <p class="nota text-muted">Consulta aplicada: {{ zonaAplicada?.nombre || 'Calendario nacional' }} · clima del {{ dia(a.desde) }} al {{ dia(a.hasta) }} · calendario {{ a.anio }}. Horas de Lima.</p>
+    <section class="ui-card panel" aria-labelledby="titulo-relacion">
+      <h3 id="titulo-relacion">Ocupación y contexto por hora de captura</h3>
+      <p class="text-muted">Cada ejecución permanece separada. Se asocia el clima del inicio del periodo y la precipitación de su hora previa. La coincidencia temporal ayuda a explorar patrones, pero no demuestra que el clima o un evento causen un cambio de ocupación.</p>
+      <app-api-state [loading]="series.estado.loading()" [error]="series.estado.error()" (retry)="series.reintentar()" />
+      @if (series.pagina; as p) {
+        <div class="desplazable"><table><thead><tr><th>Periodo / ejecución</th><th>Ocupación promedio</th><th>Clima</th><th>Calendario registrado</th><th>Calidad de medición</th></tr></thead><tbody>
+          @for (f of p.datos; track f.id_procesamiento + ':' + f.periodo_inicio) {
+            <tr><td>{{ fecha(f.periodo_inicio) }}<small>Cámara {{ f.id_camara ?? 'sin asignar' }} · {{ f.tipo_fuente }} #{{ f.id_procesamiento }}</small></td><td>{{ f.promedio_presentes === null ? 'Sin medición consolidada' : (f.promedio_presentes | number:'1.0-2') }}<small>{{ f.segundos_observados === null ? 'Sin duración consolidada' : (f.segundos_observados | number:'1.0-1') + ' s observados' }}</small></td>
+              <td>{{ f.temperatura_c === null ? 'Sin temperatura' : (f.temperatura_c | number:'1.0-1') + ' °C' }} · {{ f.precipitacion_mm === null ? 'Sin dato de precipitación' : (f.precipitacion_mm | number:'1.0-2') + ' mm (hora previa)' }}<small>{{ tipoClima(f.tipo_clima) }}</small></td>
+              <td>@if (f.es_feriado) { <span class="etiqueta">Feriado</span> } @if (f.es_no_laborable) { <span class="etiqueta">Día no laborable</span> } @if (f.tiene_evento) { <span class="etiqueta">Evento</span> } @if (!f.es_feriado && !f.es_no_laborable && !f.tiene_evento) { Sin fecha especial registrada }</td>
+              <td>{{ estadoMedicion(f.estado_ocupacion) }}<small>{{ f.periodo_cerrado ? 'Periodo cerrado' : 'Periodo abierto' }}</small></td></tr>
+          } @empty { <tr><td colspan="5">No hay series de ocupación para cruzar en esta selección.</td></tr> }
+        </tbody></table></div>
+        <app-pagination [unit]="'grupos de ocupación'" [page]="series.numeroPagina" [pages]="series.paginas" [total]="p.total" (pageChange)="cargarSeries(series.desplazamiento($event))" />
+      }
+      <p class="nota text-muted">Un periodo cerrado no garantiza observación completa. El calendario muestra únicamente las fechas registradas, no todos los eventos que podrían influir en la actividad.</p>
+    </section>
+    <details><summary>Fuentes, fechas especiales y administración</summary>
+    <section class="ui-card panel" aria-labelledby="titulo-calendario">
+      <div class="titulo"><div><h3 id="titulo-calendario">Calendario {{ a.anio }}</h3><p class="text-muted">Feriados nacionales y registros complementarios de la zona seleccionada.</p></div>
+        @if (auth.isAdmin()) { <button class="boton" type="button" [disabled]="ocupado" (click)="sincronizarCalendario()">Sincronizar nacionales</button> }
+      </div>
+      <p class="nota text-muted">Las fechas locales y los días no laborables necesitan fuentes complementarias. La ausencia de un registro no confirma que el día sea laborable.</p>
+      <app-api-state [loading]="syncCalendario.loading()" [error]="syncCalendario.error()" [retryable]="false" />
+      @if (mensajeCalendario) { <p role="status">{{ mensajeCalendario }}</p> }
+      @if (ultimoCalendario) { <p class="nota text-muted">Última sincronización correcta: {{ fecha(ultimoCalendario.ultimo_exito) }}. @if (ultimoCalendario.estado === 'error') { La última actualización falló; se conserva la información anterior. }</p> }
+      <app-api-state [loading]="calendario.estado.loading()" [error]="calendario.estado.error()" (retry)="calendario.reintentar()" />
+      @if (calendario.pagina; as p) {
+        <div class="desplazable"><table><thead><tr><th>Fecha</th><th>Motivo</th><th>Tipo / alcance</th><th>Fuente</th>@if (auth.isAdmin()) { <th>Acción</th> }</tr></thead><tbody>
+          @for (e of p.datos; track e.id_evento) {
+            <tr><td>{{ dia(e.fecha) }}</td><td>{{ e.nombre }}</td><td>{{ tipoEvento(e.tipo) }}<small>{{ e.alcance === 'local' ? 'Zona seleccionada' : 'Nacional' }}</small></td>
+              <td><a [href]="e.referencia" target="_blank" rel="noopener noreferrer">{{ e.fuente === 'manual' ? 'Referencia del registro' : 'Nager.Date' }} ↗</a></td>
+              @if (auth.isAdmin()) { <td>@if (e.editable) { <button class="boton" type="button" [disabled]="ocupado" (click)="editar(e)">Editar</button> } @else { <span class="text-muted">Fuente externa</span> }</td> }
+            </tr>
+          } @empty { <tr><td [attr.colspan]="auth.isAdmin() ? 5 : 4">No hay fechas guardadas para este año y alcance.</td></tr> }
+        </tbody></table></div>
+        <app-pagination [unit]="'fechas'" [page]="calendario.numeroPagina" [pages]="calendario.paginas" [total]="p.total" (pageChange)="cargarCalendario(calendario.desplazamiento($event))" />
+      }
+      <p class="nota text-muted">Fuente nacional: <a href="https://date.nager.at" target="_blank" rel="noopener noreferrer">Nager.Date</a>. Domingo Santo se conserva como evento religioso, separado de los feriados nacionales.</p>
+    </section>
+
+    @if (auth.isAdmin()) {
+      <section class="ui-card panel" aria-labelledby="titulo-evento">
+        <h3 id="titulo-evento">{{ eventoId ? 'Editar registro complementario' : 'Añadir fecha complementaria' }}</h3>
+        <p class="text-muted">Registra feriados locales, días no laborables o eventos con su alcance y una referencia verificable.</p>
+        <form (ngSubmit)="guardarEvento()"><fieldset class="filtros" [disabled]="ocupado">
+          <label>Fecha<input class="ui-field" name="fechaEvento" type="date" min="1940-01-01" max="2100-12-31" [(ngModel)]="formulario.fecha" required /></label>
+          <label>Nombre<input class="ui-field" name="nombreEvento" maxlength="150" [(ngModel)]="formulario.nombre" required /></label>
+          <label>Tipo<select class="ui-field" name="tipoEvento" [(ngModel)]="formulario.tipo"><option value="feriado">Feriado</option><option value="no_laborable">Día no laborable</option><option value="evento">Evento</option></select></label>
+          <label>Alcance<select class="ui-field" name="alcance" [(ngModel)]="formulario.alcance"><option value="local">Una zona</option><option value="nacional">Nacional</option></select></label>
+          @if (formulario.alcance === 'local') { <label>Zona del evento<select class="ui-field" name="zonaEvento" [(ngModel)]="formulario.id_zona" required><option [ngValue]="null">Selecciona una zona</option>@for (z of zonas; track z.id) { <option [ngValue]="z.id">{{ z.nombre }}</option> }</select></label> }
+          <label class="amplio">Fuente pública<input class="ui-field" name="referencia" type="url" maxlength="500" placeholder="https://www.gob.pe/..." [(ngModel)]="formulario.referencia" required /></label>
+          <div class="acciones"><button class="boton principal" type="submit">Guardar fecha</button><button class="boton" type="button" (click)="limpiarEvento()">Nuevo registro</button></div>
+        </fieldset></form>
+        <app-api-state [loading]="guardar.loading()" [error]="guardar.error()" [retryable]="false" />
+        @if (mensajeEvento) { <p role="status">{{ mensajeEvento }}</p> }
+      </section>
+    }
+
+    <section class="ui-card panel" aria-labelledby="titulo-clima">
+      <div class="titulo"><div><h3 id="titulo-clima">Clima guardado de la zona</h3><p class="text-muted">Temperatura, precipitación y humedad por hora. Son datos modelados, no una medición de estación en la cámara.</p></div>
+        @if (auth.isAdmin()) { <button class="boton" type="button" [disabled]="ocupado || !tieneCoordenadas" (click)="sincronizarClima()">Sincronizar clima del rango</button> }
+      </div>
+      @if (!a.zonaId) { <p>Selecciona una zona para consultar el clima y su relación con la ocupación.</p> }
+      @else if (!tieneCoordenadas) { <p class="aviso">La zona no tiene coordenadas configuradas. Añade su ubicación real en <a routerLink="/zonas">Zonas</a> para sincronizar el clima.</p> }
+      @if (!auth.isAdmin()) { <p class="nota text-muted">Un administrador puede actualizar las fuentes; los datos guardados están disponibles para consulta.</p> }
+      <app-api-state [loading]="syncClima.loading()" [error]="syncClima.error()" [retryable]="false" />
+      @if (mensajeClima) { <p role="status">{{ mensajeClima }}</p> }
+      @if (ultimoClima) { <p class="nota text-muted">Última sincronización correcta del rango: {{ fecha(ultimoClima.ultimo_exito) }}. @if (ultimoClima.estado === 'error') { La última actualización falló; se conserva el clima anterior. }</p> }
+      <app-api-state [loading]="clima.estado.loading()" [error]="clima.estado.error()" (retry)="clima.reintentar()" />
+      @if (clima.pagina; as p) {
+        <div class="desplazable"><table><thead><tr><th>Hora de Lima</th><th>Temperatura</th><th>Precipitación · hora previa</th><th>Humedad</th><th>Condición</th><th>Origen / consulta</th></tr></thead><tbody>
+          @for (f of p.datos; track f.hora) {
+            <tr><td>{{ fecha(f.hora) }}</td><td>{{ f.temperatura_c === null ? 'Sin dato' : (f.temperatura_c | number:'1.0-1') + ' °C' }}</td><td>{{ f.precipitacion_mm === null ? 'Sin dato' : (f.precipitacion_mm | number:'1.0-2') + ' mm' }}</td><td>{{ f.humedad_porcentaje === null ? 'Sin dato' : (f.humedad_porcentaje | number:'1.0-1') + ' %' }}</td><td>{{ condicion(f.codigo_tiempo) }}</td><td>{{ tipoClima(f.tipo_dato) }}<small>{{ fecha(f.consultado_en) }}</small></td></tr>
+          } @empty { <tr><td colspan="6">No hay clima guardado para esta ubicación y rango. Esto no significa ausencia de precipitación ni temperatura cero.</td></tr> }
+        </tbody></table></div>
+        <app-pagination [unit]="'horas climáticas'" [page]="clima.numeroPagina" [pages]="clima.paginas" [total]="p.total" (pageChange)="cargarClima(clima.desplazamiento($event))" />
+      }
+      <p class="nota text-muted">La precipitación suma la hora anterior a la marca indicada; temperatura y humedad corresponden a ese instante. Clima: <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer">Open-Meteo</a>, datos bajo <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Se consultan las coordenadas de la zona; la resolución del modelo no permite atribuir una medición exacta a cada cámara.</p>
+    </section>
+
+
+    </details>
+  }
+</section>

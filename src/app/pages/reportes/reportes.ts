@@ -41,7 +41,10 @@ export class Reportes implements OnInit {
         'Suma de conteos',
         'Promedio por ventana',
         'Máximo por ventana',
-        'Nivel',
+        'Ocupación promedio',
+        'Ocupación máxima',
+        'Nivel de ocupación',
+        'Estado de ocupación',
       ],
       ...this.history.rows.map((i) => [
         this.history.nombreZona(i.zonaId),
@@ -51,7 +54,10 @@ export class Reportes implements OnInit {
         i.totalPeatones,
         i.promedioPeatones,
         i.maxPeatones,
-        i.nivelConcentracion,
+        i.promedioPresentes ?? '',
+        i.maxPresentes ?? '',
+        i.nivelOcupacion ?? '',
+        i.estadoOcupacion ?? 'sin_datos',
       ]),
     ];
     const url = URL.createObjectURL(

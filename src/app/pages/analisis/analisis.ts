@@ -56,7 +56,7 @@ export class Analisis implements AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     this.chart = new Chart(this.grafico.nativeElement, {
       type: 'line',
-      data: { labels: [], datasets: [{ label: 'Promedio por periodo', data: [], tension: 0.3 }] },
+      data: { labels: [], datasets: [{ label: 'Personas presentes (promedio temporal)', data: [], tension: 0.3 }] },
       options: {
         responsive: true,
         maintainAspectRatio: false,
@@ -173,7 +173,7 @@ export class Analisis implements AfterViewInit, OnDestroy {
         minute: '2-digit',
       }),
     );
-    this.chart.data.datasets[0].data = this.history.rows.map((i) => i.promedioPeatones);
+    this.chart.data.datasets[0].data = this.history.rows.map((i) => i.promedioPresentes ?? null);
     this.chart.update();
   }
   ngOnDestroy() {

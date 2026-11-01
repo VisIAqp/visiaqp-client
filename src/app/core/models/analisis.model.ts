@@ -13,6 +13,11 @@ export interface Procesamiento {
   fechaFinProceso: Date | null;
   estado: EstadoProcesamiento;
   mensajeError: string | null;
+  limiteInactividadSeg?: number;
+  ultimaActividad?: Date | null;
+  ultimaMuestra?: Date | null;
+  fpsProcesamiento?: number | null;
+  retrasoSeg?: number | null;
 }
 export interface ResultadoDeteccion {
   id: number;

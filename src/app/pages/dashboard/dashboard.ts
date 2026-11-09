@@ -47,6 +47,7 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   errorFiltros = '';
   consulta: FiltrosMetricas | null = null;
   verContexto = false;
+  mostrarFiltros = false;
   serieElegida = 0;
   zonaPatron = 0;
   readonly dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
@@ -181,7 +182,7 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   }
   private colores() {
     const estilo = getComputedStyle(document.documentElement);
-    return ['content', 'success', 'warning', 'danger', 'muted', 'maintenance', 'heading', 'subtle']
+    return ['brand', 'success', 'warning', 'danger', 'muted', 'maintenance', 'heading', 'subtle']
       .map((n) => estilo.getPropertyValue('--color-' + n).trim() || '#333');
   }
   private actualizarComparativa() {

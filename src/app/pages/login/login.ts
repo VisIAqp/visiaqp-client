@@ -4,7 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Auth } from '../../core/auth/auth';
 import { RequestState } from '../../core/api/request-state';
 import { ApiState } from '../../shared/api-state/api-state';
-@Component({ selector: 'app-login', imports: [FormsModule, ApiState], templateUrl: './login.html' })
+@Component({ selector: 'app-login', imports: [FormsModule, ApiState], templateUrl: './login.html', styleUrl: './login.css' })
 export class Login {
   readonly auth = inject(Auth);
   private router = inject(Router);

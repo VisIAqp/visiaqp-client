@@ -1,13 +1,19 @@
-<main class="flex min-h-screen items-center justify-center bg-canvas p-5">
-  <section class="ui-card w-full max-w-md p-7">
-    <h1 class="mt-0 text-title">VisIAqp</h1>
+<main class="login-shell">
+  <aside class="login-story">
+    <div class="login-brand"><span class="login-mark">V</span> VisIAqp</div>
+    <div><p class="login-eyebrow">OBSERVAR · COMPRENDER · TRANSFORMAR</p><h2>Una ciudad que<br />se entiende mejor.</h2><p class="login-description">Análisis de la actividad peatonal para conocer cómo se mueven nuestros espacios.</p>
+      <svg class="login-illustration" viewBox="0 0 600 270" fill="none" aria-hidden="true"><path d="M0 220h600M0 170h600M0 120h600M100 60v180M200 60v180M300 60v180M400 60v180M500 60v180" stroke="#ffffff12"/><path d="M30 213V125h70v88m15 0V85h60v128m20 0V140h65v73m20 0V55h70v158m20 0V100h60v113m20 0V70h70v143m20 0V145h50v68" stroke="#6488e0" stroke-width="2"/><path d="m20 195 75-25 75 10 75-50 75 15 75-55 75 25 90-80" stroke="#79aeff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="395" cy="90" r="7" fill="#b9d6ff"/><circle cx="245" cy="130" r="7" fill="#b9d6ff"/><circle cx="560" cy="35" r="7" fill="#b9d6ff"/></svg>
+    </div><p class="login-footnote">Arequipa, Perú · Análisis y monitoreo peatonal</p>
+  </aside><div class="login-form-area">
+  <section class="login-form">
+    <p class="section-eyebrow">CONSOLA DE MONITOREO</p><h1 class="mt-0">Bienvenido a VisIAqp</h1>
     <p class="text-muted">Inicia sesión para consultar y gestionar el monitoreo peatonal.</p>
     <form (ngSubmit)="entrar()" class="flex flex-col gap-4">
       <label class="flex flex-col gap-2" for="username"
         >Usuario<input
           id="username"
           name="username"
-          class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+          class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
           autocomplete="username"
           [(ngModel)]="username"
           required
@@ -17,7 +23,7 @@
           id="password"
           name="password"
           type="password"
-          class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+          class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
           autocomplete="current-password"
           [(ngModel)]="password"
           required
@@ -25,11 +31,11 @@
       <app-api-state [loading]="request.loading()" [error]="request.error()" [retryable]="false" />
       <button
         type="submit"
-        class="ui-focus cursor-pointer rounded-lg border-0 bg-content px-4 py-2.5 text-white disabled:cursor-default disabled:opacity-45"
+        class="ui-focus cursor-pointer rounded-lg border-0 bg-brand hover:bg-brand-hover px-4 py-2.5 text-white disabled:cursor-default disabled:opacity-45"
         [disabled]="request.loading() || !username.trim() || !password"
       >
         {{ request.loading() ? 'Iniciando sesión…' : 'Iniciar sesión' }}
       </button>
     </form>
   </section>
-</main>
+</div></main>

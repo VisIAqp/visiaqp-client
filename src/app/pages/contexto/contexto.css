@@ -10,9 +10,9 @@
 .ui-field { width: 100%; min-height: 2.65rem; font: inherit; }
 .boton { cursor: pointer; background: white; color: var(--color-content); border: 1px solid var(--color-field); border-radius: .5rem; padding: .7rem 1rem; font: inherit; font-size: var(--text-label); }
 .boton:hover { background: var(--color-hover); }
-.boton:disabled, fieldset:disabled .boton { cursor: default; opacity: .5; }
-.principal { background: var(--color-content); color: white; }
-.principal:hover { background: var(--color-heading); }
+.boton:disabled, fieldset:disabled .boton { cursor: default; opacity: 1; color: #657084; background: #f0f2f6; }
+.principal { background: var(--color-brand); color: white; }
+.principal:hover { background: var(--color-brand-hover); }
 .boton:focus-visible { outline: 2px solid var(--color-content); outline-offset: 3px; }
 .acciones { display: flex; gap: .7rem; flex-wrap: wrap; }
 .nota { font-size: var(--text-label); }

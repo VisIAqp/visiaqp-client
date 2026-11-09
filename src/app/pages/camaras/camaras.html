@@ -1,12 +1,12 @@
 <section class="mx-auto min-w-0 max-w-page">
   <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
     <div>
-      <h2 class="mt-0">Gestión de cámaras</h2>
+      <p class="section-eyebrow">Administración del monitoreo</p><h2 class="mt-0">Gestión de cámaras</h2>
       <p class="text-muted">Fuentes y configuración de análisis.</p>
     </div>
     @if (auth.isAdmin()) {
       <button
-        class="ui-focus cursor-pointer rounded-lg border-0 bg-content px-4 py-2.5 text-white disabled:cursor-default disabled:opacity-45"
+        class="ui-focus cursor-pointer rounded-lg border-0 bg-brand hover:bg-brand-hover px-4 py-2.5 text-white disabled:cursor-default disabled:opacity-45"
         (click)="abrirFormulario()"
       >
         + Nueva cámara
@@ -22,24 +22,25 @@
     <p role="status">{{ mensaje }}</p>
   }
   @if (mostrarFormulario) {
-    <div class="ui-card mb-5 p-5">
+    <div class="ui-card editor-card mb-5 p-5">
       <h3 class="mt-0">{{ camaraEditando ? 'Editar cámara' : 'Nueva cámara' }}</h3>
       <form (ngSubmit)="guardarCamara()">
         <fieldset
           class="grid grid-cols-1 gap-4 border-0 p-0 desktop:grid-cols-2"
           [disabled]="saving.loading()"
         >
+          <p class="form-section-title">01 · Identificación y zona</p>
           <label class="flex flex-col gap-2"
             >Nombre<input
               name="nombre"
-              class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+              class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
               [(ngModel)]="nuevaCamara.nombre"
               maxlength="100"
               required /></label
           ><label class="flex flex-col gap-2"
             >Zona<select
               name="zona"
-              class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+              class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
               [(ngModel)]="nuevaCamara.zonaId"
               [disabled]="!!camaraEditando"
               required
@@ -56,7 +57,7 @@
           <label class="flex flex-col gap-2"
             >Tipo de cámara<select
               name="tipo"
-              class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+              class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
               [(ngModel)]="nuevaCamara.tipo"
             >
               <option value="fija">Fija</option>
@@ -65,7 +66,7 @@
           ><label class="flex flex-col gap-2"
             >Estado<select
               name="estado"
-              class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+              class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
               [(ngModel)]="nuevaCamara.estado"
             >
               <option value="activa">Activa</option>
@@ -73,20 +74,20 @@
               <option value="mantenimiento">Mantenimiento</option>
             </select></label
           >
-          <label class="flex flex-col gap-2"
+          <p class="form-section-title">02 · Fuente y muestreo</p><label class="flex flex-col gap-2"
             >Ventana de reporte (segundos)<input
               name="intervalo"
               type="number"
               min="1"
               step="1"
-              class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+              class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
               [(ngModel)]="nuevaCamara.intervaloMuestreoSeg"
               required /></label
           ><label class="flex flex-col gap-2"
             >{{ camaraEditando ? 'Reemplazar fuente de video (opcional)' : 'Fuente de video'
             }}<input
               name="fuente"
-              class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+              class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
               [(ngModel)]="nuevaCamara.urlStream"
               maxlength="255"
               [required]="!camaraEditando"
@@ -96,11 +97,11 @@
               conservarla.</small
             ></label
           >
-          <label class="flex flex-col gap-2 desktop:col-span-2"
+          <p class="form-section-title">03 · Área de análisis</p><label class="flex flex-col gap-2 desktop:col-span-2"
             >Polígono de análisis<textarea
               name="poligono"
               rows="3"
-              class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+              class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
               [(ngModel)]="poligono"
               placeholder="[[0,0],[1,0],[1,1],[0,1]]"
             ></textarea
@@ -119,21 +120,26 @@
           >
             Cancelar</button
           ><button
-            class="ui-focus cursor-pointer rounded-lg border-0 bg-content px-4 py-2.5 text-white disabled:cursor-default disabled:opacity-45"
+            class="ui-focus cursor-pointer rounded-lg border-0 bg-brand hover:bg-brand-hover px-4 py-2.5 text-white disabled:cursor-default disabled:opacity-45"
             [disabled]="saving.loading()"
           >
             Guardar cámara
           </button>
         </div>
       </form>
+      <aside class="form-guide"><h4>Configuración del análisis</h4><p>Cada cámara conserva su propia vista y área de interés.</p><ol><li>Asigna la cámara a la zona correspondiente.</li><li>Configura la fuente y su intervalo de muestreo.</li><li>Define el polígono para que el motor mida dentro del área observada.</li></ol></aside>
     </div>
+  }
+  @if (!request.loading() && !request.error()) {
+  <div class="directory-summary"><span class="directory-symbol" aria-hidden="true">▣</span><div><strong>{{ camaras.length }}</strong><span>cámaras registradas</span></div><p>Catálogo cargado en esta consulta</p></div>
   }
   <div class="ui-card overflow-hidden">
     <div class="p-5">
+      <h3 class="mt-0">Directorio de cámaras</h3>
       <label for="buscar-camara">Buscar cámara o zona</label
       ><input
         id="buscar-camara"
-        class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+        class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
         [(ngModel)]="busqueda"
       />
     </div>
@@ -153,7 +159,7 @@
             <tr>
               <td class="ui-table-cell py-3.5 text-label">{{ c.nombre }}</td>
               <td class="ui-table-cell py-3.5 text-label">{{ nombreZona(c.zonaId) }}</td>
-              <td class="ui-table-cell py-3.5 text-label">{{ c.estado | titlecase }}</td>
+              <td class="ui-table-cell py-3.5 text-label"><span class="status-badge" [class.is-active]="c.estado === 'activa'" [class.is-warning]="c.estado === 'mantenimiento'">{{ c.estado | titlecase }}</span></td>
               <td class="ui-table-cell py-3.5 text-label">
                 {{ c.tieneUrlStream ? 'Fuente configurada' : 'Sin fuente' }} ·
                 {{ c.intervaloMuestreoSeg }} s

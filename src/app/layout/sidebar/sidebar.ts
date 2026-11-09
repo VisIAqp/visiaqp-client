@@ -5,7 +5,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 @Component({
   selector: 'app-sidebar',
   imports: [NgClass, RouterLink, RouterLinkActive],
-  templateUrl: './sidebar.html'
+  templateUrl: './sidebar.html', styleUrl: './sidebar.css'
 })
 export class Sidebar {
   readonly menuAbierto = signal(false);

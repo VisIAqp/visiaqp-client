@@ -1,10 +1,10 @@
 <section class="mx-auto min-w-0 max-w-page">
-  <h2 class="mt-0">Reportes</h2>
+  <header class="report-heading"><div><p class="section-eyebrow">CONSULTA Y EXPORTACIÓN</p><h2 class="mt-0">Reportes</h2>
   <p class="text-muted">
     Consulta y exporta indicadores de zona. El detalle por ventanas aún no está disponible en la
     API.
   </p>
-  <div class="mb-5 flex flex-wrap gap-3 print:hidden">
+  </div><div class="report-actions print:hidden">
     <button
       class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2 disabled:cursor-default disabled:opacity-45"
       [disabled]="!exportable"
@@ -12,16 +12,16 @@
     >
       Descargar CSV</button
     ><button
-      class="ui-focus cursor-pointer rounded-lg border-0 bg-content px-4 py-2.5 text-white disabled:cursor-default disabled:opacity-45"
+      class="ui-focus cursor-pointer rounded-lg border-0 bg-brand hover:bg-brand-hover px-4 py-2.5 text-white disabled:cursor-default disabled:opacity-45"
       [disabled]="!exportable"
       (click)="imprimir()"
     >
       Imprimir / guardar PDF
     </button>
   </div>
-  <p class="text-label text-muted">
+  </header><details class="reading-help print:hidden"><summary>Alcance y formato de la exportación</summary><p class="text-label text-muted">
     La exportación incluye todos los periodos devueltos por la consulta (máximo 2000), no solo la
     página visible. CSV es compatible con hojas de cálculo.
-  </p>
+  </p></details>
   <app-indicator-view [query]="history" [printAll]="printing" />
 </section>

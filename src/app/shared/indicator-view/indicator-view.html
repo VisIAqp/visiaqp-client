@@ -3,7 +3,7 @@
     <label class="flex flex-col gap-2"
       >Zona<select
         name="zona"
-        class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+        class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
         [(ngModel)]="query().zoneId"
         required
       >
@@ -17,7 +17,7 @@
     <label class="flex flex-col gap-2"
       >Periodo<select
         name="periodo"
-        class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+        class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
         [(ngModel)]="query().periodo"
       >
         <option value="hora">Hora</option>
@@ -27,14 +27,14 @@
     <label class="flex flex-col gap-2"
       >Fecha inicial<input
         name="desde"
-        class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+        class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
         type="date"
         [(ngModel)]="query().desde"
         required /></label
     ><label class="flex flex-col gap-2"
       >Fecha final<input
         name="hasta"
-        class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+        class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
         type="date"
         [(ngModel)]="query().hasta"
         required
@@ -49,7 +49,7 @@
     >
       Restablecer fechas</button
     ><button
-      class="ui-focus cursor-pointer rounded-lg border-0 bg-content px-4 py-2.5 text-white disabled:cursor-default disabled:opacity-45"
+      class="ui-focus cursor-pointer rounded-lg border-0 bg-brand hover:bg-brand-hover px-4 py-2.5 text-white disabled:cursor-default disabled:opacity-45"
       [disabled]="query().request.loading() || !query().zoneId"
     >
       Consultar

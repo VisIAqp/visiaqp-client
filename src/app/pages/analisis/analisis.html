@@ -1,11 +1,12 @@
 <section class="mx-auto min-w-0 max-w-page">
-  <h2 class="mt-0">Análisis peatonal</h2>
+  <p class="section-eyebrow">EXPLORACIÓN DE RESULTADOS</p><h2 class="mt-0">Análisis peatonal</h2>
   <p class="text-muted">Solicita análisis de videos y consulta indicadores históricos.</p>
-  <p class="rounded-lg bg-canvas p-4 text-label">
+  <details class="reading-help"><summary>Alcance de los indicadores históricos</summary><p class="text-label">
     El detalle por ventana y por cámara aún no está disponible. Los históricos que se muestran son
     indicadores calculados por el backend.
-  </p>
-  <div class="ui-card mb-5 p-5">
+  </p></details>
+  <nav class="section-navigation" aria-label="Secciones de análisis"><button type="button" (click)="irA('solicitud-video')">01 · Solicitar análisis</button><button type="button" (click)="irA('historial-ejecuciones')">02 · Seguimiento</button><button type="button" (click)="irA('resultados-historicos')">03 · Resultados históricos</button></nav>
+  <section id="solicitud-video" class="ui-card mb-5 p-5">
     <h3 class="mt-0">Solicitar análisis de video</h3>
     <p class="text-muted">
       Selecciona un video del catálogo del motor. No se suben archivos desde el navegador.
@@ -19,7 +20,7 @@
         <label class="flex flex-col gap-2"
           >Video disponible<select
             name="video"
-            class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+            class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
             [(ngModel)]="videoId"
             (ngModelChange)="sugerirFecha()"
             required
@@ -35,7 +36,7 @@
         <label class="flex flex-col gap-2"
           >Cámara activa<select
             name="camara"
-            class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+            class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
             [(ngModel)]="camaraId"
             required
           >
@@ -50,7 +51,7 @@
             name="fecha"
             type="datetime-local"
             step="1"
-            class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+            class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
             [(ngModel)]="fechaCaptura"
             required
           /><small class="text-muted"
@@ -64,7 +65,7 @@
         <p>No hay videos disponibles en el catálogo.</p>
       }
       <button
-        class="ui-focus cursor-pointer rounded-lg border-0 bg-content px-4 py-2.5 text-white disabled:cursor-default disabled:opacity-45"
+        class="ui-focus cursor-pointer rounded-lg border-0 bg-brand hover:bg-brand-hover px-4 py-2.5 text-white disabled:cursor-default disabled:opacity-45"
         [disabled]="saving.loading() || request.loading() || !videoId || !camaraId || !fechaCaptura"
       >
         Solicitar procesamiento
@@ -73,15 +74,15 @@
     @if (mensaje) {
       <p role="status">{{ mensaje }}</p>
     }
-  </div>
-  <div class="ui-card mb-5 overflow-hidden">
+  </section>
+  <section id="historial-ejecuciones" class="ui-card mb-5 overflow-hidden">
     <div class="flex flex-wrap items-end gap-4 p-5">
       <h3 class="m-0">Ejecuciones</h3>
       <label class="flex flex-col gap-2"
         >Estado<select
-          class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+          class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
           [(ngModel)]="filtroEstado"
-          (ngModelChange)="refrescar()"
+          (ngModelChange)="refrescar(true)"
         >
           <option value="">Todos</option>
           <option value="pendiente">Pendiente</option>
@@ -91,9 +92,9 @@
         </select></label
       ><label class="flex flex-col gap-2"
         >Cámara del historial<select
-          class="ui-field w-full py-2.5 focus:border-content focus-visible:ring-1 focus-visible:ring-content"
+          class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
           [(ngModel)]="filtroCamara"
-          (ngModelChange)="refrescar()"
+          (ngModelChange)="refrescar(true)"
         >
           <option [ngValue]="0">Todas las fuentes</option>
           @for (c of camaras; track c.id) {
@@ -109,8 +110,7 @@
       </button>
     </div>
     <p class="px-5 text-label text-muted">
-      Hasta 500 ejecuciones. Solo se cancelan solicitudes pendientes. Si el motor deja de responder,
-      una ejecución puede permanecer en proceso.
+      Hasta 500 ejecuciones cargadas, en páginas de 10. Solo se cancelan solicitudes pendientes. Los resultados históricos se consultan debajo del historial.
     </p>
     @if (actualizado) {
       <small class="px-5">Última consulta: {{ actualizado | date: 'HH:mm:ss' : '-0500' }}</small>
@@ -127,7 +127,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (p of procesamientos; track p.id) {
+          @for (p of ejecucionesVisibles; track p.id) {
             <tr>
               <td class="ui-table-cell py-3.5 text-label">
                 #{{ p.id }} · {{ p.tipoFuente }}<small class="block">{{ p.rutaArchivo }}</small>
@@ -137,7 +137,7 @@
                 {{ p.fechaCapturaInicio | date: 'dd/MM/yyyy HH:mm' : '-0500' }}
               </td>
               <td class="ui-table-cell py-3.5 text-label">
-                {{ p.estado | titlecase }}
+                <span class="status-badge" [class.is-active]="p.estado === 'completado'" [class.is-warning]="p.estado === 'pendiente' || p.estado === 'procesando'" [class.is-error]="p.estado === 'error'">{{ p.estado | titlecase }}</span>
                 @if (p.mensajeError) {
                   <small class="block text-danger">{{ p.mensajeError }}</small>
                 }
@@ -168,8 +168,9 @@
         </tbody>
       </table>
     </div>
-  </div>
-  <app-indicator-view [query]="history" />
+    <app-pagination [page]="paginaEjecuciones" [pages]="paginasEjecuciones" [total]="procesamientos.length" unit="ejecuciones cargadas" (pageChange)="cambiarPagina($event)" />
+  </section>
+  <section id="resultados-historicos"><div class="work-heading"><div><p class="section-eyebrow">RESULTADOS</p><h3>Indicadores históricos de zona</h3><p>Elige el rango y la zona de los indicadores que deseas explorar.</p></div></div><app-indicator-view [query]="history" /></section>
   <div class="ui-card p-5">
     <h3 class="mt-0">Personas presentes (promedio temporal)</h3>
     <div class="relative h-82.5 min-w-0"><canvas #graficoPeatones></canvas></div>

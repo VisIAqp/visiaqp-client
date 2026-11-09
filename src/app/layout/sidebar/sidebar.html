@@ -1,10 +1,10 @@
 <aside
-  class="print:hidden box-border relative flex w-full flex-col overflow-y-auto bg-content p-3 text-white desktop:fixed desktop:top-0 desktop:left-0 desktop:z-[1000] desktop:h-screen desktop:min-h-screen desktop:w-sidebar desktop:px-4 desktop:py-6"
+  class="print:hidden box-border relative flex w-full flex-col overflow-y-auto bg-sidebar p-3 text-white desktop:fixed desktop:top-0 desktop:left-0 desktop:z-[1000] desktop:h-screen desktop:min-h-screen desktop:w-sidebar desktop:px-4 desktop:py-6"
 >
   <div class="flex items-center justify-between gap-3 desktop:block">
-    <div class="flex items-center gap-3 text-title font-bold desktop:px-3 desktop:pb-7.5">
+    <div class="flex items-center gap-3 text-title font-bold desktop:px-3 desktop:pb-5">
       <div
-        class="flex size-9.5 shrink-0 items-center justify-center rounded-panel bg-white text-content"
+        class="flex size-9.5 shrink-0 items-center justify-center rounded-panel bg-brand text-white"
       >
         V
       </div>
@@ -49,6 +49,7 @@
     </button>
   </div>
 
+  <p class="nav-caption">ESPACIO DE TRABAJO</p>
   <nav
     aria-label="Navegación principal"
     id="menu-principal"
@@ -56,68 +57,68 @@
     class="mt-3 flex-col gap-1 desktop:mt-0 desktop:flex desktop:gap-1.5"
   >
     <a
-      class="flex items-center gap-1.5 rounded-lg p-2 text-on-dark no-underline transition-colors duration-200 hover:bg-white hover:text-content aria-[current=page]:bg-white aria-[current=page]:text-content focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white desktop:gap-3 desktop:p-3"
+      class="flex items-center gap-1.5 rounded-lg p-2 text-on-dark no-underline transition-colors duration-200 hover:bg-white/10 hover:text-white aria-[current=page]:bg-brand aria-[current=page]:text-white focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white desktop:gap-3 desktop:p-3"
       routerLink="/dashboard"
       (click)="menuAbierto.set(false)"
       routerLinkActive="active"
       ariaCurrentWhenActive="page"
     >
-      <span>⌂</span>
+      <svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10 12 3l9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z" /></svg>
       <span>Dashboard</span>
     </a>
 
     <a
-      class="flex items-center gap-1.5 rounded-lg p-2 text-on-dark no-underline transition-colors duration-200 hover:bg-white hover:text-content aria-[current=page]:bg-white aria-[current=page]:text-content focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white desktop:gap-3 desktop:p-3"
+      class="flex items-center gap-1.5 rounded-lg p-2 text-on-dark no-underline transition-colors duration-200 hover:bg-white/10 hover:text-white aria-[current=page]:bg-brand aria-[current=page]:text-white focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white desktop:gap-3 desktop:p-3"
       routerLink="/zonas"
       (click)="menuAbierto.set(false)"
       routerLinkActive="active"
       ariaCurrentWhenActive="page"
     >
-      <span>◉</span>
+      <svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2"/></svg>
       <span>Zonas</span>
     </a>
 
     <a
-      class="flex items-center gap-1.5 rounded-lg p-2 text-on-dark no-underline transition-colors duration-200 hover:bg-white hover:text-content aria-[current=page]:bg-white aria-[current=page]:text-content focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white desktop:gap-3 desktop:p-3"
+      class="flex items-center gap-1.5 rounded-lg p-2 text-on-dark no-underline transition-colors duration-200 hover:bg-white/10 hover:text-white aria-[current=page]:bg-brand aria-[current=page]:text-white focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white desktop:gap-3 desktop:p-3"
       routerLink="/camaras"
       (click)="menuAbierto.set(false)"
       routerLinkActive="active"
       ariaCurrentWhenActive="page"
     >
-      <span>▣</span>
+      <svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h12v12H3ZM15 10l6-3v10l-6-3" /></svg>
       <span>Cámaras</span>
     </a>
 
     <a
-      class="flex items-center gap-1.5 rounded-lg p-2 text-on-dark no-underline transition-colors duration-200 hover:bg-white hover:text-content aria-[current=page]:bg-white aria-[current=page]:text-content focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white desktop:gap-3 desktop:p-3"
+      class="flex items-center gap-1.5 rounded-lg p-2 text-on-dark no-underline transition-colors duration-200 hover:bg-white/10 hover:text-white aria-[current=page]:bg-brand aria-[current=page]:text-white focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white desktop:gap-3 desktop:p-3"
       routerLink="/monitoreo"
       (click)="menuAbierto.set(false)"
       routerLinkActive="active"
       ariaCurrentWhenActive="page"
     >
-      <span>◉</span>
+      <svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4m-6-10h3l2-3 3 6 2-3h2"/></svg>
       <span>Monitoreo</span>
     </a>
 
     <a
-      class="flex items-center gap-1.5 rounded-lg p-2 text-on-dark no-underline transition-colors duration-200 hover:bg-white hover:text-content aria-[current=page]:bg-white aria-[current=page]:text-content focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white desktop:gap-3 desktop:p-3"
+      class="flex items-center gap-1.5 rounded-lg p-2 text-on-dark no-underline transition-colors duration-200 hover:bg-white/10 hover:text-white aria-[current=page]:bg-brand aria-[current=page]:text-white focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white desktop:gap-3 desktop:p-3"
       routerLink="/analisis"
       (click)="menuAbierto.set(false)"
       routerLinkActive="active"
       ariaCurrentWhenActive="page"
     >
-      <span>▥</span>
+      <svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10m6 10V4m6 16v-7m5 7H2" /></svg>
       <span>Análisis</span>
     </a>
 
     <a
-      class="flex items-center gap-1.5 rounded-lg p-2 text-on-dark no-underline transition-colors duration-200 hover:bg-white hover:text-content aria-[current=page]:bg-white aria-[current=page]:text-content focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white desktop:gap-3 desktop:p-3"
+      class="flex items-center gap-1.5 rounded-lg p-2 text-on-dark no-underline transition-colors duration-200 hover:bg-white/10 hover:text-white aria-[current=page]:bg-brand aria-[current=page]:text-white focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white desktop:gap-3 desktop:p-3"
       routerLink="/reportes"
       (click)="menuAbierto.set(false)"
       routerLinkActive="active"
       ariaCurrentWhenActive="page"
     >
-      <span>▤</span>
+      <svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h10l4 4v14H5ZM9 11h6M9 15h6M9 7h2" /></svg>
       <span>Reportes</span>
     </a>
 
@@ -126,6 +127,6 @@
 
   <div class="mt-auto hidden px-3 pt-3.75 text-label text-dimmed desktop:block">
     <span class="mr-2 inline-block size-2 rounded-full bg-online"></span>
-    Sesión iniciada
+    Sesión iniciada<br /><span class="sidebar-location">Arequipa · Perú</span>
   </div>
 </aside>

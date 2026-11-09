@@ -18,6 +18,7 @@ import { DtoMapper, VideoDto } from '../../core/api/dto';
 import { RequestState } from '../../core/api/request-state';
 import { IndicatorQuery } from '../../core/api/indicator-query';
 import { IndicatorView } from '../../shared/indicator-view/indicator-view';
+import { Pagination } from '../../shared/pagination/pagination';
 import { ApiState } from '../../shared/api-state/api-state';
 import { AnalisisService } from '../../core/services/analisis';
 import { CamaraService } from '../../core/services/camara';
@@ -26,7 +27,7 @@ import { Camara } from '../../core/models/camara.model';
 import { Procesamiento, EstadoProcesamiento } from '../../core/models/analisis.model';
 @Component({
   selector: 'app-analisis',
-  imports: [CommonModule, FormsModule, ApiState, IndicatorView],
+  imports: [CommonModule, FormsModule, ApiState, IndicatorView, Pagination],
   providers: [IndicatorQuery],
   templateUrl: './analisis.html',
 })
@@ -50,13 +51,19 @@ export class Analisis implements AfterViewInit, OnDestroy {
   filtroEstado: EstadoProcesamiento | '' = '';
   filtroCamara = 0;
   mensaje = '';
+  paginaEjecuciones = 1;
+  readonly tamanoPagina = 10;
+  get paginasEjecuciones() { return Math.max(1, Math.ceil(this.procesamientos.length / this.tamanoPagina)); }
+  get ejecucionesVisibles() { return this.procesamientos.slice((this.paginaEjecuciones - 1) * this.tamanoPagina, this.paginaEjecuciones * this.tamanoPagina); }
+  irA(id: string) { document.getElementById(id)?.scrollIntoView({ block: 'start' }); }
+  cambiarPagina(delta: number) { this.paginaEjecuciones = Math.min(this.paginasEjecuciones, Math.max(1, this.paginaEjecuciones + delta)); }
   actualizado: Date | null = null;
   @ViewChild('graficoPeatones') grafico!: ElementRef<HTMLCanvasElement>;
   private chart?: Chart;
   ngAfterViewInit() {
     this.chart = new Chart(this.grafico.nativeElement, {
       type: 'line',
-      data: { labels: [], datasets: [{ label: 'Personas presentes (promedio temporal)', data: [], tension: 0.3 }] },
+      data: { labels: [], datasets: [{ label: 'Personas presentes (promedio temporal)', data: [], borderColor: '#2458e6', backgroundColor: '#edf3ff', tension: 0.3 }] },
       options: {
         responsive: true,
         maintainAspectRatio: false,
@@ -93,15 +100,18 @@ export class Analisis implements AfterViewInit, OnDestroy {
         this.videos = d.videos;
         this.camaras = d.camaras;
         this.procesamientos = d.procesamientos;
+        this.cambiarPagina(0);
         this.actualizado = new Date();
       },
     );
   }
-  refrescar() {
+  refrescar(reiniciar = false) {
+    if (reiniciar) this.paginaEjecuciones = 1;
     this.request.run(
       this.api.listar(this.filtroEstado || undefined, this.filtroCamara || undefined),
       (rows) => {
         this.procesamientos = rows;
+        this.cambiarPagina(0);
         this.actualizado = new Date();
       },
     );

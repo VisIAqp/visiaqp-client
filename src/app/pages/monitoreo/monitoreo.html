@@ -1,31 +1,36 @@
 <section class="mx-auto min-w-0 max-w-page">
-  <div class="mb-5 flex flex-wrap justify-between gap-3">
-    <div><h2 class="mt-0">Monitoreo</h2><p class="text-muted">Actividad de las transmisiones y ocupación observada por cámara.</p>
+  <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+    <div><p class="section-eyebrow">OPERACIÓN EN TIEMPO REAL</p><h2 class="mt-0">Monitoreo</h2><p class="text-muted">Actividad de las transmisiones y ocupación observada por cámara.</p>
       @if (actualizado) { <small>Última consulta del catálogo: {{ actualizado | date:'HH:mm:ss':'-0500' }} (Lima). Se actualiza mientras esta pantalla está visible.</small> }
     </div>
     <button class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2 disabled:opacity-45" [disabled]="request.loading()" (click)="cargar()">Actualizar</button>
   </div>
   <app-api-state [loading]="request.loading()" [error]="request.error()" (retry)="cargar()" />
-  <div class="grid gap-5 desktop:grid-cols-[280px_minmax(0,1fr)]">
-    <aside class="ui-card self-start p-3"><h3>Cámaras habilitadas</h3>
+  <section class="camera-directory" aria-labelledby="camera-directory-title">
+    <div class="work-heading"><div><h3 id="camera-directory-title">Cámaras habilitadas</h3><p>Selecciona una vista para consultar su actividad y mediciones.</p></div></div>
+    <div class="camera-grid">
       @for (c of camarasDisponibles; track c.id) {
-        <button class="ui-focus mb-2 w-full cursor-pointer rounded-lg border-0 p-3 text-left" [ngClass]="camaraSeleccionadaId === c.id ? 'bg-selected' : 'bg-white hover:bg-hover'" [attr.aria-pressed]="camaraSeleccionadaId === c.id" (click)="seleccionarCamara(c.id)">
-          <strong class="block">{{ c.nombre }}</strong><small class="text-muted">{{ nombreZona(c.zonaId) }}</small>
+        <button type="button" class="camera-card ui-focus" [class.selected]="camaraSeleccionadaId === c.id" [attr.aria-pressed]="camaraSeleccionadaId === c.id" aria-controls="camera-detail" (click)="seleccionarCamara(c.id)">
+          <span class="camera-card-top"><span class="camera-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h12v12H3ZM15 10l6-3v10l-6-3"/></svg></span><span class="status-badge" [class.is-warning]="!c.zonePolygon">{{ c.zonePolygon ? 'Área configurada' : 'Falta polígono' }}</span></span>
+          <strong>{{ c.nombre }}</strong><span class="text-muted">{{ nombreZona(c.zonaId) }}</span>
+          <span class="camera-card-footer">{{ camaraSeleccionadaId === c.id ? estadoTransmision : 'Consultar actividad' }} <span aria-hidden="true">→</span></span>
         </button>
-      } @empty { @if (!request.loading() && !request.error()) { <p>No hay cámaras habilitadas.</p> } }
-    </aside>
+      } @empty { @if (!request.loading() && !request.error()) { <p class="empty-panel">No hay cámaras habilitadas.</p> } }
+    </div>
+  </section>
+  <div id="camera-detail" class="monitor-detail">
     <div class="ui-card p-5">
       @if (camaraSeleccionada; as c) {
-        <h3 class="mt-0">{{ c.nombre }}</h3><p class="text-muted">{{ nombreZona(c.zonaId) }}</p>
+        <p class="section-eyebrow">DETALLE DE LA VISTA SELECCIONADA</p><h3 class="mt-0">{{ c.nombre }}</h3><p class="text-muted">{{ nombreZona(c.zonaId) }}</p>
         <p role="status"><strong>{{ estadoTransmision }}</strong></p>
         <app-api-state [loading]="actividadRequest.loading()" [error]="actividadRequest.error()" (retry)="consultarSeleccion()" />
         @if (estadoActual; as t) {
           <div class="mb-5 grid gap-3 expanded:grid-cols-3">
             <div class="rounded-lg border border-solid border-divider p-4"><span>Última actividad (Lima)</span><strong class="mt-2 block">{{ fecha(t.ultima_actividad) }}</strong></div>
             <div class="rounded-lg border border-solid border-divider p-4"><span>FPS efectivos</span><strong class="mt-2 block text-metric">{{ t.fps_procesamiento === null ? 'Sin medición' : (t.fps_procesamiento | number:'1.0-2') }}</strong></div>
-            <div class="rounded-lg border border-solid border-divider p-4"><span>Edad de imagen</span><strong class="mt-2 block text-metric">{{ t.edad_imagen_seg === null ? 'Sin medición' : (t.edad_imagen_seg | number:'1.0-2') }} s</strong></div>
+            <div class="rounded-lg border border-solid border-divider p-4"><span>Edad de imagen</span><strong class="mt-2 block text-metric">{{ t.edad_imagen_seg === null ? 'Sin medición' : (t.edad_imagen_seg | number:'1.0-2') + ' s' }}</strong></div>
           </div>
-          <p class="text-label text-muted">La edad se mide desde la recepción local hasta procesar la imagen, sin incluir el retraso previo de la cámara o la red. El estado proviene de la última transmisión registrada, independientemente de los videos analizados.</p>
+          <details class="reading-help"><summary>Cómo se mide la actividad</summary><p class="text-label text-muted">La edad se mide desde la recepción local hasta procesar la imagen, sin incluir el retraso previo de la cámara o la red. El estado proviene de la última transmisión registrada, independientemente de los videos analizados.</p></details>
         }
         @if (!c.zonePolygon) { <p class="text-warning">Esta cámara necesita un polígono de análisis.</p> }
         <h4>Ocupación de la última transmisión</h4>

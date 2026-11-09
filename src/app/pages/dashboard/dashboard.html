@@ -2,10 +2,13 @@
   <header class="cabecera">
     <div><p class="kicker">VISIAQP · ANÁLISIS PEATONAL</p><h2>Panorama de actividad</h2>
       <p class="text-muted">Ocupación observada, patrones y estado del monitoreo.</p></div>
-    <button type="button" class="boton" (click)="buscar()" [disabled]="request.loading()">Actualizar métricas</button>
+    <div class="flex flex-wrap items-center gap-3">
+      <button type="button" class="boton" (click)="buscar()" [disabled]="request.loading()">Actualizar métricas</button>
+      <button type="button" class="boton boton-principal" aria-controls="filtros-dashboard" [attr.aria-expanded]="mostrarFiltros" (click)="mostrarFiltros = !mostrarFiltros">{{ mostrarFiltros ? 'Ocultar filtros' : 'Mostrar filtros' }}</button>
+    </div>
   </header>
   <app-api-state [loading]="request.loading()" [error]="request.error()" (retry)="cargar()" />
-  <form class="ui-card filtros" (ngSubmit)="buscar()">
+  <form id="filtros-dashboard" class="ui-card filtros" [hidden]="!mostrarFiltros" (ngSubmit)="buscar()">
     <label>Desde<input class="ui-field" type="date" name="desde" [(ngModel)]="desde" required /></label>
     <label>Hasta<input class="ui-field" type="date" name="hasta" [(ngModel)]="hasta" required /></label>
     <label>Zona<select class="ui-field" name="zona" [(ngModel)]="zonaSeleccionada" (ngModelChange)="cambiarZona()">
@@ -36,7 +39,7 @@
       <span>Consulta: {{ fecha(r.consultado_en) }}</span>
     </div>
     <div class="metricas">
-      <article class="ui-card metrica"><span>Ventanas analizadas</span><strong>{{ r.cantidad_ventanas | number }}</strong><small>{{ r.ventanas_con_ocupacion | number }} con ocupación medida</small></article>
+
       <article class="ui-card metrica"><span>Suma de identificadores</span><strong>{{ r.suma_identificadores | number }}</strong><small>Puede repetir personas. No son visitantes únicos.</small></article>
       <article class="ui-card metrica"><span>Transmisiones reportando</span><strong>{{ r.transmisiones_reportando | number }}</strong><small>Estado actual del motor, según filtros</small></article>
       <article class="ui-card metrica"><span>Cámaras habilitadas</span><strong>{{ r.camaras_habilitadas }}/{{ r.camaras_registradas }}</strong><small>{{ r.zonas_activas }} zonas activas en el inventario filtrado</small></article>
@@ -52,7 +55,7 @@
 
   <section class="ui-card panel" aria-labelledby="titulo-serie">
     <div class="titulo"><div><h3 id="titulo-serie">Personas presentes a lo largo del tiempo</h3>
-      <p class="text-muted">Promedio temporal por cámara y ejecución. Los huecos de la selección visible quedan sin conectar. Un periodo cerrado no garantiza cobertura completa.</p></div>
+      <details class="reading-help"><summary>Cómo interpretar este gráfico</summary><p class="text-muted">Promedio temporal por cámara y ejecución. Los huecos de la selección visible quedan sin conectar. Un periodo cerrado no garantiza cobertura completa.</p></details></div>
       @if (ejecucionesSerie.length) {
         <label>Series de esta página<select class="ui-field" [(ngModel)]="serieElegida" (ngModelChange)="actualizarSerie()">
           @if (ejecucionesSerie.length <= 8) { <option [ngValue]="0">Comparar todas ({{ ejecucionesSerie.length }})</option> }
@@ -92,7 +95,7 @@
 
   <div class="dos-columnas">
     <section class="ui-card panel" aria-labelledby="titulo-comparativa">
-      <h3 id="titulo-comparativa">Comparación entre zonas</h3><p class="text-muted">Ocupación promedio del rango. Las vistas y ejecuciones diferentes no se fusionan automáticamente.</p>
+      <h3 id="titulo-comparativa">Comparación entre zonas</h3><details class="reading-help"><summary>Cómo interpretar este gráfico</summary><p class="text-muted">Ocupación promedio del rango. Las vistas y ejecuciones diferentes no se fusionan automáticamente.</p></details>
       <app-api-state [loading]="comparativa.estado.loading()" [error]="comparativa.estado.error()" (retry)="comparativa.reintentar()" />
       <div class="grafico grafico-corto" [hidden]="!comparativaConMedicion"><canvas #comparativaCanvas role="img" aria-label="Promedio de ocupación por zona. Los valores y estados están en la tabla siguiente."></canvas></div>
       @if (comparativa.pagina; as p) {
@@ -104,7 +107,7 @@
       }
     </section>
     <section class="ui-card panel" aria-labelledby="titulo-niveles">
-      <h3 id="titulo-niveles">Distribución de niveles</h3><p class="text-muted">Periodos por cámara y ejecución, según los umbrales actuales. No representa personas ni horas únicas de zona.</p>
+      <h3 id="titulo-niveles">Distribución de niveles</h3><details class="reading-help"><summary>Cómo interpretar este gráfico</summary><p class="text-muted">Periodos por cámara y ejecución, según los umbrales actuales. No representa personas ni horas únicas de zona.</p></details>
       <app-api-state [loading]="niveles.estado.loading()" [error]="niveles.estado.error()" (retry)="niveles.reintentar()" />
       <div class="grafico grafico-corto" [hidden]="!distribucionVisible.length"><canvas #nivelesCanvas role="img" aria-label="Cantidad de periodos por nivel y estado. Los valores aparecen en la lista siguiente."></canvas></div>
       @if (niveles.pagina; as p) {
@@ -149,7 +152,7 @@
       <div class="tabla-scroll"><table class="tabla"><thead><tr><th>Cámara / zona</th><th>Estado</th><th>Última actividad</th><th>FPS efectivos</th><th>Edad de imagen</th></tr></thead><tbody>
         @for (c of p.datos; track c.id_camara) {
           <tr><td>{{ c.nombre_camara }}<small>{{ c.nombre_zona }}</small></td><td><span class="estado" [class.nivel-bajo]="c.estado_operativo === 'reportando'">{{ estadoOperativo(c.estado_operativo) }}</span></td>
-            <td>{{ fecha(c.ultima_actividad) }}</td><td>{{ c.fps_procesamiento === null ? 'Sin medición' : (c.fps_procesamiento | number:'1.0-2') }}</td><td>{{ c.edad_imagen_seg === null ? 'Sin medición' : (c.edad_imagen_seg | number:'1.0-2') }} s</td></tr>
+            <td>{{ fecha(c.ultima_actividad) }}</td><td>{{ c.fps_procesamiento === null ? 'Sin medición' : (c.fps_procesamiento | number:'1.0-2') }}</td><td>{{ c.edad_imagen_seg === null ? 'Sin medición' : (c.edad_imagen_seg | number:'1.0-2') + ' s' }}</td></tr>
         } @empty { <tr><td colspan="5">No hay cámaras para esta selección.</td></tr> }
       </tbody></table></div>
       <p class="nota text-muted">La edad se mide desde la recepción local hasta procesar la imagen; no incluye el retraso previo del sensor o la red.</p>

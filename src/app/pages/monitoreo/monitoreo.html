@@ -47,7 +47,32 @@
         } @else if (!medicionRequest.loading() && !medicionRequest.error() && !actividadRequest.loading() && !actividadRequest.error()) {
           <p>No hay ocupación registrada para esta transmisión en el rango consultado. Esto no equivale a cero personas.</p>
         }
-        <p class="rounded-lg bg-canvas p-4 text-label">Esta pantalla muestra actividad y mediciones; la imagen en vivo no está disponible aquí.</p>
+        <section class="mt-5" aria-labelledby="pronostico-ocupacion">
+          <h4 id="pronostico-ocupacion">Pronóstico de ocupación</h4>
+          <p class="text-label text-muted">Promedio estimado de personas en el área de esta cámara para cada bloque de cinco minutos.</p>
+          <app-api-state [loading]="pronosticoRequest.loading()" [error]="pronosticoRequest.error()" (retry)="consultarPronostico()" />
+          @if (pronostico; as p) {
+            @switch (p.estado) {
+              @case ('disponible') {
+                <div class="grid gap-3 expanded:grid-cols-2">
+                  @for (e of p.estimaciones; track e.horizonte_min) {
+                    <div class="rounded-lg border border-solid border-divider p-4">
+                      <span>A {{ e.horizonte_min }} minutos del bloque base</span>
+                      <strong class="mt-2 block text-metric">{{ e.promedio_presentes | number:'1.0-2' }} personas</strong>
+                      <p class="text-label text-muted">Bloque que termina el {{ fecha(e.objetivo_en) }} (Lima).</p>
+                      <small>{{ e.metodo === 'regresion_ridge' ? 'Regresión Ridge' : 'Última ocupación observada' }}</small>
+                    </div>
+                  }
+                </div>
+                <p class="text-label text-muted">Cierre del bloque base {{ fecha(p.base_en) }}. Emitido el {{ fecha(p.emitido_en) }} (Lima).</p>
+              }
+              @case ('camara_no_apta') { <p>El pronóstico requiere una cámara fija, activa y con área configurada.</p> }
+              @case ('sin_modelo') { <p>Esta cámara aún no tiene un modelo entrenado para su configuración actual.</p> }
+              @case ('sin_pronostico_vigente') { <p>Aún no hay una predicción vigente para esta cámara.</p> }
+            }
+          }
+        </section>
+        <p class="rounded-lg bg-canvas p-4 text-label">Esta pantalla muestra actividad, mediciones y pronósticos. La imagen en vivo no está disponible aquí.</p>
         <h4>Ejecuciones de esta cámara</h4><p class="text-label text-muted">Historial reciente de la cámara seleccionada.</p>
         <app-api-state [loading]="historialRequest.loading()" [error]="historialRequest.error()" (retry)="consultarSeleccion()" />
         @for (p of ejecuciones.slice(0, 10); track p.id) {

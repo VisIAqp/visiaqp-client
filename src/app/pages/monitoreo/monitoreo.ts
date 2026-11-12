@@ -13,6 +13,7 @@ import { Camara } from '../../core/models/camara.model';
 import { Zona } from '../../core/models/zona.model';
 import { Procesamiento } from '../../core/models/analisis.model';
 import { EstadoCamara, PuntoSerie } from '../../core/models/metricas.model';
+import { PronosticoOcupacion } from '../../core/models/pronostico.model';
 import { addDays, exclusiveEnd, limaToday } from '../../core/api/dates';
 import { estadoMedicion, estadoOperativo, mostrarFecha } from '../../core/api/metricas-presentacion';
 
@@ -28,6 +29,7 @@ export class Monitoreo implements OnInit {
   readonly actividadRequest = new RequestState(this.ref);
   readonly medicionRequest = new RequestState(this.ref);
   readonly historialRequest = new RequestState(this.ref);
+  readonly pronosticoRequest = new RequestState(this.ref);
   readonly fecha = mostrarFecha;
   readonly estadoMedicion = estadoMedicion;
   camaras: Camara[] = [];
@@ -37,6 +39,7 @@ export class Monitoreo implements OnInit {
   actualizado: Date | null = null;
   estadoActual: EstadoCamara | null = null;
   ultimaMedicion: PuntoSerie | null = null;
+  pronostico: PronosticoOcupacion | null = null;
   private actividadConsultada = false;
   get camarasDisponibles() { return this.camaras.filter((c) => c.estado === 'activa'); }
   get camaraSeleccionada() { return this.camaras.find((c) => c.id === this.camaraSeleccionadaId); }
@@ -57,7 +60,7 @@ export class Monitoreo implements OnInit {
   ngOnInit() {
     this.cargar();
     timer(this.config.pollMs, this.config.pollMs).pipe(
-      filter(() => !document.hidden && this.auth.validToken() && !this.request.loading() && !this.actividadRequest.loading() && !this.medicionRequest.loading() && !this.historialRequest.loading()),
+      filter(() => !document.hidden && this.auth.validToken() && !this.request.loading() && !this.actividadRequest.loading() && !this.medicionRequest.loading() && !this.historialRequest.loading() && !this.pronosticoRequest.loading()),
       takeUntilDestroyed(this.ref),
     ).subscribe(() => this.cargar());
   }
@@ -73,10 +76,11 @@ export class Monitoreo implements OnInit {
     });
   }
   private limpiarSeleccion() {
-    for (const estado of [this.actividadRequest, this.medicionRequest, this.historialRequest]) {
+    for (const estado of [this.actividadRequest, this.medicionRequest, this.historialRequest, this.pronosticoRequest]) {
       estado.cancel(); estado.error.set('');
     }
     this.estadoActual = null; this.ultimaMedicion = null; this.procesamientos = []; this.actividadConsultada = false;
+    this.pronostico = null;
   }
   seleccionarCamara(id: number) { this.camaraSeleccionadaId = id; this.consultarSeleccion(); }
   consultarSeleccion() {
@@ -89,6 +93,12 @@ export class Monitoreo implements OnInit {
       this.consultarMedicion();
     });
     this.historialRequest.run(this.analisis.listar(undefined, id), (p) => this.procesamientos = p);
+    this.consultarPronostico();
+  }
+  consultarPronostico() {
+    const id = this.camaraSeleccionadaId;
+    if (!id) return;
+    this.pronosticoRequest.run(this.api.pronostico(id), (p) => this.pronostico = p);
   }
   consultarMedicion() {
     this.ultimaMedicion = null;

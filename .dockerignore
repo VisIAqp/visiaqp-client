@@ -1,0 +1,7 @@
+.git
+.env*
+.angular
+.vscode
+dist
+node_modules
+coverage

@@ -168,6 +168,9 @@ describe('Dashboard y monitoreo con endpoints agregados', () => {
     const historia = http.expectOne((r) => r.url.endsWith('/procesamientos'));
     expect(historia.request.params.get('id_camara')).toBe('42');
     historia.flush([]);
+    const pronostico = http.expectOne((r) => r.url.endsWith('/pronosticos/ocupacion'));
+    expect(pronostico.request.params.get('id_camara')).toBe('42');
+    pronostico.flush({ id_camara: 42, estado: 'sin_modelo', estimaciones: [] });
     const medicion = http.expectOne((r) => r.url.endsWith('/metricas/series'));
     expect(medicion.request.params.get('id_procesamiento')).toBe('9');
     medicion.flush(pagina([punto(9, 10, 0)], 1, 0, 1));

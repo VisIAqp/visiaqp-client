@@ -1,13 +1,12 @@
 <app-api-state [loading]="request.cargaInicial()" [error]="request.error()"
   [actualizado]="request.actualizado()" (retry)="cargar()" />
 
-@if (ejecuciones().length > 1) {
-  <label class="mb-3 grid max-w-md gap-1">
-    Ejecución
-    <select class="ui-field w-full" [ngModel]="seleccion()" (ngModelChange)="ejecucionElegida.set($event)">
-      @if (ejecuciones().length <= maxSeries) { <option [ngValue]="null">Todas</option> }
-      @for (ventana of ejecuciones(); track ventana.id_procesamiento) {
-        <option [ngValue]="ventana.id_procesamiento">{{ etiqueta(ventana) }}</option>
+@if (camarasSerie().size > maxSeries) {
+  <label class="mb-2 grid max-w-xs gap-1 text-caption text-muted">
+    Cámara en el gráfico
+    <select class="ui-field w-full text-label" [ngModel]="seleccion()" (ngModelChange)="camaraElegida.set($event)">
+      @for (item of camarasSerie(); track item[0]) {
+        <option [ngValue]="item[0]">{{ etiquetaCamara(item[1]) }}</option>
       }
     </select>
   </label>

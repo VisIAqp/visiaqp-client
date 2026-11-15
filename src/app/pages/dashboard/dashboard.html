@@ -28,95 +28,25 @@
   </section>
 
   <section class="ui-card p-4 desktop:p-5" aria-labelledby="titulo-serie">
-    <header class="mb-4 flex flex-wrap items-start justify-between gap-3">
-      <div>
-        <h2 id="titulo-serie" class="mt-0 mb-1">Ocupación observada</h2>
-        @if (consulta) {
-          <p class="m-0 text-label text-muted">{{ vistaOcupacion === 'reciente' ? 'Últimos 60 minutos' : rangoAplicado }} (Lima)</p>
-          <ul class="mt-2 mb-0 flex list-none flex-wrap gap-2 p-0 text-caption" aria-label="Filtros aplicados" role="list">
-            @for (filtro of filtrosAplicados; track $index) {
-              <li class="rounded-full bg-canvas px-2.5 py-1 text-muted">{{ filtro }}</li>
-            }
-          </ul>
-        }
-      </div>
+    <header class="mb-3">
+      <h2 id="titulo-serie" class="mt-0 mb-1">Ocupación observada</h2>
+      @if (consulta && vistaOcupacion === 'historico') {
+        <p class="m-0 text-caption text-muted">
+          {{ rangoAplicado }} · {{ consulta.periodo === 'hora' ? 'Por hora' : 'Por día' }} · Lima
+        </p>
+      }
     </header>
 
-    <app-api-state [loading]="request.loading()" [error]="request.error()" (retry)="cargar()" />
-    <form class="mb-4 rounded-lg border border-solid border-divider p-3" (ngSubmit)="buscar()">
-      <div class="grid gap-3 desktop:grid-cols-2 expanded:grid-cols-4">
-        <label class="grid min-w-0 gap-1">
-          Desde
-          <input class="ui-field w-full" type="date" name="desde" [(ngModel)]="desde" required />
-        </label>
-        <label class="grid min-w-0 gap-1">
-          Hasta
-          <input class="ui-field w-full" type="date" name="hasta" [(ngModel)]="hasta" required />
-        </label>
-        <label class="grid min-w-0 gap-1">
-          Zona
-          <select class="ui-field w-full" name="zona" [(ngModel)]="zonaSeleccionada" (ngModelChange)="cambiarZona()">
-            <option [ngValue]="0">Todas las zonas</option>
-            @for (z of zonas; track z.id) { <option [ngValue]="z.id">{{ z.nombre }}</option> }
-          </select>
-        </label>
-        <label class="grid min-w-0 gap-1">
-          Cámara
-          <select class="ui-field w-full" name="camara" [(ngModel)]="camaraSeleccionada" (ngModelChange)="ejecucionId = null">
-            <option [ngValue]="0">Todas las cámaras</option>
-            @for (c of camarasFiltradas; track c.id) { <option [ngValue]="c.id">{{ c.nombre }}</option> }
-          </select>
-        </label>
-      </div>
-      <details class="mt-3 text-label">
-        <summary class="ui-focus cursor-pointer rounded-sm font-medium">Filtros avanzados</summary>
-        <div class="mt-3 grid gap-3 desktop:grid-cols-3">
-          <label class="grid min-w-0 gap-1">
-            Fuente
-            <select class="ui-field w-full" name="fuente" [(ngModel)]="fuente" (ngModelChange)="ejecucionId = null">
-              <option value="">Todas las fuentes</option>
-              <option value="stream">Transmisiones</option>
-              <option value="video">Videos</option>
-              <option value="imagen">Imágenes</option>
-            </select>
-          </label>
-          <label class="grid min-w-0 gap-1">
-            Agrupar por
-            <select class="ui-field w-full" name="periodo" [(ngModel)]="periodoTipo">
-              <option value="hora">Hora</option>
-              <option value="dia">Día</option>
-            </select>
-          </label>
-          <label class="grid min-w-0 gap-1">
-            ID de ejecución (opcional)
-            <input class="ui-field w-full" name="ejecucion" type="number" min="1" step="1" [(ngModel)]="ejecucionId" />
-          </label>
-        </div>
-      </details>
-      <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
-        <small class="text-muted">Hasta 31 días para el histórico.</small>
-        <button type="submit" class="ui-focus cursor-pointer rounded-lg border-0 bg-brand px-4 py-2 text-white hover:bg-brand-hover"
-          [disabled]="request.loading()">Aplicar filtros</button>
-      </div>
-    </form>
+    <app-api-state [loading]="request.cargaInicial()" [error]="request.error()" (retry)="cargar()" />
+    <app-filtros-ocupacion class="mb-4 block border-b border-solid border-divider pb-4"
+      [zonas]="zonas" [camaras]="camaras" [zona]="zonaSeleccionada" [camara]="camaraSeleccionada"
+      [agrupacion]="agrupacion" [vista]="vistaOcupacion"
+      [opciones]="{ desde, hasta, periodo: periodoTipo, fuente }"
+      (zonaChange)="cambiarZona($event)" (camaraChange)="cambiarCamara($event)"
+      (agrupacionChange)="cambiarAgrupacion($event)" (vistaChange)="vistaOcupacion = $event"
+      (aplicar)="aplicarOpciones($event)" />
     @if (errorFiltros) { <p class="text-label text-danger" role="alert">{{ errorFiltros }}</p> }
 
-    <div class="mb-4 flex flex-wrap gap-2" role="group" aria-label="Vista de ocupación">
-      <button type="button" class="ui-focus cursor-pointer rounded-lg border border-solid border-field px-3 py-2 text-label"
-        [class.bg-brand-soft]="vistaOcupacion === 'historico'" [class.text-brand]="vistaOcupacion === 'historico'"
-        [attr.aria-pressed]="vistaOcupacion === 'historico'" (click)="vistaOcupacion = 'historico'">Histórico</button>
-      <button type="button" class="ui-focus cursor-pointer rounded-lg border border-solid border-field px-3 py-2 text-label"
-        [class.bg-brand-soft]="vistaOcupacion === 'reciente'" [class.text-brand]="vistaOcupacion === 'reciente'"
-        [attr.aria-pressed]="vistaOcupacion === 'reciente'" (click)="vistaOcupacion = 'reciente'">Últimos 60 minutos</button>
-    </div>
-    <div class="mb-4 flex flex-wrap gap-2" role="group" aria-label="Agrupar ocupación">
-      <button type="button" class="ui-focus cursor-pointer rounded-lg border border-solid border-field px-3 py-2 text-label"
-        [class.bg-brand-soft]="agrupacion === 'camara'" [class.text-brand]="agrupacion === 'camara'"
-        [attr.aria-pressed]="agrupacion === 'camara'" (click)="agrupacion = 'camara'">Por cámara</button>
-      <button type="button" class="ui-focus cursor-pointer rounded-lg border border-solid border-field px-3 py-2 text-label"
-        [class.bg-brand-soft]="agrupacion === 'zona'" [class.text-brand]="agrupacion === 'zona'"
-        [attr.aria-pressed]="agrupacion === 'zona'" (click)="agrupacion = 'zona'">Por zona</button>
-    </div>
     @if (agrupacion === 'zona' && consulta; as filtrosZona) {
       <app-grafico-zonas [filtros]="filtrosZona" [vista]="vistaOcupacion" [actualizacionAutomatica]="true" />
     } @else if (vistaOcupacion === 'reciente' && consulta; as filtros) {
@@ -127,12 +57,11 @@
     <app-api-state [loading]="serie.estado.cargaInicial()" [error]="serie.estado.error()"
       [actualizado]="serie.estado.actualizado()" (retry)="serie.reintentar()" />
 
-    @if (ejecucionesSerie.length) {
-      <label class="mb-3 grid max-w-md gap-1">
-        Series de esta página
-        <select class="ui-field w-full" [(ngModel)]="serieElegida" (ngModelChange)="actualizarSerie()">
-          @if (ejecucionesSerie.length <= 8) { <option [ngValue]="0">Todas ({{ ejecucionesSerie.length }})</option> }
-          @for (s of ejecucionesSerie; track s.id_procesamiento) { <option [ngValue]="s.id_procesamiento">{{ etiquetaSerie(s) }}</option> }
+    @if (camarasSerie.size > 8) {
+      <label class="mb-2 grid max-w-xs gap-1 text-caption text-muted">
+        Cámara en esta página
+        <select class="ui-field w-full text-label" [(ngModel)]="serieElegida" (ngModelChange)="actualizarSerie()">
+          @for (item of camarasSerie; track item[0]) { <option [ngValue]="item[0]">{{ etiquetaCamara(item[1]) }}</option> }
         </select>
       </label>
     }

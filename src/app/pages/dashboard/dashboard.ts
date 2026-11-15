@@ -21,13 +21,14 @@ import { PronosticoOcupacion as DatosPronostico } from '../../core/models/pronos
 import { MonitoreoService } from '../../core/services/monitoreo';
 import { GraficoZonas } from '../../shared/grafico-zonas/grafico-zonas';
 import { PronosticoOcupacion } from '../../shared/pronostico-ocupacion/pronostico-ocupacion';
-import { alternarCamara, camarasOcultas, detalleEjecucion, estiloCamara, etiquetasCamaras } from '../../shared/graficos/ocupacion-estilo';
+import { alternarCamara, camarasOcultas, claveSerieCamara, detalleEjecucion, estiloCamara, etiquetasCamaras, nombreSerieCamara } from '../../shared/graficos/ocupacion-estilo';
+import { AgrupacionOcupacion, FiltrosOcupacion, FuenteOcupacion, OpcionesOcupacion, VistaOcupacion } from './filtros-ocupacion/filtros-ocupacion';
 import { OcupacionReciente } from './ocupacion-reciente/ocupacion-reciente';
 import { addDays, exclusiveEnd, limaToday } from '../../core/api/dates';
 import { estadoMedicion, estadoOperativo, etiquetaEjecucion, mostrarFecha, prepararSeries, rangoValido } from '../../core/api/metricas-presentacion';
 
 @Component({
-  selector: 'app-dashboard', imports: [CommonModule, FormsModule, RouterLink, ApiState, Pagination, OcupacionReciente, GraficoZonas, PronosticoOcupacion],
+  selector: 'app-dashboard', imports: [CommonModule, FormsModule, RouterLink, ApiState, Pagination, OcupacionReciente, GraficoZonas, PronosticoOcupacion, FiltrosOcupacion],
   templateUrl: './dashboard.html',
   host: { class: 'block' },
 })
@@ -52,24 +53,22 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   get resumen() { return this.resumenDatos(); }
   zonaSeleccionada = 0;
   camaraSeleccionada = 0;
-  ejecucionId: number | null = null;
-  fuente: '' | 'imagen' | 'video' | 'stream' = '';
+  fuente: FuenteOcupacion = '';
   periodoTipo: 'hora' | 'dia' = 'hora';
   desde = addDays(limaToday(), -6);
   hasta = limaToday();
   errorFiltros = '';
   consulta: FiltrosMetricas | null = null;
   comparacionConsulta: FiltrosMetricas | null = null;
-  agrupacion: 'camara' | 'zona' = 'camara';
-  vistaOcupacion: 'historico' | 'reciente' = 'historico';
-  serieElegida = 0;
+  agrupacion: AgrupacionOcupacion = 'camara';
+  vistaOcupacion: VistaOcupacion = 'historico';
+  serieElegida = '';
   readonly fecha = mostrarFecha;
   readonly estadoMedicion = estadoMedicion;
   readonly estadoOperativo = estadoOperativo;
   @ViewChild('serieCanvas') serieCanvas!: ElementRef<HTMLCanvasElement>;
   private graficoSerie?: Chart<'line', (number | null)[], string>;
 
-  get camarasFiltradas() { return this.camaras.filter((c) => !this.zonaSeleccionada || c.zonaId === this.zonaSeleccionada); }
   get rangoAplicado() {
     const consulta = this.consulta;
     if (!consulta) return '';
@@ -78,26 +77,10 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     const formatoDia = (dia: string) => dia.split('-').reverse().join('/');
     return inicio === fin ? formatoDia(inicio) : `${formatoDia(inicio)} al ${formatoDia(fin)}`;
   }
-  get filtrosAplicados() {
-    const consulta = this.consulta;
-    if (!consulta) return [];
-    const zona = this.zonas.find((z) => z.id === consulta.id_zona)?.nombre;
-    const camara = this.camaras.find((c) => c.id === consulta.id_camara)?.nombre;
-    const fuentes = { stream: 'Transmisiones', video: 'Videos', imagen: 'Imágenes' };
-    const filtros = [
-      zona ?? 'Todas las zonas',
-      camara ?? 'Todas las cámaras',
-      consulta.tipo_fuente ? fuentes[consulta.tipo_fuente]
-        : this.agrupacion === 'zona' && !consulta.id_procesamiento ? 'Transmisiones' : 'Todas las fuentes',
-      this.vistaOcupacion === 'reciente' ? (this.agrupacion === 'zona' ? 'Por minuto' : 'Por ventana de reporte') : consulta.periodo === 'hora' ? 'Por hora' : 'Por día',
-    ];
-    if (consulta.id_procesamiento) filtros.push(`Ejecución #${consulta.id_procesamiento}`);
-    return filtros;
+  get camarasSerie() {
+    return new Map(this.serie.filas.map((fila) => [claveSerieCamara(fila), fila]));
   }
-  get ejecucionesSerie() {
-    return [...new Map(this.serie.filas.map((f) => [f.id_procesamiento, f])).values()];
-  }
-  get filasSerie() { return this.serieElegida ? this.serie.filas.filter((f) => f.id_procesamiento === this.serieElegida) : this.serie.filas; }
+  get filasSerie() { return this.serieElegida ? this.serie.filas.filter((f) => claveSerieCamara(f) === this.serieElegida) : this.serie.filas; }
   get filasTablaSerie() { return this.filasSerie; }
   get serieConMedicion() { return this.filasSerie.some((f) => f.promedio_presentes !== null); }
   get serieConMedicionParcial() {
@@ -140,7 +123,29 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
       this.buscar();
     });
   }
-  cambiarZona() { this.camaraSeleccionada = 0; this.ejecucionId = null; }
+  cambiarZona(id: number) {
+    this.zonaSeleccionada = id;
+    if (id && !this.camaras.some((camara) => camara.id === this.camaraSeleccionada && camara.zonaId === id)) {
+      this.camaraSeleccionada = 0;
+    }
+    this.buscar();
+  }
+  cambiarCamara(id: number) {
+    this.camaraSeleccionada = id;
+    this.buscar();
+  }
+  cambiarAgrupacion(agrupacion: AgrupacionOcupacion) {
+    if (this.agrupacion === agrupacion) return;
+    this.agrupacion = agrupacion;
+    this.buscar();
+  }
+  aplicarOpciones(opciones: OpcionesOcupacion) {
+    this.desde = opciones.desde;
+    this.hasta = opciones.hasta;
+    this.periodoTipo = opciones.periodo;
+    this.fuente = opciones.fuente;
+    this.buscar();
+  }
   buscar() {
     this.errorFiltros = '';
     if (!rangoValido(this.desde, this.hasta)) {
@@ -148,26 +153,37 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
       this.errorFiltros = 'Selecciona un rango válido de hasta 31 días, incluyendo ambas fechas.';
       return;
     }
-    if (this.ejecucionId !== null && (!Number.isInteger(this.ejecucionId) || this.ejecucionId < 1)) {
-      this.limpiarConsulta();
-      this.errorFiltros = 'El identificador de ejecución debe ser un entero positivo o quedar vacío.';
-      return;
-    }
     const consulta: FiltrosMetricas = { desde: this.desde + 'T00:00:00', hasta: exclusiveEnd(this.hasta)!, periodo: this.periodoTipo,
-      id_zona: this.zonaSeleccionada || undefined, id_camara: this.camaraSeleccionada || undefined,
-      id_procesamiento: this.ejecucionId ?? undefined, tipo_fuente: this.fuente || undefined };
+      id_zona: this.zonaSeleccionada || undefined,
+      id_camara: this.agrupacion === 'camara' ? this.camaraSeleccionada || undefined : undefined,
+      tipo_fuente: this.fuente || undefined };
     if (JSON.stringify(consulta) === JSON.stringify(this.consulta)) {
       this.refrescarMetricas();
       return;
     }
-    this.limpiarConsulta();
+    const anterior = this.consulta;
     this.consulta = consulta;
+    this.resumenEstado.reiniciar();
+    this.resumenDatos.set(null);
+    this.serie.limpiar();
+    this.serieElegida = '';
+    this.actualizarSerie();
     this.cargarResumen();
     this.cargarSerie();
-    this.comparacionConsulta = { desde: consulta.desde, hasta: consulta.hasta, periodo: consulta.periodo,
-      tipo_fuente: consulta.tipo_fuente };
-    this.cargarPronostico();
-    this.cargarActividad();
+    if (!anterior || anterior.desde !== consulta.desde || anterior.hasta !== consulta.hasta ||
+      anterior.periodo !== consulta.periodo || anterior.tipo_fuente !== consulta.tipo_fuente) {
+      this.comparacionConsulta = { desde: consulta.desde, hasta: consulta.hasta, periodo: consulta.periodo,
+        tipo_fuente: consulta.tipo_fuente };
+    }
+    if (anterior?.id_camara !== consulta.id_camara) {
+      this.pronosticoRequest.reiniciar();
+      this.pronostico.set(null);
+      this.cargarPronostico();
+    }
+    if (!anterior || anterior.id_camara !== consulta.id_camara || anterior.id_zona !== consulta.id_zona) {
+      this.actividad.limpiar();
+      this.cargarActividad();
+    }
   }
   private limpiarConsulta() {
     this.comparacionConsulta = null;
@@ -176,6 +192,7 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     this.consulta = null;
     this.resumenEstado.reiniciar();
     this.resumenDatos.set(null);
+    this.serieElegida = '';
     for (const panel of this.paneles) panel.limpiar();
     this.actualizarSerie();
   }
@@ -193,8 +210,12 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   cargarSerie(desplazamiento = 0) {
     if (!this.consulta) return;
     this.serie.cargar(this.metricas.series(this.consulta, desplazamiento), () => {
-      const ids = this.ejecucionesSerie.map((f) => f.id_procesamiento);
-      if (this.serie.pagina && ((this.serieElegida && !ids.includes(this.serieElegida)) || (!this.serieElegida && ids.length > 8))) this.serieElegida = ids[0] ?? 0;
+      const camaras = this.camarasSerie;
+      if (camaras.size <= 8) this.serieElegida = '';
+      else if (!camaras.has(this.serieElegida)) {
+        const medida = this.serie.filas.find((fila) => fila.promedio_presentes !== null);
+        this.serieElegida = medida ? claveSerieCamara(medida) : camaras.keys().next().value ?? '';
+      }
       this.actualizarSerie();
     });
   }
@@ -208,6 +229,7 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
       id_camara: this.consulta.id_camara }, desplazamiento));
   }
   etiquetaSerie(fila: PuntoSerie) { return etiquetaEjecucion(fila, this.camaras); }
+  etiquetaCamara(fila: PuntoSerie) { return nombreSerieCamara(fila, this.camaras); }
   actualizarSerie() {
     if (!this.graficoSerie) return;
     const preparada = prepararSeries(this.filasSerie, this.consulta?.periodo ?? this.periodoTipo);

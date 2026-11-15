@@ -12,7 +12,7 @@ import { Camara } from '../../../core/models/camara.model';
 import { DatosOcupacionReciente, FiltrosOrigenMetricas, VentanaOcupacion } from '../../../core/models/metricas.model';
 import { MetricasService } from '../../../core/services/metricas';
 import { ApiState } from '../../../shared/api-state/api-state';
-import { alternarCamara, camarasOcultas, detalleEjecucion, estiloCamara, etiquetasCamaras } from '../../../shared/graficos/ocupacion-estilo';
+import { alternarCamara, camarasOcultas, claveSerieCamara, detalleEjecucion, estiloCamara, etiquetasCamaras, nombreSerieCamara } from '../../../shared/graficos/ocupacion-estilo';
 
 interface PuntoVentana {
   x: number;
@@ -46,7 +46,7 @@ export class OcupacionReciente implements OnInit, AfterViewInit, OnDestroy {
     second: '2-digit', hourCycle: 'h23',
   });
   readonly maxSeries = 8;
-  readonly ejecucionElegida = signal<number | null>(null);
+  readonly camaraElegida = signal<string | null>(null);
   readonly grupos = computed(() => {
     const grupos = new Map<number, VentanaOcupacion[]>();
     for (const ventana of this.datos()?.datos ?? []) {
@@ -56,18 +56,22 @@ export class OcupacionReciente implements OnInit, AfterViewInit, OnDestroy {
     }
     return grupos;
   });
-  readonly ejecuciones = computed(() => [...this.grupos().values()].map((grupo) => grupo[0]));
+  readonly camarasSerie = computed(() => new Map(
+    [...this.grupos().values()].map(([ventana]) => [claveSerieCamara(ventana), ventana]),
+  ));
   readonly seleccion = computed(() => {
-    const elegida = this.ejecucionElegida();
-    if (elegida !== null && this.grupos().has(elegida)) return elegida;
-    if (this.grupos().size <= this.maxSeries) return null;
+    const camaras = this.camarasSerie();
+    if (camaras.size <= this.maxSeries) return null;
+    const elegida = this.camaraElegida();
+    if (elegida !== null && camaras.has(elegida)) return elegida;
     const ventanas = this.datos()?.datos ?? [];
     const reciente = ventanas.filter((ventana) => ventana.promedio_presentes !== null).at(-1) ?? ventanas.at(-1);
-    return reciente?.id_procesamiento ?? null;
+    return reciente ? claveSerieCamara(reciente) : null;
   });
   readonly filas = computed(() => {
     const seleccion = this.seleccion();
-    return seleccion === null ? this.datos()?.datos ?? [] : this.grupos().get(seleccion) ?? [];
+    const filas = this.datos()?.datos ?? [];
+    return seleccion === null ? filas : filas.filter((fila) => claveSerieCamara(fila) === seleccion);
   });
   readonly puntosMedidos = computed(() => this.filas().filter((ventana) => ventana.promedio_presentes !== null).length);
 
@@ -77,7 +81,7 @@ export class OcupacionReciente implements OnInit, AfterViewInit, OnDestroy {
       untracked(() => {
         this.request.reiniciar();
         this.datos.set(null);
-        this.ejecucionElegida.set(null);
+        this.camaraElegida.set(null);
         this.cargar(filtros);
       });
     });
@@ -120,16 +124,19 @@ export class OcupacionReciente implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy() { this.grafico?.destroy(); }
 
   etiqueta(ventana: VentanaOcupacion) { return etiquetaEjecucion(ventana, this.camaras()); }
+  etiquetaCamara(ventana: VentanaOcupacion) { return nombreSerieCamara(ventana, this.camaras()); }
 
   fecha(valor: string) { return this.formatoVentana.format(fechaMetrica(valor)); }
 
   private actualizarGrafico(datos: DatosOcupacionReciente | null, grupos: Map<number, VentanaOcupacion[]>,
-    seleccion: number | null, camaras: readonly Camara[]) {
+    seleccion: string | null, camaras: readonly Camara[]) {
     const grafico = this.grafico;
     if (!grafico || !datos) return;
     const estilos = getComputedStyle(this.canvas().nativeElement);
     const ocultas = camarasOcultas(grafico);
-    const visibles = seleccion === null ? [...grupos.values()] : [grupos.get(seleccion) ?? []];
+    const visibles = [...grupos.values()].filter(([ventana]) =>
+      seleccion === null || claveSerieCamara(ventana) === seleccion,
+    );
     grafico.data.datasets = visibles.filter((grupo) => grupo.length > 0).map((ventanas) => {
       const puntos: PuntoVentana[] = [];
       let finAnterior: number | undefined;

@@ -19,15 +19,23 @@ export function colorOcupacion(estilos: CSSStyleDeclaration, id: number): string
 }
 
 export function estiloCamara(fila: SerieCamara, camaras: readonly Camara[], estilos: CSSStyleDeclaration) {
-  const nombre = camaras.find((camara) => camara.id === fila.id_camara)?.nombre ?? 'Sin cámara';
   const origen: Record<string, string> = { stream: 'Transmisión', video: 'Video', imagen: 'Imagen' };
   const color = fila.id_camara === null ? estilos.color : colorOcupacion(estilos, fila.id_camara);
   return {
-    label: `${fila.nombre_zona} · ${nombre}`,
-    claveCamara: fila.id_camara === null ? `zona:${fila.id_zona}` : `camara:${fila.id_camara}`,
+    label: nombreSerieCamara(fila, camaras),
+    claveCamara: claveSerieCamara(fila),
     detalle: `${origen[fila.tipo_fuente] ?? fila.tipo_fuente} · Ejecución #${fila.id_procesamiento}`,
     borderColor: color, backgroundColor: color,
   };
+}
+
+export function claveSerieCamara(fila: Pick<SerieCamara, 'id_zona' | 'id_camara'>): string {
+  return fila.id_camara === null ? `zona:${fila.id_zona}` : `camara:${fila.id_camara}`;
+}
+
+export function nombreSerieCamara(fila: Pick<SerieCamara, 'nombre_zona' | 'id_camara'>, camaras: readonly Camara[]): string {
+  const nombre = camaras.find((camara) => camara.id === fila.id_camara)?.nombre ?? 'Sin cámara';
+  return `${fila.nombre_zona} · ${nombre}`;
 }
 
 export function etiquetasCamaras(chart: Chart) {

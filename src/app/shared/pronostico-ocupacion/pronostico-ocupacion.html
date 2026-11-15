@@ -1,0 +1,28 @@
+@let p = datos();
+@if (p.estado === 'disponible' && p.estimaciones.length) {
+  <dl class="m-0 grid grid-cols-1 gap-3 sm:grid-cols-2">
+    @for (e of p.estimaciones; track e.horizonte_min) {
+      <div class="rounded-lg border border-solid border-divider p-3">
+        <dt class="text-label text-muted">+{{ e.horizonte_min }} minutos desde la última observación del modelo</dt>
+        <dd class="m-0 mt-1 font-semibold tabular-nums" [class.text-metric]="!breve()">
+          {{ e.promedio_presentes | number:'1.0-2' }} personas
+        </dd>
+        @if (!breve()) {
+          <dd class="m-0 mt-1 text-label text-muted">Bloque de 5 min hasta {{ fecha(e.objetivo_en) }} (Lima)</dd>
+          <dd class="m-0 mt-1 text-label text-muted">{{ e.metodo === 'regresion_ridge' ? 'Regresión Ridge' : 'Estimación basada en la última ocupación observada' }}</dd>
+        }
+      </div>
+    }
+  </dl>
+  @if (!breve()) {
+    <p class="mt-3 mb-0 text-label text-muted">Bloque base · {{ fecha(p.base_en) }}. Generado · {{ fecha(p.emitido_en) }} (Lima).</p>
+  }
+} @else {
+  <p class="mb-0 text-muted">Pronóstico aún no disponible.</p>
+  @if (!breve() && motivo[p.estado]) { <p class="mt-1 mb-0 text-label text-muted">{{ motivo[p.estado] }}</p> }
+}
+@if (breve()) {
+  <a class="ui-focus mt-3 inline-block rounded-sm text-label font-semibold text-brand" [routerLink]="['/monitoreo', p.id_camara]">
+    Ver detalle de cámara
+  </a>
+}

@@ -1,0 +1,46 @@
+<p class="mt-0 text-label text-muted">
+  Promedio por cámara con medición. Cada cámara tiene el mismo peso.
+  @if (!filtros().tipo_fuente && !filtros().id_procesamiento) { Fuente: transmisiones. }
+</p>
+<app-api-state [loading]="panel.estado.cargaInicial()" [error]="panel.estado.error()"
+  [actualizado]="panel.estado.actualizado()" (retry)="panel.reintentar()" />
+<div class="relative min-w-0" [class.h-60]="vista() === 'comparacion'" [class.h-72]="vista() !== 'comparacion'"
+  [class.hidden]="!panel.filas.length">
+  <canvas #canvas role="img" aria-label="Ocupación promedio por cámara de cada zona. Los valores están en la tabla."></canvas>
+</div>
+@if (panel.pagina; as pagina) {
+  @if (!pagina.datos.length) { <p class="text-label text-muted">No hay mediciones por zona para esta selección.</p> }
+  @else {
+    @if (breve() && pagina.tiene_mas) { <p class="text-caption text-muted">Primeras cinco zonas por ocupación promedio.</p> }
+    @if (vista() === 'reciente' && pagina.tiene_mas) {
+      <p class="text-caption text-muted">Se muestran los puntos más recientes. Filtra por zona para ver más detalle.</p>
+    }
+    <details class="mt-3 text-label">
+      <summary class="ui-focus cursor-pointer rounded-sm font-medium">Ver datos por zona</summary>
+      <div class="ui-focus my-3 max-h-96 overflow-auto" tabindex="0" role="region" aria-label="Datos de ocupación por zona">
+        <table class="w-full border-collapse">
+          <thead><tr>
+            @if (vista() !== 'comparacion') { <th scope="col" class="ui-table-cell py-2">Periodo (Lima)</th> }
+            <th scope="col" class="ui-table-cell py-2">Zona</th>
+            <th scope="col" class="ui-table-cell py-2">Promedio por cámara</th>
+            <th scope="col" class="ui-table-cell py-2">Cámaras con medición</th>
+          </tr></thead>
+          <tbody>
+            @for (fila of panel.filas; track fila.id_zona + ':' + fila.periodo_inicio) {
+              <tr>
+                @if (vista() !== 'comparacion') { <td class="ui-table-cell py-2">{{ fecha(fila.periodo_inicio) }}</td> }
+                <td class="ui-table-cell py-2">{{ fila.nombre_zona }}</td>
+                <td class="ui-table-cell py-2">{{ fila.promedio_presentes | number:'1.0-2' }}</td>
+                <td class="ui-table-cell py-2">{{ fila.camaras_con_medicion | number }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </details>
+  }
+  @if (!breve() && vista() !== 'reciente' && (panel.paginas > 1 || panel.numeroPagina > 1)) {
+    <app-pagination unit="resultados" [page]="panel.numeroPagina" [pages]="panel.paginas" [total]="pagina.total"
+      (pageChange)="cargar(panel.desplazamiento($event))" />
+  }
+}

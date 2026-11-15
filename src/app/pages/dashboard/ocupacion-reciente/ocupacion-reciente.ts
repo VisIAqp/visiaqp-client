@@ -12,6 +12,7 @@ import { Camara } from '../../../core/models/camara.model';
 import { DatosOcupacionReciente, FiltrosOrigenMetricas, VentanaOcupacion } from '../../../core/models/metricas.model';
 import { MetricasService } from '../../../core/services/metricas';
 import { ApiState } from '../../../shared/api-state/api-state';
+import { alternarCamara, camarasOcultas, detalleEjecucion, estiloCamara, etiquetasCamaras } from '../../../shared/graficos/ocupacion-estilo';
 
 interface PuntoVentana {
   x: number;
@@ -105,8 +106,8 @@ export class OcupacionReciente implements OnInit, AfterViewInit, OnDestroy {
           y: { beginAtZero: true, title: { display: true, text: 'Personas presentes en promedio' } },
         },
         plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 12 } },
-          tooltip: { callbacks: { title: ([punto]) => {
+          legend: { position: 'bottom', labels: { boxWidth: 12, generateLabels: etiquetasCamaras }, onClick: alternarCamara },
+          tooltip: { callbacks: { afterLabel: detalleEjecucion, title: ([punto]) => {
             const instante = punto?.parsed.x;
             return instante == null ? '' : this.formatoVentana.format(instante);
           } } },
@@ -127,8 +128,7 @@ export class OcupacionReciente implements OnInit, AfterViewInit, OnDestroy {
     const grafico = this.grafico;
     if (!grafico || !datos) return;
     const estilos = getComputedStyle(this.canvas().nativeElement);
-    const colores = ['brand', 'success', 'warning', 'danger', 'muted', 'maintenance', 'heading', 'subtle']
-      .map((nombre) => estilos.getPropertyValue('--color-' + nombre).trim() || estilos.color);
+    const ocultas = camarasOcultas(grafico);
     const visibles = seleccion === null ? [...grupos.values()] : [grupos.get(seleccion) ?? []];
     grafico.data.datasets = visibles.filter((grupo) => grupo.length > 0).map((ventanas) => {
       const puntos: PuntoVentana[] = [];
@@ -142,9 +142,9 @@ export class OcupacionReciente implements OnInit, AfterViewInit, OnDestroy {
         puntos.push({ x: inicio, y: ventana.promedio_presentes });
         finAnterior = fechaMetrica(ventana.periodo_fin).getTime();
       }
-      const color = colores[ventanas[0].id_procesamiento % colores.length];
-      return { label: etiquetaEjecucion(ventanas[0], camaras), data: puntos, borderColor: color,
-        backgroundColor: color, borderWidth: 2, pointRadius: puntos.length > 100 ? 1 : 3, spanGaps: false };
+      const estilo = estiloCamara(ventanas[0], camaras, estilos);
+      return { ...estilo, data: puntos, hidden: ocultas.has(estilo.claveCamara),
+        borderWidth: 2, pointRadius: puntos.length > 100 ? 1 : 3, spanGaps: false };
     });
     const fin = fechaMetrica(datos.hasta).getTime();
     const inicioRango = fechaMetrica(datos.desde).getTime();

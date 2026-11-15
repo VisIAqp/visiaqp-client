@@ -66,8 +66,22 @@ export interface PuntoSerie extends MedicionAgregada {
   periodo_fin: string;
   periodo_cerrado: boolean;
 }
+export interface PuntoZona {
+  id_zona: number;
+  nombre_zona: string;
+  periodo_inicio: string;
+  promedio_presentes: number;
+  camaras_con_medicion: number;
+}
+export interface PatronZona {
+  dia_semana: number;
+  hora: number;
+  promedio_presentes: number;
+  nivel_ocupacion: 'bajo' | 'medio' | 'alto';
+}
 export interface VentanaOcupacion {
   id_resultado: number;
+  id_zona: number;
   nombre_zona: string;
   id_camara: number | null;
   id_procesamiento: number;

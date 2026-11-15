@@ -23,5 +23,10 @@
       @if (history.rows.length) { <app-ocupacion-historica [filas]="history.rows" /> }
       <app-indicator-view [query]="history" [printAll]="printing" />
     </section>
+    @if (filtrosGraficos(); as filtrosAnalisis) {
+      <app-graficos-reportes [filtros]="filtrosAnalisis" />
+    } @else {
+      <p class="text-label text-muted">Selecciona hasta 31 días para ver los gráficos de análisis.</p>
+    }
   }
 </div>

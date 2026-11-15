@@ -16,12 +16,13 @@ import { AnalisisService } from '../../../core/services/analisis';
 import { CamaraService } from '../../../core/services/camara';
 import { MetricasService } from '../../../core/services/metricas';
 import { MonitoreoService } from '../../../core/services/monitoreo';
+import { PronosticoOcupacion as VistaPronostico } from '../../../shared/pronostico-ocupacion/pronostico-ocupacion';
 import { ApiState } from '../../../shared/api-state/api-state';
 import { EstadoCamaraBadge } from '../componentes/estado-camara-badge/estado-camara-badge';
 
 @Component({
   selector: 'app-detalle-camara',
-  imports: [CommonModule, ApiState, EstadoCamaraBadge],
+  imports: [CommonModule, ApiState, EstadoCamaraBadge, VistaPronostico],
   templateUrl: './detalle-camara.html',
 })
 export class DetalleCamara implements OnInit {

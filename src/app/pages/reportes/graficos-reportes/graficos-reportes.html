@@ -1,0 +1,73 @@
+<section class="grid min-w-0 gap-4" aria-labelledby="titulo-analisis-historico">
+  <h2 id="titulo-analisis-historico" class="m-0">Análisis de transmisiones</h2>
+
+  <section class="ui-card p-4 desktop:p-5 print:break-inside-avoid" aria-labelledby="titulo-patrones">
+    <h3 id="titulo-patrones" class="mt-0">Patrones por día y hora</h3>
+    <app-api-state [loading]="patron.cargaInicial()" [error]="patron.error()"
+      [actualizado]="patron.actualizado()" (retry)="cargarPatron()" />
+    @if (patronCargado()) {
+      <div class="ui-focus overflow-x-auto rounded-sm" tabindex="0" role="region" aria-label="Patrones de ocupación por día y hora">
+        <table class="w-full border-separate border-spacing-1 text-caption tabular-nums">
+          <caption class="pb-2 text-left text-label text-muted">Personas en promedio por cámara · Hora de Lima · — Sin medición</caption>
+          <thead><tr>
+            <th scope="col">Día</th>
+            @for (hora of horas; track hora) { <th class="min-w-10 text-muted" scope="col">{{ hora }} h</th> }
+          </tr></thead>
+          <tbody>
+            @for (dia of dias; track dia; let d = $index) {
+              <tr><th scope="row">{{ dia }}</th>
+                @for (hora of horas; track hora) {
+                  @let fila = celda(d, hora);
+                  <td class="h-9 min-w-10 rounded-sm text-center" [class]="fila ? estilosNivel[fila.nivel_ocupacion] : 'bg-canvas text-muted'"
+                    [attr.title]="fila ? 'Nivel ' + fila.nivel_ocupacion : 'Sin medición'">
+                    {{ fila ? (fila.promedio_presentes | number:'1.0-1') : '—' }}
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else if (patron.actualizado()) { <p class="text-label text-muted">No hay mediciones para el mapa de calor.</p> }
+  </section>
+
+  <div class="grid min-w-0 gap-4 expanded:grid-cols-2">
+    <section class="ui-card p-4 desktop:p-5 print:break-inside-avoid" aria-labelledby="titulo-comparacion-reporte">
+      <h3 id="titulo-comparacion-reporte" class="mt-0">Comparación entre zonas</h3>
+      <app-grafico-zonas [filtros]="filtrosComparacion()" vista="comparacion" />
+    </section>
+    <section class="ui-card p-4 desktop:p-5 print:break-inside-avoid" aria-labelledby="titulo-niveles">
+      <h3 id="titulo-niveles" class="mt-0">Periodos por nivel de ocupación</h3>
+      <app-api-state [loading]="niveles.estado.cargaInicial()" [error]="niveles.estado.error()"
+        [actualizado]="niveles.estado.actualizado()" (retry)="niveles.reintentar()" />
+      <div class="relative h-60 min-w-0" [class.hidden]="!distribucion().length">
+        <canvas #nivelesCanvas role="img" aria-label="Cantidad de periodos por nivel y estado. Los valores aparecen en la lista."></canvas>
+      </div>
+      @if (niveles.pagina; as pagina) {
+        @if (!pagina.datos.length) { <p class="text-label text-muted">No hay periodos para clasificar.</p> }
+        <ul class="m-0 list-none divide-y divide-divider p-0 text-label" role="list">
+          @for (fila of distribucion(); track fila.clave) {
+            <li class="flex justify-between gap-3 py-2"><span>{{ fila.nombre | titlecase }}</span><strong>{{ fila.cantidad | number }}</strong></li>
+          }
+        </ul>
+        @if (niveles.paginas > 1 || niveles.numeroPagina > 1) {
+          <app-pagination unit="grupos de nivel" [page]="niveles.numeroPagina" [pages]="niveles.paginas" [total]="pagina.total"
+            (pageChange)="cargarNiveles(niveles.desplazamiento($event))" />
+        }
+      }
+    </section>
+  </div>
+
+  <section class="ui-card p-4 desktop:p-5 print:hidden" aria-labelledby="titulo-contexto">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h3 id="titulo-contexto" class="m-0">Clima y calendario</h3>
+      <button type="button" class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-3 py-2"
+        [attr.aria-expanded]="verContexto()" aria-controls="detalle-contexto" (click)="verContexto.set(!verContexto())">
+        {{ verContexto() ? 'Ocultar contexto' : 'Ver contexto' }}
+      </button>
+    </div>
+    <div id="detalle-contexto">
+      @if (verContexto()) { <app-contexto [filtros]="filtros()" /> }
+    </div>
+  </section>
+</section>

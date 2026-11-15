@@ -1,4 +1,8 @@
-import { ChangeDetectorRef, Component, HostListener, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, computed, HostListener, inject, OnInit } from '@angular/core';
+import { exclusiveEnd } from '../../core/api/dates';
+import { rangoValido } from '../../core/api/metricas-presentacion';
+import { FiltrosMetricas } from '../../core/models/metricas.model';
+import { GraficosReportes } from './graficos-reportes/graficos-reportes';
 import { IndicatorQuery } from '../../core/api/indicator-query';
 import { ApiState } from '../../shared/api-state/api-state';
 import { AccionesExportacion } from '../../shared/acciones-exportacion/acciones-exportacion';
@@ -8,12 +12,18 @@ import { OcupacionHistorica } from '../../shared/ocupacion-historica/ocupacion-h
 import { createCsv } from '../../core/api/csv';
 @Component({
   selector: 'app-reportes',
-  imports: [ApiState, AccionesExportacion, FiltrosIndicadores, IndicatorView, OcupacionHistorica],
+  imports: [ApiState, AccionesExportacion, FiltrosIndicadores, IndicatorView, OcupacionHistorica, GraficosReportes],
   providers: [IndicatorQuery],
   templateUrl: './reportes.html',
 })
 export class Reportes implements OnInit {
   readonly history = inject(IndicatorQuery);
+  readonly filtrosGraficos = computed<FiltrosMetricas | null>(() => {
+    const f = this.history.aplicado();
+    if (!f || !rangoValido(f.desde, f.hasta)) return null;
+    return { id_zona: f.zoneId, desde: f.desde + 'T00:00:00', hasta: exclusiveEnd(f.hasta)!,
+      periodo: f.periodo, tipo_fuente: 'stream' };
+  });
   private cdr = inject(ChangeDetectorRef);
   printing = false;
   @HostListener('window:beforeprint') beforePrint() {

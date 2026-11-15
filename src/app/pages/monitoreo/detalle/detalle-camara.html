@@ -74,26 +74,7 @@
         <h3 id="pronostico-camara" class="mt-0">Pronóstico de ocupación</h3>
         <app-api-state [loading]="pronosticoRequest.cargaInicial()" [error]="pronosticoRequest.error()"
           [actualizado]="pronosticoRequest.actualizado()" (retry)="consultarPronostico()" />
-        @if (pronostico(); as p) {
-          @switch (p.estado) {
-            @case ('disponible') {
-              <dl class="m-0 grid gap-3 desktop:grid-cols-2">
-                @for (e of p.estimaciones; track e.horizonte_min) {
-                  <div class="rounded-lg border border-solid border-divider p-4">
-                    <dt class="text-label text-muted">A {{ e.horizonte_min }} minutos del bloque base</dt>
-                    <dd class="m-0 mt-1 text-metric font-semibold tabular-nums">{{ e.promedio_presentes | number:'1.0-2' }} personas</dd>
-                    <dd class="m-0 mt-1 text-label text-muted">Bloque de 5 min hasta {{ fecha(e.objetivo_en) }} (Lima)</dd>
-                    <dd class="m-0 mt-1 text-label text-muted">{{ e.metodo === 'regresion_ridge' ? 'Regresión Ridge' : 'Última ocupación observada' }}</dd>
-                  </div>
-                }
-              </dl>
-              <p class="mt-3 mb-0 text-label text-muted">Bloque base · {{ fecha(p.base_en) }}. Emisión · {{ fecha(p.emitido_en) }} (Lima).</p>
-            }
-            @case ('camara_no_apta') { <p class="mb-0 text-muted">Disponible para cámaras fijas y activas con área configurada.</p> }
-            @case ('sin_modelo') { <p class="mb-0 text-muted">Aún no hay un modelo entrenado para esta cámara.</p> }
-            @case ('sin_pronostico_vigente') { <p class="mb-0 text-muted">Sin pronóstico vigente.</p> }
-          }
-        }
+        @if (pronostico(); as p) { <app-pronostico-ocupacion [datos]="p" /> }
       </section>
 
       <details class="ui-card p-4 desktop:p-5">

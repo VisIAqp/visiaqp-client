@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { map, of, switchMap } from 'rxjs';
 import { Api } from '../api/api';
 import { DatosOcupacionReciente, DistribucionNivel, FiltrosMetricas, FiltrosOrigenMetricas, MedicionAgregada, PaginaCamaras,
-  PaginaMetricas, PatronHorario, PuntoSerie, ResumenMetricas } from '../models/metricas.model';
+  PaginaMetricas, PatronHorario, PatronZona, PuntoSerie, PuntoZona, ResumenMetricas } from '../models/metricas.model';
 
 @Injectable({ providedIn: 'root' })
 export class MetricasService {
@@ -18,11 +18,20 @@ export class MetricasService {
       id_zona, id_camara, id_procesamiento, tipo_fuente,
     });
   }
+  ocupacionZonas(filtros: FiltrosMetricas, vista: 'historico' | 'reciente' | 'comparacion',
+    desplazamiento = 0, limite = 200) {
+    return this.api.get<PaginaMetricas<PuntoZona>>('/metricas/ocupacion-zonas', {
+      ...filtros, vista, desplazamiento, limite,
+    });
+  }
   comparativas(filtros: FiltrosMetricas, desplazamiento = 0) {
     return this.api.get<PaginaMetricas<MedicionAgregada>>('/metricas/comparativas', { ...filtros, desplazamiento, limite: 100 });
   }
   patrones(filtros: FiltrosMetricas, desplazamiento = 0) {
     return this.api.get<PaginaMetricas<PatronHorario>>('/metricas/patrones', { ...filtros, desplazamiento, limite: 200 });
+  }
+  patronesZona(filtros: FiltrosMetricas) {
+    return this.api.get<PatronZona[]>('/metricas/patrones-zona', { ...filtros });
   }
   distribucion(filtros: FiltrosMetricas, desplazamiento = 0) {
     return this.api.get<PaginaMetricas<DistribucionNivel>>('/metricas/distribucion-niveles', { ...filtros, desplazamiento, limite: 100 });

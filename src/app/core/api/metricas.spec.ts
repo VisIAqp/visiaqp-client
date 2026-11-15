@@ -1,10 +1,11 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { MetricasService } from '../services/metricas';
 import { Dashboard } from '../../pages/dashboard/dashboard';
+import { GraficosReportes } from '../../pages/reportes/graficos-reportes/graficos-reportes';
 import { DetalleCamara } from '../../pages/monitoreo/detalle/detalle-camara';
 import { FiltrosMetricas, PuntoSerie } from '../models/metricas.model';
 import { prepararSeries, rangoValido } from './metricas-presentacion';
@@ -60,9 +61,10 @@ describe('Dashboard y monitoreo con endpoints agregados', () => {
     http = TestBed.inject(HttpTestingController);
   });
   afterEach(() => http.verify({ ignoreCancelled: true }));
-  function catalogo() {
+  function catalogo(f: ComponentFixture<Dashboard>) {
     http.expectOne(base + '/zonas').flush([zona]);
     http.expectOne(base + '/admin/camaras').flush([camara]);
+    f.detectChanges();
   }
   function vaciarPaneles(excepto = '') {
     for (const req of http.match((r) => r.url.startsWith(base + '/metricas/') && !r.url.endsWith(excepto || 'ninguno')))
@@ -82,7 +84,7 @@ describe('Dashboard y monitoreo con endpoints agregados', () => {
   });
   it('mantiene el resumen completo cuando falla únicamente un gráfico', () => {
     const f = TestBed.createComponent(Dashboard);
-    f.detectChanges(); catalogo();
+    f.detectChanges(); catalogo(f);
     const serie = http.expectOne((r) => r.url.endsWith('/metricas/series'));
     serie.flush({}, { status: 503, statusText: 'Unavailable' });
     vaciarPaneles(); f.detectChanges();
@@ -95,12 +97,13 @@ describe('Dashboard y monitoreo con endpoints agregados', () => {
   });
   it('cancela consultas anteriores si el nuevo rango es inválido', () => {
     const f = TestBed.createComponent(Dashboard);
-    f.detectChanges(); catalogo();
+    f.detectChanges(); catalogo(f);
     const anteriores = http.match((r) => r.url.includes('/metricas/'));
-    expect(anteriores.length).toBe(6);
+    expect(anteriores.length).toBe(4);
     f.componentInstance.desde = '2026-10-01';
     f.componentInstance.hasta = '2026-11-01';
     f.componentInstance.buscar();
+    f.detectChanges();
     expect(anteriores.every((r) => r.cancelled)).toBeTrue();
     expect(f.componentInstance.resumen).toBeNull();
     http.expectNone((r) => r.url.includes('/metricas/'));
@@ -110,7 +113,7 @@ describe('Dashboard y monitoreo con endpoints agregados', () => {
   });
   it('pagina con los filtros aplicados y no con cambios aún sin consultar', () => {
     const f = TestBed.createComponent(Dashboard);
-    f.detectChanges(); catalogo();
+    f.detectChanges(); catalogo(f);
     const serie = http.expectOne((r) => r.url.endsWith('/metricas/series'));
     serie.flush(pagina([punto()], 201));
     vaciarPaneles();
@@ -125,7 +128,7 @@ describe('Dashboard y monitoreo con endpoints agregados', () => {
   });
   it('reintenta la página que falló sin volver silenciosamente a la primera', () => {
     const f = TestBed.createComponent(Dashboard);
-    f.detectChanges(); catalogo(); vaciarPaneles();
+    f.detectChanges(); catalogo(f); vaciarPaneles();
     f.componentInstance.cargarSerie(200);
     http.expectOne((r) => r.url.endsWith('/metricas/series')).flush({}, { status: 503, statusText: 'Unavailable' });
     f.componentInstance.serie.reintentar();
@@ -137,7 +140,7 @@ describe('Dashboard y monitoreo con endpoints agregados', () => {
   });
   it('no presenta mediciones históricas como cero ni como nivel bajo', () => {
     const f = TestBed.createComponent(Dashboard);
-    f.detectChanges(); catalogo();
+    f.detectChanges(); catalogo(f);
     http.expectOne((r) => r.url.endsWith('/metricas/series')).flush(pagina([punto(1, 10, null)]));
     vaciarPaneles(); f.detectChanges();
     expect(f.componentInstance.serieConMedicion).toBeFalse();
@@ -145,16 +148,16 @@ describe('Dashboard y monitoreo con endpoints agregados', () => {
     expect(f.nativeElement.textContent).toContain('No hay ocupación consolidada');
     f.destroy();
   });
-  it('el mapa distingue cero medido de un grupo ausente en la página', () => {
-    const f = TestBed.createComponent(Dashboard);
-    f.detectChanges(); catalogo();
-    http.expectOne((r) => r.url.endsWith('/metricas/patrones')).flush(pagina([
-      { ...punto(1, 10, 0), dia_semana: 5, hora: 10 },
-    ]));
+  it('el mapa de reportes distingue cero medido de una hora sin medición', () => {
+    const f = TestBed.createComponent(GraficosReportes);
+    f.componentRef.setInput('filtros', { ...filtros, id_camara: undefined, id_zona: 23 });
+    f.detectChanges();
+    http.expectOne((r) => r.url.endsWith('/metricas/patrones-zona')).flush([
+      { dia_semana: 5, hora: 10, promedio_presentes: 0, nivel_ocupacion: 'bajo' },
+    ]);
     vaciarPaneles(); f.detectChanges();
-    const celda = f.nativeElement.querySelector('td.nivel-bajo');
-    expect(celda.textContent.trim()).toBe('0');
-    expect(f.componentInstance.descripcionCelda(0, 0)).toContain('Sin grupo en esta página');
+    expect(f.nativeElement.querySelector('td[title="Nivel bajo"]').textContent.trim()).toBe('0');
+    expect(f.nativeElement.querySelector('td[title="Sin medición"]').textContent.trim()).toBe('—');
     f.destroy();
   });
   it('monitoreo consulta actividad por cámara y no deduce el estado del historial', async () => {

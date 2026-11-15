@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { filter, forkJoin, timer } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Contexto } from '../contexto/contexto';
 import { Chart } from 'chart.js/auto';
 import { Auth } from '../../core/auth/auth';
 import { API_CONFIG } from '../../core/api/api-config';
@@ -17,14 +16,18 @@ import { CamaraService } from '../../core/services/camara';
 import { MetricasService } from '../../core/services/metricas';
 import { Zona } from '../../core/models/zona.model';
 import { Camara } from '../../core/models/camara.model';
-import { DistribucionNivel, EstadoCamara, FiltrosMetricas, MedicionAgregada, PatronHorario,
-  PuntoSerie, ResumenMetricas } from '../../core/models/metricas.model';
+import { EstadoCamara, FiltrosMetricas, PuntoSerie, ResumenMetricas } from '../../core/models/metricas.model';
+import { PronosticoOcupacion as DatosPronostico } from '../../core/models/pronostico.model';
+import { MonitoreoService } from '../../core/services/monitoreo';
+import { GraficoZonas } from '../../shared/grafico-zonas/grafico-zonas';
+import { PronosticoOcupacion } from '../../shared/pronostico-ocupacion/pronostico-ocupacion';
+import { alternarCamara, camarasOcultas, detalleEjecucion, estiloCamara, etiquetasCamaras } from '../../shared/graficos/ocupacion-estilo';
 import { OcupacionReciente } from './ocupacion-reciente/ocupacion-reciente';
 import { addDays, exclusiveEnd, limaToday } from '../../core/api/dates';
 import { estadoMedicion, estadoOperativo, etiquetaEjecucion, mostrarFecha, prepararSeries, rangoValido } from '../../core/api/metricas-presentacion';
 
 @Component({
-  selector: 'app-dashboard', imports: [CommonModule, FormsModule, RouterLink, ApiState, Pagination, Contexto, OcupacionReciente],
+  selector: 'app-dashboard', imports: [CommonModule, FormsModule, RouterLink, ApiState, Pagination, OcupacionReciente, GraficoZonas, PronosticoOcupacion],
   templateUrl: './dashboard.html',
   host: { class: 'block' },
 })
@@ -32,17 +35,17 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   private zonasApi = inject(ZonaService);
   private camarasApi = inject(CamaraService);
   private metricas = inject(MetricasService);
+  private monitoreo = inject(MonitoreoService);
   private auth = inject(Auth);
   private config = inject(API_CONFIG);
   private ref = inject(DestroyRef);
   readonly request = new RequestState(this.ref);
   readonly resumenEstado = new RequestState(this.ref, true);
   readonly serie = new PanelMetricas<PuntoSerie>(this.ref, true);
-  readonly comparativa = new PanelMetricas<MedicionAgregada>(this.ref, true);
-  readonly patron = new PanelMetricas<PatronHorario>(this.ref, true);
-  readonly niveles = new PanelMetricas<DistribucionNivel>(this.ref, true);
+  readonly pronosticoRequest = new RequestState(this.ref, true);
+  readonly pronostico = signal<DatosPronostico | null>(null);
   readonly actividad = new PanelMetricas<EstadoCamara>(this.ref, true);
-  private readonly paneles = [this.serie, this.comparativa, this.patron, this.niveles, this.actividad];
+  private readonly paneles = [this.serie, this.actividad];
   zonas: Zona[] = [];
   camaras: Camara[] = [];
   private readonly resumenDatos = signal<ResumenMetricas | null>(null);
@@ -56,21 +59,15 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   hasta = limaToday();
   errorFiltros = '';
   consulta: FiltrosMetricas | null = null;
-  verContexto = false;
+  comparacionConsulta: FiltrosMetricas | null = null;
+  agrupacion: 'camara' | 'zona' = 'camara';
   vistaOcupacion: 'historico' | 'reciente' = 'historico';
   serieElegida = 0;
-  zonaPatron = 0;
-  readonly dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-  readonly horas = Array.from({ length: 24 }, (_, i) => i);
   readonly fecha = mostrarFecha;
   readonly estadoMedicion = estadoMedicion;
   readonly estadoOperativo = estadoOperativo;
   @ViewChild('serieCanvas') serieCanvas!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('comparativaCanvas') comparativaCanvas!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('nivelesCanvas') nivelesCanvas!: ElementRef<HTMLCanvasElement>;
   private graficoSerie?: Chart<'line', (number | null)[], string>;
-  private graficoComparativa?: Chart<'bar', (number | null)[], string>;
-  private graficoNiveles?: Chart<'doughnut', number[], string>;
 
   get camarasFiltradas() { return this.camaras.filter((c) => !this.zonaSeleccionada || c.zonaId === this.zonaSeleccionada); }
   get rangoAplicado() {
@@ -90,8 +87,9 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     const filtros = [
       zona ?? 'Todas las zonas',
       camara ?? 'Todas las cámaras',
-      consulta.tipo_fuente ? fuentes[consulta.tipo_fuente] : 'Todas las fuentes',
-      this.vistaOcupacion === 'reciente' ? 'Por ventana de reporte' : consulta.periodo === 'hora' ? 'Por hora' : 'Por día',
+      consulta.tipo_fuente ? fuentes[consulta.tipo_fuente]
+        : this.agrupacion === 'zona' && !consulta.id_procesamiento ? 'Transmisiones' : 'Todas las fuentes',
+      this.vistaOcupacion === 'reciente' ? (this.agrupacion === 'zona' ? 'Por minuto' : 'Por ventana de reporte') : consulta.periodo === 'hora' ? 'Por hora' : 'Por día',
     ];
     if (consulta.id_procesamiento) filtros.push(`Ejecución #${consulta.id_procesamiento}`);
     return filtros;
@@ -99,7 +97,6 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   get ejecucionesSerie() {
     return [...new Map(this.serie.filas.map((f) => [f.id_procesamiento, f])).values()];
   }
-  get zonasPatron() { return [...new Map(this.patron.filas.map((f) => [f.id_zona, f.nombre_zona])).entries()]; }
   get filasSerie() { return this.serieElegida ? this.serie.filas.filter((f) => f.id_procesamiento === this.serieElegida) : this.serie.filas; }
   get filasTablaSerie() { return this.filasSerie; }
   get serieConMedicion() { return this.filasSerie.some((f) => f.promedio_presentes !== null); }
@@ -114,19 +111,6 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     const valores = this.filasSerie.flatMap((f) => f.max_presentes === null ? [] : [f.max_presentes]);
     return valores.length ? Math.max(...valores) : null;
   }
-  get comparativaConMedicion() { return this.comparativa.filas.some((f) => f.promedio_presentes !== null); }
-  get distribucionVisible() {
-    const orden = ['bajo', 'medio', 'alto', 'sin_datos', 'datos_incompletos', 'fuentes_sin_consolidar', 'ejecuciones_sin_consolidar'];
-    const conteos = new Map<string, number>();
-    // Se suman únicamente los periodos ya agregados de la página visible.
-    for (const fila of this.niveles.filas) {
-      const clave = fila.nivel_ocupacion ?? (fila.estado_ocupacion === 'disponible' ? 'sin_nivel' : fila.estado_ocupacion);
-      conteos.set(clave, (conteos.get(clave) ?? 0) + fila.cantidad_periodos);
-    }
-    return [...orden.filter((clave) => conteos.has(clave)), ...[...conteos.keys()].filter((clave) => !orden.includes(clave))].map((clave) => ({ clave,
-      nombre: clave === 'sin_nivel' ? 'Medición sin nivel' : ['bajo', 'medio', 'alto'].includes(clave) ? clave : estadoMedicion(clave),
-      cantidad: conteos.get(clave)! }));
-  }
   ngOnInit() {
     this.cargar();
     const intervalo = this.config.pollMs * 2;
@@ -139,20 +123,14 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     this.graficoSerie = new Chart<'line', (number | null)[], string>(this.serieCanvas.nativeElement, {
       type: 'line', data: { labels: [], datasets: [] },
       options: { responsive: true, maintainAspectRatio: false, spanGaps: false,
-        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 12, generateLabels: etiquetasCamaras }, onClick: alternarCamara },
+          tooltip: { callbacks: { afterLabel: detalleEjecucion } },
+        },
         scales: { y: { beginAtZero: true, title: { display: true, text: 'Personas presentes' } },
           x: { ticks: { maxTicksLimit: 8 } } } },
     });
-    this.graficoComparativa = new Chart<'bar', (number | null)[], string>(this.comparativaCanvas.nativeElement, {
-      type: 'bar', data: { labels: [], datasets: [{ label: 'Ocupación promedio', data: [] }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true }, x: { ticks: { maxRotation: 35 } } } },
-    });
-    this.graficoNiveles = new Chart<'doughnut', number[], string>(this.nivelesCanvas.nativeElement, {
-      type: 'doughnut', data: { labels: [], datasets: [{ data: [] }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } },
-    });
-    this.actualizarGraficos();
+    this.actualizarSerie();
   }
   cargar() {
     this.request.run(forkJoin({ zonas: this.zonasApi.listar(), camaras: this.camarasApi.listar() }), (d) => {
@@ -186,23 +164,26 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     this.consulta = consulta;
     this.cargarResumen();
     this.cargarSerie();
-    this.cargarComparativa();
-    this.cargarPatron();
-    this.cargarNiveles();
+    this.comparacionConsulta = { desde: consulta.desde, hasta: consulta.hasta, periodo: consulta.periodo,
+      tipo_fuente: consulta.tipo_fuente };
+    this.cargarPronostico();
     this.cargarActividad();
   }
   private limpiarConsulta() {
-    this.verContexto = false;
+    this.comparacionConsulta = null;
+    this.pronosticoRequest.reiniciar();
+    this.pronostico.set(null);
     this.consulta = null;
     this.resumenEstado.reiniciar();
     this.resumenDatos.set(null);
     for (const panel of this.paneles) panel.limpiar();
-    this.actualizarGraficos();
+    this.actualizarSerie();
   }
   refrescarMetricas() {
     if (!this.consulta) return;
     this.cargarResumen();
     for (const panel of this.paneles) panel.refrescar();
+    this.cargarPronostico();
   }
   cargarResumen() {
     if (this.consulta && !this.resumenEstado.loading()) {
@@ -217,16 +198,10 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
       this.actualizarSerie();
     });
   }
-  cargarComparativa(desplazamiento = 0) {
-    if (this.consulta) this.comparativa.cargar(this.metricas.comparativas(this.consulta, desplazamiento), () => this.actualizarComparativa());
-  }
-  cargarPatron(desplazamiento = 0) {
-    if (this.consulta) this.patron.cargar(this.metricas.patrones(this.consulta, desplazamiento), () => {
-      if (this.patron.pagina && !this.zonasPatron.some(([id]) => id === this.zonaPatron)) this.zonaPatron = this.zonasPatron[0]?.[0] ?? 0;
-    });
-  }
-  cargarNiveles(desplazamiento = 0) {
-    if (this.consulta) this.niveles.cargar(this.metricas.distribucion(this.consulta, desplazamiento), () => this.actualizarNiveles());
+  cargarPronostico() {
+    const id = this.consulta?.id_camara;
+    if (id === undefined || this.pronosticoRequest.loading()) return;
+    this.pronosticoRequest.run(this.monitoreo.pronostico(id), (datos) => this.pronostico.set(datos));
   }
   cargarActividad(desplazamiento = 0) {
     if (this.consulta) this.actividad.cargar(this.metricas.estadoCamaras({ id_zona: this.consulta.id_zona,
@@ -236,50 +211,14 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   actualizarSerie() {
     if (!this.graficoSerie) return;
     const preparada = prepararSeries(this.filasSerie, this.consulta?.periodo ?? this.periodoTipo);
-    const colores = this.colores();
-    this.graficoSerie.data = { labels: preparada.labels, datasets: preparada.series.map((s, i) => ({
-      label: this.etiquetaSerie(this.filasSerie.find((f) => f.id_procesamiento === s.id)!), data: s.datos,
-      borderColor: colores[i % colores.length], backgroundColor: colores[i % colores.length],
-      pointRadius: preparada.labels.length > 100 ? 0 : 2, borderWidth: 2, tension: 0, spanGaps: false,
-    })) };
+    const estilos = getComputedStyle(this.serieCanvas.nativeElement);
+    const ocultas = camarasOcultas(this.graficoSerie);
+    this.graficoSerie.data = { labels: preparada.labels, datasets: preparada.series.map((s) => {
+      const estilo = estiloCamara(this.filasSerie.find((f) => f.id_procesamiento === s.id)!, this.camaras, estilos);
+      return { ...estilo, data: s.datos, hidden: ocultas.has(estilo.claveCamara),
+        pointRadius: preparada.labels.length > 100 ? 0 : 2, borderWidth: 2, tension: 0, spanGaps: false };
+    }) };
     this.graficoSerie.update('none');
   }
-  private colores() {
-    const estilo = getComputedStyle(document.documentElement);
-    return ['brand', 'success', 'warning', 'danger', 'muted', 'maintenance', 'heading', 'subtle']
-      .map((n) => estilo.getPropertyValue('--color-' + n).trim() || '#333');
-  }
-  private actualizarComparativa() {
-    if (!this.graficoComparativa) return;
-    this.graficoComparativa.data.labels = this.comparativa.filas.map((f) => f.nombre_zona);
-    this.graficoComparativa.data.datasets[0].data = this.comparativa.filas.map((f) => f.promedio_presentes);
-    this.graficoComparativa.data.datasets[0].backgroundColor = this.colores()[0];
-    this.graficoComparativa.update('none');
-  }
-  private actualizarNiveles() {
-    if (!this.graficoNiveles) return;
-    this.graficoNiveles.data.labels = this.distribucionVisible.map((f) => f.nombre);
-    this.graficoNiveles.data.datasets[0].data = this.distribucionVisible.map((f) => f.cantidad);
-    const colores: Record<string, string> = { bajo: 'var(--color-success)', medio: 'var(--color-warning)', alto: 'var(--color-danger)' };
-    const estilo = getComputedStyle(document.documentElement);
-    this.graficoNiveles.data.datasets[0].backgroundColor = this.distribucionVisible.map((f) =>
-      colores[f.clave] ? estilo.getPropertyValue('--color-' + ({ bajo: 'success', medio: 'warning', alto: 'danger' }[f.clave as 'bajo' | 'medio' | 'alto'])).trim() || '#777' : '#aaa');
-    this.graficoNiveles.update('none');
-  }
-  private actualizarGraficos() { this.actualizarSerie(); this.actualizarComparativa(); this.actualizarNiveles(); }
-  celda(dia: number, hora: number) { return this.patron.filas.find((f) => f.id_zona === this.zonaPatron && f.dia_semana === dia && f.hora === hora); }
-  claseCelda(fila: PatronHorario | undefined) {
-    if (!fila || fila.promedio_presentes === null) return 'bg-canvas text-muted';
-    const estilos = {
-      bajo: 'nivel-bajo bg-success-soft text-success',
-      medio: 'bg-warning-soft text-warning',
-      alto: 'bg-danger-soft text-danger',
-    };
-    return fila.nivel_ocupacion ? estilos[fila.nivel_ocupacion] : 'bg-canvas text-content';
-  }
-  descripcionCelda(dia: number, hora: number) {
-    const fila = this.celda(dia, hora);
-    return `${this.dias[dia]} ${hora}:00: ${fila ? estadoMedicion(fila.estado_ocupacion) + (fila.promedio_presentes !== null ? ', ' + fila.promedio_presentes + ' personas presentes en promedio' : '') : 'Sin grupo en esta página'}`;
-  }
-  ngOnDestroy() { this.graficoSerie?.destroy(); this.graficoComparativa?.destroy(); this.graficoNiveles?.destroy(); }
+  ngOnDestroy() { this.graficoSerie?.destroy(); }
 }

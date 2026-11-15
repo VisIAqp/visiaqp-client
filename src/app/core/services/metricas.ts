@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { of, switchMap } from 'rxjs';
+import { map, of, switchMap } from 'rxjs';
 import { Api } from '../api/api';
 import { DistribucionNivel, FiltrosMetricas, MedicionAgregada, PaginaCamaras,
   PaginaMetricas, PatronHorario, PuntoSerie, ResumenMetricas } from '../models/metricas.model';
@@ -23,7 +23,14 @@ export class MetricasService {
     return this.api.get<PaginaMetricas<DistribucionNivel>>('/metricas/distribucion-niveles', { ...filtros, desplazamiento, limite: 100 });
   }
   estadoCamaras(filtros: { id_zona?: number; id_camara?: number } = {}, desplazamiento = 0) {
-    return this.api.get<PaginaCamaras>('/metricas/estado-camaras', { ...filtros, desplazamiento, limite: 100 });
+    return this.api.get<PaginaCamaras>('/metricas/estado-camaras', {
+      ...filtros, desplazamiento, limite: 100,
+    }).pipe(map((pagina) => ({
+      ...pagina,
+      datos: pagina.datos.map((estado) => ({
+        ...estado, ultima_medicion: estado.ultima_medicion ?? null,
+      })),
+    })));
   }
   ultimaSerie(filtros: FiltrosMetricas) {
     return this.series(filtros, 0, 1).pipe(switchMap((pagina) =>

@@ -1,0 +1,127 @@
+<section class="mx-auto min-w-0 max-w-page">
+  <a [href]="hrefMonitoreo" (click)="volver($event)"
+    class="ui-focus mb-4 inline-flex items-center gap-2 rounded-sm text-label font-semibold text-brand no-underline hover:underline">
+    <span aria-hidden="true">←</span> Volver a Monitoreo
+  </a>
+
+  <app-api-state [loading]="camaraRequest.cargaInicial()" [error]="camaraRequest.error()"
+    [actualizado]="camaraRequest.actualizado()" (retry)="cargarCamara()" />
+
+  @if (camara(); as c) {
+    <header class="mb-5 flex flex-wrap items-start justify-between gap-3">
+      <div class="min-w-0">
+        <h2 class="m-0 wrap-anywhere">{{ c.nombre }}</h2>
+        <p class="m-0 text-muted">{{ estado()?.nombre_zona ?? 'Zona ' + c.zonaId }}</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <app-estado-camara-badge [estado]="estado()?.estado_operativo"
+          [faltaArea]="c.estado === 'activa' && !c.zonePolygon" [cargando]="actividadRequest.cargaInicial()" />
+        <button type="button" (click)="actualizar()"
+          class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2">
+          Actualizar
+        </button>
+      </div>
+    </header>
+
+    <app-api-state [error]="actividadRequest.error()" [actualizado]="actividadRequest.actualizado()"
+      (retry)="consultarActividad()" />
+
+    <div class="grid gap-4">
+      <section class="ui-card p-4 desktop:p-5" aria-labelledby="ocupacion-camara">
+        <h3 id="ocupacion-camara" class="mt-0">Ocupación de la última transmisión</h3>
+        <app-api-state [loading]="medicionRequest.cargaInicial()" [error]="medicionRequest.error()"
+          [actualizado]="medicionRequest.actualizado()" (retry)="consultarMedicion()" />
+        @if (medicion(); as m) {
+          <dl class="m-0 grid gap-3 desktop:grid-cols-3">
+            <div class="rounded-lg border border-solid border-brand/20 bg-brand-soft p-4">
+              <dt class="text-label text-muted">Personas presentes en promedio</dt>
+              <dd class="m-0 mt-1 text-metric font-semibold tabular-nums">
+                {{ m.promedio_presentes === null ? 'Sin medición' : (m.promedio_presentes | number:'1.0-2') }}
+              </dd>
+            </div>
+            <div class="rounded-lg border border-solid border-divider p-4">
+              <dt class="text-label text-muted">Máximo observado</dt>
+              <dd class="m-0 mt-1 text-metric font-semibold tabular-nums">{{ m.max_presentes ?? 'Sin medición' }}</dd>
+            </div>
+            <div class="rounded-lg border border-solid border-divider p-4">
+              <dt class="text-label text-muted">Nivel de ocupación</dt>
+              <dd class="m-0 mt-1 text-metric font-semibold">{{ m.nivel_ocupacion ? (m.nivel_ocupacion | titlecase) : 'Sin nivel' }}</dd>
+            </div>
+          </dl>
+          <p class="mt-3 mb-0 text-label text-muted">Última captura · {{ fecha(m.ultima_ventana_fin) }} (Lima)</p>
+          @if (m.estado_ocupacion !== 'disponible') {
+            <p class="mt-1 mb-0 text-label text-muted">{{ estadoMedicion(m.estado_ocupacion) }}</p>
+          }
+          <details class="mt-3 text-label">
+            <summary class="ui-focus cursor-pointer rounded-sm font-medium">Cómo se calculó</summary>
+            <p class="mb-0 text-muted">
+              El promedio pondera cuánto tiempo se observó cada cantidad de personas durante el último periodo horario
+              disponible de hoy o ayer. Los datos pertenecen a la última transmisión.
+            </p>
+            <p class="mb-0 text-muted">
+              Captura: {{ fecha(m.primera_ventana_inicio) }} → {{ fecha(m.ultima_ventana_fin) }}.
+              Recepción: {{ fecha(m.ultima_recepcion) }} (Lima).
+              {{ m.periodo_cerrado ? 'Periodo cerrado' : 'Periodo abierto' }} ·
+              {{ m.segundos_observados === null ? 'Sin duración consolidada' : (m.segundos_observados | number:'1.0-1') + ' s observados' }}.
+            </p>
+          </details>
+        } @else if (medicionRequest.actualizado() || (actividadRequest.actualizado() && !estado()?.id_procesamiento)) {
+          <p class="mb-0 text-muted">Sin medición disponible. Un cero indica que se observó el área sin personas.</p>
+        }
+      </section>
+
+      <section class="ui-card p-4 desktop:p-5" aria-labelledby="pronostico-camara">
+        <h3 id="pronostico-camara" class="mt-0">Pronóstico de ocupación</h3>
+        <app-api-state [loading]="pronosticoRequest.cargaInicial()" [error]="pronosticoRequest.error()"
+          [actualizado]="pronosticoRequest.actualizado()" (retry)="consultarPronostico()" />
+        @if (pronostico(); as p) {
+          @switch (p.estado) {
+            @case ('disponible') {
+              <dl class="m-0 grid gap-3 desktop:grid-cols-2">
+                @for (e of p.estimaciones; track e.horizonte_min) {
+                  <div class="rounded-lg border border-solid border-divider p-4">
+                    <dt class="text-label text-muted">A {{ e.horizonte_min }} minutos del bloque base</dt>
+                    <dd class="m-0 mt-1 text-metric font-semibold tabular-nums">{{ e.promedio_presentes | number:'1.0-2' }} personas</dd>
+                    <dd class="m-0 mt-1 text-label text-muted">Bloque de 5 min hasta {{ fecha(e.objetivo_en) }} (Lima)</dd>
+                    <dd class="m-0 mt-1 text-label text-muted">{{ e.metodo === 'regresion_ridge' ? 'Regresión Ridge' : 'Última ocupación observada' }}</dd>
+                  </div>
+                }
+              </dl>
+              <p class="mt-3 mb-0 text-label text-muted">Bloque base · {{ fecha(p.base_en) }}. Emisión · {{ fecha(p.emitido_en) }} (Lima).</p>
+            }
+            @case ('camara_no_apta') { <p class="mb-0 text-muted">Disponible para cámaras fijas y activas con área configurada.</p> }
+            @case ('sin_modelo') { <p class="mb-0 text-muted">Aún no hay un modelo entrenado para esta cámara.</p> }
+            @case ('sin_pronostico_vigente') { <p class="mb-0 text-muted">Sin pronóstico vigente.</p> }
+          }
+        }
+      </section>
+
+      <details class="ui-card p-4 desktop:p-5">
+        <summary class="ui-focus cursor-pointer rounded-sm font-semibold">Diagnóstico e historial</summary>
+        @if (estado(); as t) {
+          <dl class="mt-4 mb-0 grid gap-3 desktop:grid-cols-3">
+            <div><dt class="text-label text-muted">Última actividad (Lima)</dt><dd class="m-0 font-medium">{{ fecha(t.ultima_actividad) }}</dd></div>
+            <div><dt class="text-label text-muted">FPS efectivos</dt><dd class="m-0 font-medium">{{ t.fps_procesamiento === null ? 'Sin medición' : (t.fps_procesamiento | number:'1.0-2') }}</dd></div>
+            <div><dt class="text-label text-muted">Edad de imagen desde la recepción</dt><dd class="m-0 font-medium">{{ t.edad_imagen_seg === null ? 'Sin medición' : (t.edad_imagen_seg | number:'1.0-2') + ' s' }}</dd></div>
+          </dl>
+        }
+        <h3 class="mt-4 mb-2">Ejecuciones recientes</h3>
+        <app-api-state [loading]="historialRequest.cargaInicial()" [error]="historialRequest.error()"
+          [actualizado]="historialRequest.actualizado()" (retry)="consultarHistorial()" />
+        <ul class="m-0 list-none divide-y divide-divider p-0" role="list">
+          @for (p of historial().slice(0, 10); track p.id) {
+            <li class="py-2 text-label">
+              #{{ p.id }} · {{ p.tipoFuente === 'stream' ? 'Transmisión' : (p.tipoFuente | titlecase) }}
+              · {{ p.estado | titlecase }} · {{ p.fechaCapturaInicio | date:'dd/MM HH:mm':'-0500' }} (Lima)
+              @if (p.mensajeError) { <span class="block wrap-anywhere text-danger">{{ p.mensajeError }}</span> }
+            </li>
+          } @empty {
+            @if (historialRequest.actualizado()) { <li class="text-label text-muted">Sin ejecuciones registradas.</li> }
+          }
+        </ul>
+      </details>
+    </div>
+  } @else if (idCamara() === null) {
+    <p class="ui-card p-4 text-muted">El identificador de la cámara no es válido.</p>
+  }
+</section>

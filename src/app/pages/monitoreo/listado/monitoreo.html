@@ -1,0 +1,42 @@
+<section class="mx-auto min-w-0 max-w-page">
+  <header class="mb-5 flex flex-wrap items-center justify-between gap-3">
+    <h2 class="m-0">Cámaras habilitadas</h2>
+    <button type="button" class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2"
+      [disabled]="catalogoRequest.loading() || actividadRequest.loading()" (click)="actualizar()">
+      Actualizar
+    </button>
+  </header>
+
+  <app-api-state [loading]="catalogoRequest.cargaInicial()" [error]="catalogoRequest.error()"
+    [actualizado]="catalogoRequest.actualizado()" (retry)="cargarCatalogo()" />
+  <app-api-state [error]="actividadRequest.error()" [actualizado]="actividadRequest.actualizado()"
+    (retry)="cargarActividad()" />
+
+  <ul class="m-0 grid list-none gap-3 p-0 desktop:grid-cols-2 wide:grid-cols-3" role="list">
+    @for (tarjeta of tarjetas(); track tarjeta.camara.id) {
+      <li class="min-w-0">
+        <a class="ui-card ui-focus block h-full box-border p-4 text-content no-underline hover:border-brand hover:bg-hover"
+          [routerLink]="['/monitoreo', tarjeta.camara.id]" [state]="origenDetalle" (click)="guardarPosicion($event)">
+          <div class="flex flex-wrap items-start justify-between gap-2">
+            <span class="inline-grid size-9 place-items-center rounded-lg bg-brand-soft text-brand" aria-hidden="true">
+              <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
+                <path d="M3 6h12v12H3ZM15 10l6-3v10l-6-3" />
+              </svg>
+            </span>
+            <app-estado-camara-badge [estado]="tarjeta.estado?.estado_operativo"
+              [faltaArea]="!tarjeta.camara.zonePolygon" [cargando]="actividadRequest.cargaInicial()" />
+          </div>
+          <h3 class="mt-3 mb-0 wrap-anywhere">{{ tarjeta.camara.nombre }}</h3>
+          <p class="m-0 text-label text-muted">{{ tarjeta.zona }}</p>
+          @if (tarjeta.estado?.ultima_medicion; as medicion) {
+            <p class="mt-3 mb-0 text-label text-muted">Última medición · {{ fecha(medicion) }} (Lima)</p>
+          }
+        </a>
+      </li>
+    } @empty {
+      @if (catalogoRequest.actualizado()) {
+        <li class="ui-card p-5 text-muted desktop:col-span-2 wide:col-span-3">No hay cámaras habilitadas.</li>
+      }
+    }
+  </ul>
+</section>

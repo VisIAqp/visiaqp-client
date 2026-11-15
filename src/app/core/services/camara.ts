@@ -12,6 +12,11 @@ export class CamaraService {
       .get<CamaraDto[]>('/admin/camaras')
       .pipe(map((rows) => rows.map((d) => this.mapper.camara(d))));
   }
+  obtener(id: number) {
+    return this.api
+      .get<CamaraDto>('/admin/camaras/' + id)
+      .pipe(map((d) => this.mapper.camara(d)));
+  }
   guardar(config: ConfiguracionCamara, id?: number) {
     const body = {
       nombre: config.nombre.trim(),

@@ -2,9 +2,10 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
 import { MetricasService } from '../services/metricas';
 import { Dashboard } from '../../pages/dashboard/dashboard';
-import { Monitoreo } from '../../pages/monitoreo/monitoreo';
+import { DetalleCamara } from '../../pages/monitoreo/detalle/detalle-camara';
 import { FiltrosMetricas, PuntoSerie } from '../models/metricas.model';
 import { prepararSeries, rangoValido } from './metricas-presentacion';
 
@@ -53,8 +54,9 @@ describe('Dashboard y monitoreo con endpoints agregados', () => {
   let http: HttpTestingController;
   beforeEach(() => {
     sessionStorage.clear();
-    TestBed.configureTestingModule({ imports: [Dashboard, Monitoreo],
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
+    TestBed.configureTestingModule({ imports: [Dashboard, DetalleCamara],
+      providers: [provideHttpClient(), provideHttpClientTesting(),
+        provideRouter([{ path: 'monitoreo/:id', component: DetalleCamara }])] });
     http = TestBed.inject(HttpTestingController);
   });
   afterEach(() => http.verify({ ignoreCancelled: true }));
@@ -155,16 +157,17 @@ describe('Dashboard y monitoreo con endpoints agregados', () => {
     expect(f.componentInstance.descripcionCelda(0, 0)).toContain('Sin grupo en esta página');
     f.destroy();
   });
-  it('monitoreo consulta actividad por cámara y no deduce el estado del historial', () => {
-    const f = TestBed.createComponent(Monitoreo);
-    f.detectChanges(); catalogo();
-    f.componentInstance.seleccionarCamara(42);
+  it('monitoreo consulta actividad por cámara y no deduce el estado del historial', async () => {
+    const vista = await RouterTestingHarness.create();
+    const detalle = await vista.navigateByUrl('/monitoreo/42', DetalleCamara);
+    http.expectOne(base + '/admin/camaras/42').flush(camara);
     const estado = http.expectOne((r) => r.url.endsWith('/metricas/estado-camaras'));
     expect(estado.request.params.get('id_camara')).toBe('42');
     estado.flush(pagina([{ id_camara: 42, id_zona: 23, nombre_camara: 'Cámara contrato',
       nombre_zona: 'Zona contrato', estado_configuracion: 'activa', estado_operativo: 'reportando',
       id_procesamiento: 9, ultima_actividad: '2026-10-31T18:00:00', ultima_muestra: null,
-      segundos_sin_actividad: 1, fps_procesamiento: 2, edad_imagen_seg: 0 }]));
+      ultima_medicion: '2026-10-31T10:01:00', segundos_sin_actividad: 1,
+      fps_procesamiento: 2, edad_imagen_seg: 0 }]));
     const historia = http.expectOne((r) => r.url.endsWith('/procesamientos'));
     expect(historia.request.params.get('id_camara')).toBe('42');
     historia.flush([]);
@@ -174,10 +177,9 @@ describe('Dashboard y monitoreo con endpoints agregados', () => {
     const medicion = http.expectOne((r) => r.url.endsWith('/metricas/series'));
     expect(medicion.request.params.get('id_procesamiento')).toBe('9');
     medicion.flush(pagina([punto(9, 10, 0)], 1, 0, 1));
-    f.detectChanges();
-    expect(f.componentInstance.estadoTransmision).toBe('Motor reportando actividad');
-    expect(f.componentInstance.ultimaMedicion?.promedio_presentes).toBe(0);
-    expect(f.nativeElement.textContent).toContain('Personas presentes');
-    f.destroy();
+    vista.detectChanges();
+    expect(detalle.estado()?.estado_operativo).toBe('reportando');
+    expect(detalle.medicion()?.promedio_presentes).toBe(0);
+    expect(vista.routeNativeElement?.textContent).toContain('Personas presentes');
   });
 });

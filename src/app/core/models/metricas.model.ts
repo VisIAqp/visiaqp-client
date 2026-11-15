@@ -85,6 +85,7 @@ export interface EstadoCamara {
   id_procesamiento: number | null;
   ultima_actividad: string | null;
   ultima_muestra: string | null;
+  ultima_medicion: string | null;
   segundos_sin_actividad: number | null;
   fps_procesamiento: number | null;
   edad_imagen_seg: number | null;

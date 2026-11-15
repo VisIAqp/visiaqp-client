@@ -105,7 +105,7 @@ main tbody tr:hover { background: #f7faff; }
 main th { letter-spacing: .045em; font-weight: 600; }
 main td { vertical-align: middle; }
 main table button { font-size: .75rem; padding: .4rem .65rem; }
-app-zonas > section > p[role="status"], app-camaras > section > p[role="status"] { padding: .8rem 1rem; border: 1px solid #b9e4d1; border-radius: .5rem; background: #ecf9f2; color: #17603d; }
+app-zonas > section > p[role="status"] { padding: .8rem 1rem; border: 1px solid #b9e4d1; border-radius: .5rem; background: #ecf9f2; color: #17603d; }
 .section-eyebrow { margin: 0 0 .5rem; color: var(--color-brand); font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .13em; }
 .status-badge { display: inline-flex; align-items: center; gap: .35rem; padding: .2rem .6rem; border-radius: 2rem; background: #f0f2f6; color: #536074; font-size: .75rem; white-space: nowrap; }
 .status-badge::before { content: ''; width: .35rem; height: .35rem; border-radius: 50%; background: currentColor; }
@@ -139,11 +139,9 @@ app-monitoreo h4 { border-top: 1px solid var(--color-border); padding-top: 1.25r
 @media (max-width:28rem) { .directory-summary p { margin: 0; width: 100%; } }
 
 /* Workspaces: camera selection, readable history, and contextual explanations. */
-.work-heading, .report-heading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1.25rem; }
+.work-heading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1.25rem; }
 .work-heading h3 { margin:0 0 .35rem; }
 .work-heading p { margin:.3rem 0; color:var(--color-muted); font-size:.8125rem; }
-.report-heading > div:first-child { flex:1 1 20rem; }
-.report-actions { display:flex; flex-wrap:wrap; gap:.6rem; }
 .reading-help { margin:.7rem 0 1rem; font-size:.8125rem; color:var(--color-muted); }
 .reading-help summary { cursor:pointer; color:#405578; padding:.4rem 0; }
 .reading-help p { line-height:1.7; max-width:75rem; }
@@ -162,4 +160,4 @@ app-monitoreo h4 { border-top: 1px solid var(--color-border); padding-top: 1.25r
 .empty-panel { background:white; border:1px dashed var(--color-field); padding:1.5rem; border-radius:.5rem; }
 .form-section-title { grid-column:1/-1; margin:.4rem 0 0; padding-bottom:.6rem; border-bottom:1px solid var(--color-divider); font-weight:600; font-size:.8125rem; color:#405578; }
 .status-badge.is-error { background:var(--color-danger-soft); color:var(--color-danger); }
-@media print { .reading-help { display:none; } .report-heading { display:block; } }
+@media print { .reading-help { display:none; } }

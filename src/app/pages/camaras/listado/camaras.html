@@ -1,0 +1,74 @@
+<section class="mx-auto grid min-w-0 max-w-page gap-4">
+  <header class="flex flex-wrap items-center justify-between gap-3">
+    <h2 class="m-0">Catálogo de cámaras</h2>
+    @if (auth.isAdmin()) {
+      <a routerLink="/camaras/nueva" class="ui-focus rounded-lg bg-brand px-4 py-2.5 text-white no-underline hover:bg-brand-hover">
+        Nueva cámara
+      </a>
+    }
+  </header>
+  <app-api-state [loading]="request.cargaInicial()" [error]="request.error()"
+    [actualizado]="request.actualizado()" (retry)="cargar()" />
+  <app-api-state [error]="saving.error()" [retryable]="false" />
+  @if (mensaje()) { <p class="m-0 rounded-lg bg-success-soft p-3 text-label text-success" role="status">{{ mensaje() }}</p> }
+
+  @if (request.actualizado()) {
+    <section class="ui-card overflow-hidden" aria-label="Directorio de cámaras">
+      <div class="flex flex-wrap items-end justify-between gap-3 px-4 py-3 desktop:px-5">
+        <app-busqueda-catalogo class="block w-full max-w-sm" etiqueta="Buscar cámara o zona" [(texto)]="busqueda" />
+        <p class="m-0 text-label text-muted">{{ filas().length }} de {{ camaras().length }} cámaras</p>
+      </div>
+      @if (filas().length) {
+        <div class="ui-focus overflow-x-auto" tabindex="0" role="region" aria-label="Listado de cámaras">
+          <table class="w-full min-w-table border-collapse text-label">
+            <thead><tr>
+              <th class="ui-table-cell py-3 text-caption text-muted" scope="col">Cámara</th>
+              <th class="ui-table-cell py-3 text-caption text-muted" scope="col">Zona</th>
+              <th class="ui-table-cell py-3 text-caption text-muted" scope="col">Estado</th>
+              <th class="ui-table-cell py-3 text-caption text-muted" scope="col">Configuración</th>
+              @if (auth.isAdmin()) { <th class="ui-table-cell py-3 text-caption text-muted" scope="col">Acciones</th> }
+            </tr></thead>
+            <tbody>
+              @for (fila of filas(); track fila.camara.id) {
+                @let c = fila.camara;
+                @let estado = configuraciones[c.estado];
+                <tr>
+                  <td class="ui-table-cell py-3">
+                    <span class="block wrap-anywhere font-medium">{{ c.nombre }}</span>
+                    <small class="text-muted">{{ c.tipo === 'fija' ? 'Fija' : 'Móvil' }}</small>
+                  </td>
+                  <td class="ui-table-cell py-3">{{ fila.zona }}</td>
+                  <td class="ui-table-cell py-3">
+                    <span class="inline-flex rounded-full px-2.5 py-1 text-caption font-semibold" [class]="estado.estilo">{{ estado.etiqueta }}</span>
+                  </td>
+                  <td class="ui-table-cell py-3">
+                    @if (!c.tieneUrlStream) { <span class="block font-medium text-warning">Fuente sin configurar</span> }
+                    @if (!c.zonePolygon) { <span class="block font-medium text-warning">Área sin configurar</span> }
+                    @if (c.tieneUrlStream && c.zonePolygon) { <span class="block">Fuente y área configuradas</span> }
+                    <small class="text-muted">Reporte cada {{ c.intervaloMuestreoSeg }} s</small>
+                  </td>
+                  @if (auth.isAdmin()) {
+                    <td class="ui-table-cell py-3">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <a class="ui-focus rounded-sm font-semibold text-brand no-underline hover:underline"
+                          [routerLink]="['/camaras', c.id, 'editar']">Editar</a>
+                        <button type="button" class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-3 py-2"
+                          [disabled]="saving.loading()" (click)="cambiarEstado(c)">
+                          {{ c.estado === 'activa' ? 'Desactivar' : 'Activar' }}
+                        </button>
+                      </div>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="m-0 px-4 pb-4 text-label text-muted desktop:px-5">
+          {{ camaras().length ? 'No hay cámaras para esta búsqueda.' : 'No hay cámaras registradas.' }}
+        </p>
+      }
+    </section>
+  }
+</section>

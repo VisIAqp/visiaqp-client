@@ -1,12 +1,14 @@
 import { ChangeDetectorRef, Component, HostListener, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { IndicatorQuery } from '../../core/api/indicator-query';
+import { ApiState } from '../../shared/api-state/api-state';
+import { AccionesExportacion } from '../../shared/acciones-exportacion/acciones-exportacion';
+import { FiltrosIndicadores } from '../../shared/filtros-indicadores/filtros-indicadores';
 import { IndicatorView } from '../../shared/indicator-view/indicator-view';
 import { OcupacionHistorica } from '../../shared/ocupacion-historica/ocupacion-historica';
 import { createCsv } from '../../core/api/csv';
 @Component({
   selector: 'app-reportes',
-  imports: [CommonModule, IndicatorView, OcupacionHistorica],
+  imports: [ApiState, AccionesExportacion, FiltrosIndicadores, IndicatorView, OcupacionHistorica],
   providers: [IndicatorQuery],
   templateUrl: './reportes.html',
 })
@@ -26,9 +28,10 @@ export class Reportes implements OnInit {
     this.history.inicializar();
   }
   get exportable() {
-    return (
-      !!this.history.rows.length && !this.history.request.loading() && !this.history.request.error()
-    );
+    return this.history.rows.length > 0 && !this.history.request.loading();
+  }
+  fechaDia(fecha: string) {
+    return fecha.split('-').reverse().join('/');
   }
   exportarCsv() {
     if (!this.exportable) return;

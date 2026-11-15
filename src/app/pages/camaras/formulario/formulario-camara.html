@@ -1,0 +1,74 @@
+<section class="mx-auto grid min-w-0 max-w-4xl gap-4">
+  <header>
+    <a routerLink="/camaras" class="ui-focus inline-flex items-center gap-2 rounded-sm text-label font-semibold text-brand no-underline hover:underline">
+      <span aria-hidden="true">←</span> Volver a Cámaras
+    </a>
+    <h2 class="mb-0">{{ idCamara() === null ? 'Nueva cámara' : 'Editar cámara' }}</h2>
+  </header>
+  @if (idInvalido()) { <p class="ui-card p-4 text-muted">El identificador de la cámara no es válido.</p> }
+  <app-api-state [loading]="request.cargaInicial()" [error]="request.error()" (retry)="cargar()" />
+  @if (request.actualizado()) {
+    <form class="grid gap-4" (ngSubmit)="guardarCamara()">
+      <fieldset class="m-0 grid min-w-0 gap-4 border-0 p-0" [disabled]="saving.loading()">
+        <section class="ui-card p-4 desktop:p-5" aria-labelledby="titulo-identificacion">
+          <h3 id="titulo-identificacion" class="mt-0">Identificación y zona</h3>
+          <div class="grid gap-3 desktop:grid-cols-2">
+            <label class="grid min-w-0 gap-1">Nombre
+              <input name="nombre" class="ui-field w-full" [(ngModel)]="nuevaCamara.nombre" maxlength="100" required />
+            </label>
+            <label class="grid min-w-0 gap-1">Zona
+              <select name="zona" class="ui-field w-full" [(ngModel)]="nuevaCamara.zonaId" [disabled]="!!camara()" required>
+                <option [ngValue]="0">Selecciona una zona</option>
+                @for (zona of zonas(); track zona.id) { <option [ngValue]="zona.id">{{ zona.nombre }}</option> }
+              </select>
+              @if (!zonas().length && !camara()) { <small class="text-muted">Crea una zona para registrar la cámara.</small> }
+            </label>
+            <label class="grid min-w-0 gap-1">Tipo de cámara
+              <select name="tipo" class="ui-field w-full" [(ngModel)]="nuevaCamara.tipo">
+                <option value="fija">Fija</option><option value="movil">Móvil</option>
+              </select>
+            </label>
+            <label class="grid min-w-0 gap-1">Estado de configuración
+              <select name="estado" class="ui-field w-full" [(ngModel)]="nuevaCamara.estado">
+                <option value="activa">Habilitada</option><option value="inactiva">Deshabilitada</option>
+                <option value="mantenimiento">En mantenimiento</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section class="ui-card p-4 desktop:p-5" aria-labelledby="titulo-fuente">
+          <h3 id="titulo-fuente" class="mt-0">Fuente de video</h3>
+          <div class="grid gap-3 desktop:grid-cols-2">
+            <label class="grid min-w-0 content-start gap-1">{{ camara()?.tieneUrlStream ? 'Reemplazar fuente (opcional)' : 'URL o ruta de la fuente' }}
+              <input name="fuente" class="ui-field w-full" [(ngModel)]="nuevaCamara.urlStream" maxlength="255"
+                [required]="!camara()?.tieneUrlStream" autocomplete="off" />
+              @if (camara()?.tieneUrlStream) { <small class="text-muted">Deja este campo vacío para conservar la fuente guardada.</small> }
+            </label>
+            <label class="grid min-w-0 content-start gap-1">Ventana de reporte (segundos)
+              <input name="intervalo" type="number" min="1" step="1" class="ui-field w-full"
+                [(ngModel)]="nuevaCamara.intervaloMuestreoSeg" required />
+            </label>
+          </div>
+        </section>
+
+        <section class="ui-card p-4 desktop:p-5" aria-labelledby="titulo-area">
+          <h3 id="titulo-area" class="mt-0">Área de análisis</h3>
+          @if (!puntos().length) {
+            <p class="mt-0 text-label text-warning">Sin área, el motor omitirá esta cámara.</p>
+          }
+          <app-editor-poligono [(puntos)]="puntos" />
+        </section>
+      </fieldset>
+
+      <app-api-state [loading]="saving.loading()" [error]="saving.error()" [retryable]="false" />
+      <div class="flex flex-wrap items-center justify-end gap-2">
+        @if (!saving.loading()) {
+          <a routerLink="/camaras" class="ui-focus rounded-lg border border-solid border-field bg-white px-4 py-2 text-content no-underline">Cancelar</a>
+        }
+        <button type="submit" class="ui-focus cursor-pointer rounded-lg border-0 bg-brand px-4 py-2.5 text-white hover:bg-brand-hover"
+          [disabled]="saving.loading() || (!camara() && !zonas().length)">Guardar cámara</button>
+      </div>
+    </form>
+  }
+</section>

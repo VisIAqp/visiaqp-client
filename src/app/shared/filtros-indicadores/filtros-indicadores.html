@@ -1,0 +1,42 @@
+@let filtros = query();
+<form class="ui-card p-4 desktop:p-5 print:hidden" (ngSubmit)="filtros.buscar()">
+  <h2 class="mt-0">Consultar por zona</h2>
+  <app-api-state [loading]="filtros.catalogo.cargaInicial()" [error]="filtros.catalogo.error()"
+    (retry)="filtros.inicializar()" />
+  <div class="grid gap-3 desktop:grid-cols-2 expanded:grid-cols-4">
+    <label class="grid min-w-0 gap-1">Zona
+      <select name="zona" class="ui-field w-full" [(ngModel)]="filtros.zoneId" required>
+        @for (zona of filtros.zonas; track zona.id) {
+          <option [ngValue]="zona.id">{{ zona.nombre }}</option>
+        } @empty {
+          <option [ngValue]="0">Sin zonas disponibles</option>
+        }
+      </select>
+    </label>
+    <label class="grid min-w-0 gap-1">Desde
+      <input name="desde" type="date" class="ui-field w-full" [(ngModel)]="filtros.desde" required />
+    </label>
+    <label class="grid min-w-0 gap-1">Hasta
+      <input name="hasta" type="date" class="ui-field w-full" [(ngModel)]="filtros.hasta" required />
+    </label>
+    <label class="grid min-w-0 gap-1">Agrupar por
+      <select name="periodo" class="ui-field w-full" [(ngModel)]="filtros.periodo">
+        <option value="hora">Hora</option>
+        <option value="dia">Día</option>
+      </select>
+    </label>
+  </div>
+  @if (filtros.errorFiltros(); as mensaje) {
+    <p class="text-label text-danger" role="alert">{{ mensaje }}</p>
+  }
+  <div class="mt-3 flex flex-wrap justify-end gap-2">
+    <button type="button" class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2"
+      (click)="filtros.limpiar()" [disabled]="filtros.catalogo.loading() || filtros.request.loading() || !filtros.zoneId">
+      Restablecer fechas
+    </button>
+    <button type="submit" class="ui-focus cursor-pointer rounded-lg border-0 bg-brand px-4 py-2 text-white hover:bg-brand-hover"
+      [disabled]="filtros.catalogo.loading() || filtros.request.loading() || !filtros.zoneId">
+      Consultar
+    </button>
+  </div>
+</form>

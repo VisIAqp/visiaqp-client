@@ -1,10 +1,14 @@
 import { Routes } from '@angular/router';
 import { MainLayout } from './layout/main-layout/main-layout';
 import { Zonas } from './pages/zonas/zonas';
-import { Camaras } from './pages/camaras/camaras';
+import { Camaras } from './pages/camaras/listado/camaras';
 import { Monitoreo } from './pages/monitoreo/listado/monitoreo';
 import { Login } from './pages/login/login';
 import { authGuard } from './core/auth/auth-guard';
+import { adminGuard } from './core/auth/admin-guard';
+
+const cargarFormularioCamara = () =>
+  import('./pages/camaras/formulario/formulario-camara').then((m) => m.FormularioCamara);
 export const routes: Routes = [
   { path: 'login', component: Login },
   {
@@ -16,7 +20,11 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', loadComponent: () => import('./pages/dashboard/dashboard').then((m) => m.Dashboard) },
       { path: 'zonas', component: Zonas },
-      { path: 'camaras', component: Camaras },
+      { path: 'camaras', component: Camaras, pathMatch: 'full' },
+      { path: 'camaras/nueva', canActivate: [adminGuard], data: { sinPermiso: '/camaras' },
+        loadComponent: cargarFormularioCamara },
+      { path: 'camaras/:id/editar', canActivate: [adminGuard], data: { sinPermiso: '/camaras' },
+        loadComponent: cargarFormularioCamara },
       { path: 'monitoreo', component: Monitoreo, pathMatch: 'full' },
       { path: 'monitoreo/:id', loadComponent: () =>
         import('./pages/monitoreo/detalle/detalle-camara').then((m) => m.DetalleCamara) },

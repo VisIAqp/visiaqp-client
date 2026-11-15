@@ -1,150 +1,78 @@
-<form class="ui-card mb-5 p-5 print:hidden" (ngSubmit)="query().buscar()">
-  <div class="grid grid-cols-1 gap-4 desktop:grid-cols-2 expanded:grid-cols-4">
-    <label class="flex flex-col gap-2"
-      >Zona<select
-        name="zona"
-        class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
-        [(ngModel)]="query().zoneId"
-        required
-      >
-        @for (z of query().zonas; track z.id) {
-          <option [ngValue]="z.id">{{ z.nombre }}</option>
-        } @empty {
-          <option [ngValue]="0">No hay zonas</option>
-        }
-      </select></label
-    >
-    <label class="flex flex-col gap-2"
-      >Periodo<select
-        name="periodo"
-        class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
-        [(ngModel)]="query().periodo"
-      >
-        <option value="hora">Hora</option>
-        <option value="dia">Día</option>
-      </select></label
-    >
-    <label class="flex flex-col gap-2"
-      >Fecha inicial<input
-        name="desde"
-        class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
-        type="date"
-        [(ngModel)]="query().desde"
-        required /></label
-    ><label class="flex flex-col gap-2"
-      >Fecha final<input
-        name="hasta"
-        class="ui-field w-full py-2.5 focus:border-brand focus-visible:ring-1 focus-visible:ring-brand"
-        type="date"
-        [(ngModel)]="query().hasta"
-        required
-    /></label>
-  </div>
-  <div class="mt-4 flex justify-end gap-3">
-    <button
-      class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2 disabled:cursor-default disabled:opacity-45"
-      type="button"
-      (click)="query().limpiar()"
-      [disabled]="query().request.loading()"
-    >
-      Restablecer fechas</button
-    ><button
-      class="ui-focus cursor-pointer rounded-lg border-0 bg-brand hover:bg-brand-hover px-4 py-2.5 text-white disabled:cursor-default disabled:opacity-45"
-      [disabled]="query().request.loading() || !query().zoneId"
-    >
-      Consultar
-    </button>
-  </div>
-</form>
-<app-api-state
-  [loading]="query().request.loading()"
-  [error]="query().request.error()"
-  (retry)="query().inicializar()"
-/>
-@if (!query().request.loading() && !query().request.error()) {
-  <div class="mb-5 grid gap-4 desktop:grid-cols-3">
-    <div class="ui-card p-5">
-      <span class="text-muted">Periodos consultados</span
-      ><strong class="block text-metric">{{ query().rows.length }}</strong>
+@let datos = query();
+@let conConteos = verConteos() || printAll();
+<section class="ui-card min-w-0 overflow-hidden print:overflow-visible" aria-labelledby="titulo-tabla-indicadores">
+  <div class="flex flex-wrap items-start justify-between gap-3 p-4 desktop:p-5 print:p-2">
+    <div>
+      <h3 id="titulo-tabla-indicadores" class="m-0">Detalle por {{ datos.aplicado()?.periodo === 'hora' ? 'hora' : 'día' }}</h3>
+      <p class="mt-1 mb-0 text-label text-muted">Promedio y máximo de personas presentes en cada periodo.</p>
     </div>
-    <div class="ui-card p-5">
-      <span class="text-muted">Suma de conteos por ventana</span
-      ><strong class="block text-metric">{{
-        query().rows.length ? query().sum : 'Sin datos'
-      }}</strong
-      ><small class="text-muted">Una persona puede contarse en varias ventanas o cámaras.</small>
-    </div>
-    <div class="ui-card p-5">
-      <span class="text-muted">Máximo por ventana</span
-      ><strong class="block text-metric">{{ query().max ?? 'Sin datos' }}</strong>
-    </div>
+    @if (datos.rows.length) {
+      <button type="button" class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-3 py-2 text-label print:hidden"
+        [attr.aria-expanded]="verConteos()" aria-controls="tabla-indicadores" (click)="verConteos.set(!verConteos())">
+        {{ verConteos() ? 'Ocultar conteos por ventana' : 'Ver conteos por ventana' }}
+      </button>
+    }
   </div>
-}
-<div class="ui-card mb-5 overflow-hidden">
-  <h3 class="px-5">Indicadores por {{ query().periodo === 'hora' ? 'hora' : 'día' }}</h3>
-  <details class="mb-3 px-5 text-label text-muted print:hidden">
-    <summary class="ui-focus cursor-pointer rounded-sm">Cómo interpretar los indicadores</summary>
-    <p>
-      Hasta 2000 periodos por zona, en hora de Lima. La ocupación se muestra cuando las mediciones
-      del periodo pueden consolidarse en una sola vista.
+  @if (conConteos && datos.rows.length) {
+    <p class="mx-4 mt-0 mb-3 text-label text-muted desktop:mx-5 print:mx-2">
+      Suma de conteos por ventana: <strong>{{ datos.sum | number }}</strong>.
+      Una persona puede contarse en varias ventanas o cámaras.
     </p>
-  </details>
-  <div class="overflow-x-auto">
-    <table class="w-full min-w-table border-collapse">
-      <thead>
-        <tr>
-          <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Inicio del periodo</th>
-          <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Zona</th>
-          <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Suma de conteos por ventana</th>
-          <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">
-            Promedio por ventana
-          </th>
-          <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Máximo</th>
-          <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Ocupación: promedio / máximo / nivel</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (i of printAll() ? query().rows : query().visible; track i.id) {
+  }
+
+  @if (datos.rows.length) {
+    <div class="ui-focus overflow-x-auto print:overflow-visible" tabindex="0" role="region" aria-label="Tabla de indicadores">
+      <table id="tabla-indicadores" class="w-full min-w-[30rem] border-collapse text-label tabular-nums print:min-w-0 print:text-caption">
+        <thead class="print:table-header-group">
           <tr>
-            <td class="ui-table-cell py-3.5 text-label">
-              {{ i.periodoInicio | date: 'dd/MM/yyyy HH:mm' : '-0500' }}
-            </td>
-            <td class="ui-table-cell py-3.5 text-label">{{ query().nombreZona(i.zonaId) }}</td>
-            <td class="ui-table-cell py-3.5 text-label">{{ i.totalPeatones }}</td>
-            <td class="ui-table-cell py-3.5 text-label">
-              {{ i.promedioPeatones | number: '1.0-2' }}
-            </td>
-            <td class="ui-table-cell py-3.5 text-label">{{ i.maxPeatones }}</td>
-            <td class="ui-table-cell py-3.5 text-label">
-              <span
-                class="rounded-badge px-2.5 py-1.25 text-caption"
-                [ngClass]="{
-                  'bg-success-soft text-success': i.nivelOcupacion === 'bajo',
-                  'bg-warning-soft text-warning': i.nivelOcupacion === 'medio',
-                  'bg-danger-soft text-danger': i.nivelOcupacion === 'alto',
-                }"
-                >{{ i.promedioPresentes === null || i.promedioPresentes === undefined ? 'Sin medición consolidada' : (i.promedioPresentes | number: '1.0-2') }} / {{ i.maxPresentes ?? '—' }} / {{ i.nivelOcupacion ? (i.nivelOcupacion | titlecase) : 'Sin nivel' }}</span
-              >
-            </td>
+            <th class="ui-table-cell px-3 py-2 print:px-1" scope="col">Periodo (Lima)</th>
+            <th class="ui-table-cell px-3 py-2 print:px-1" scope="col">Promedio de ocupación</th>
+            <th class="ui-table-cell px-3 py-2 print:px-1" scope="col">Máximo observado</th>
+            <th class="ui-table-cell px-3 py-2 print:px-1" scope="col">Nivel / estado</th>
+            @if (conConteos) {
+              <th class="ui-table-cell px-3 py-2 print:px-1" scope="col">Suma de conteos por ventana</th>
+              <th class="ui-table-cell px-3 py-2 print:px-1" scope="col">Conteo promedio por ventana</th>
+              <th class="ui-table-cell px-3 py-2 print:px-1" scope="col">Conteo máximo por ventana</th>
+            }
           </tr>
-        } @empty {
-          @if (!query().request.loading() && !query().request.error()) {
-            <tr>
-              <td colspan="6" class="ui-table-cell py-3.5 text-label">
-                No hay indicadores para los filtros seleccionados.
+        </thead>
+        <tbody>
+          @for (fila of printAll() ? datos.rows : datos.visible; track fila.id) {
+            <tr class="print:break-inside-avoid">
+              <td class="ui-table-cell px-3 py-2 print:px-1">
+                {{ fila.periodoInicio | date:(fila.periodoTipo === 'hora' ? 'dd/MM/yyyy HH:mm' : 'dd/MM/yyyy'):'-0500' }}
               </td>
+              <td class="ui-table-cell px-3 py-2 print:px-1">
+                {{ fila.promedioPresentes == null ? 'Sin medición' : (fila.promedioPresentes | number:'1.0-2') }}
+              </td>
+              <td class="ui-table-cell px-3 py-2 print:px-1">{{ fila.maxPresentes ?? '—' }}</td>
+              <td class="ui-table-cell px-3 py-2 print:px-1">
+                @if (fila.nivelOcupacion && fila.promedioPresentes != null) {
+                  <span class="inline-flex rounded-full px-2 py-1 text-caption font-medium"
+                    [class.bg-success-soft]="fila.nivelOcupacion === 'bajo'" [class.text-success]="fila.nivelOcupacion === 'bajo'"
+                    [class.bg-warning-soft]="fila.nivelOcupacion === 'medio'" [class.text-warning]="fila.nivelOcupacion === 'medio'"
+                    [class.bg-danger-soft]="fila.nivelOcupacion === 'alto'" [class.text-danger]="fila.nivelOcupacion === 'alto'">
+                    {{ fila.nivelOcupacion | titlecase }}
+                  </span>
+                } @else {
+                  <span class="text-muted">{{ estadoMedicion(fila.estadoOcupacion) }}</span>
+                }
+              </td>
+              @if (conConteos) {
+                <td class="ui-table-cell px-3 py-2 print:px-1">{{ fila.totalPeatones | number }}</td>
+                <td class="ui-table-cell px-3 py-2 print:px-1">{{ fila.promedioPeatones | number:'1.0-2' }}</td>
+                <td class="ui-table-cell px-3 py-2 print:px-1">{{ fila.maxPeatones | number }}</td>
+              }
             </tr>
           }
-        }
-      </tbody>
-    </table>
-  </div>
-  <app-pagination
-    class="print:hidden"
-    [unit]="'periodos'"
-    [page]="query().page"
-    [pages]="query().pages"
-    [total]="query().rows.length"
-    (pageChange)="query().cambiarPagina($event)"
-  />
-</div>
+        </tbody>
+      </table>
+    </div>
+    @if (datos.pages > 1) {
+      <app-pagination class="print:hidden" unit="periodos" [page]="datos.page" [pages]="datos.pages"
+        [total]="datos.rows.length" (pageChange)="datos.cambiarPagina($event)" />
+    }
+  } @else {
+    <p class="mx-4 mt-0 mb-4 text-label text-muted desktop:mx-5">No hay indicadores para los filtros aplicados.</p>
+  }
+</section>

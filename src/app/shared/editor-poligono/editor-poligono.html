@@ -1,0 +1,57 @@
+<div class="grid gap-3">
+  <div class="flex flex-wrap items-end gap-2">
+    <label class="grid min-w-0 gap-1">Imagen de referencia (opcional)
+      <input type="file" accept="image/jpeg,image/png,image/webp" class="max-w-full text-label" (change)="cargarImagen($event)" />
+    </label>
+    @if (imagen()) {
+      <button type="button" class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-3 py-2 text-label"
+        (click)="quitarImagen()">Quitar imagen</button>
+    }
+  </div>
+  @if (errorImagen()) { <p class="m-0 text-label text-danger" role="alert">{{ errorImagen() }}</p> }
+  <p class="m-0 text-label text-muted">Usa una captura completa de la cámara y marca los vértices en orden.</p>
+  <div class="overflow-hidden rounded-lg border border-solid border-divider">
+    <div #lienzo class="relative w-full cursor-crosshair bg-canvas" [class.aspect-video]="!imagen()"
+      (click)="dibujar($event, lienzo)">
+      @if (imagen(); as fuente) {
+        <img class="pointer-events-none block h-auto w-full" [src]="fuente" alt="Imagen de referencia del área de análisis"
+          (error)="mostrarErrorImagen()" />
+      } @else {
+        <div aria-hidden="true" class="pointer-events-none absolute inset-0 grid grid-cols-8 grid-rows-4">
+          @for (celda of cuadricula; track celda) { <span class="border-0 border-r border-b border-solid border-divider"></span> }
+        </div>
+      }
+      <svg class="pointer-events-none absolute inset-0 h-full w-full text-brand" aria-hidden="true"
+        viewBox="0 0 100 100" preserveAspectRatio="none">
+        @if (puntos().length >= 3) {
+          <polygon [attr.points]="trazo()" class="fill-brand/25" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke" />
+        } @else {
+          <polyline [attr.points]="trazo()" fill="none" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke" />
+        }
+      </svg>
+      @for (punto of puntos(); track $index) {
+        <span class="pointer-events-none absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-solid border-white bg-brand"
+          aria-hidden="true" [style.left.%]="punto[0] * 100" [style.top.%]="punto[1] * 100"></span>
+      }
+    </div>
+  </div>
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <span class="text-label text-muted">{{ puntos().length }} vértices</span>
+    <div class="flex flex-wrap gap-2">
+      <button type="button" class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-3 py-2 text-label"
+        [disabled]="!puntos().length" (click)="quitarUltimo()">Deshacer último</button>
+      <button type="button" class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-3 py-2 text-label"
+        [disabled]="!puntos().length && !coordenadas()" (click)="limpiar()">Limpiar área</button>
+    </div>
+  </div>
+  <details class="text-label">
+    <summary class="ui-focus cursor-pointer rounded-sm font-medium">Editar coordenadas</summary>
+    <label class="mt-2 grid gap-1">Coordenadas normalizadas en JSON
+      <textarea #texto class="ui-field w-full p-2 font-mono" rows="3" [value]="coordenadas()"
+        (input)="coordenadas.set(texto.value); errorCoordenadas.set('')" placeholder="[[0,0],[1,0],[1,1],[0,1]]"></textarea>
+    </label>
+    <button type="button" class="ui-focus mt-2 cursor-pointer rounded-lg border border-solid border-field bg-white px-3 py-2"
+      (click)="aplicarCoordenadas()">Aplicar coordenadas</button>
+  </details>
+  @if (errorCoordenadas()) { <p class="m-0 text-label text-danger" role="alert">{{ errorCoordenadas() }}</p> }
+</div>

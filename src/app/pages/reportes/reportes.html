@@ -1,29 +1,27 @@
-<section class="mx-auto min-w-0 max-w-page">
-  <header class="report-heading"><div><h2 class="mt-0">Reportes</h2>
-  <p class="text-muted">
-    Consulta y exporta indicadores por zona.
-  </p>
-  </div><div class="report-actions print:hidden">
-    <button
-      class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2 disabled:cursor-default disabled:opacity-45"
-      [disabled]="!exportable"
-      (click)="exportarCsv()"
-    >
-      Descargar CSV</button
-    ><button
-      class="ui-focus cursor-pointer rounded-lg border-0 bg-brand hover:bg-brand-hover px-4 py-2.5 text-white disabled:cursor-default disabled:opacity-45"
-      [disabled]="!exportable"
-      (click)="imprimir()"
-    >
-      Imprimir / guardar PDF
-    </button>
-  </div>
-  </header><details class="reading-help print:hidden"><summary>Alcance y formato de la exportación</summary><p class="text-label text-muted">
-    La exportación incluye todos los periodos devueltos por la consulta (máximo 2000), no solo la
-    página visible. CSV es compatible con hojas de cálculo.
-  </p></details>
-  <app-indicator-view [query]="history" [printAll]="printing" />
-  @if (!history.request.loading() && !history.request.error()) {
-    <app-ocupacion-historica [filas]="history.rows" />
+<div class="mx-auto grid min-w-0 max-w-page gap-5 print:block">
+  <app-filtros-indicadores class="print:hidden" [query]="history" />
+  <app-api-state class="print:hidden" [loading]="history.request.loading()" [error]="history.request.error()"
+    [actualizado]="history.request.actualizado()" (retry)="history.reintentar()" />
+
+  @if (history.aplicado(); as filtros) {
+    <section class="grid min-w-0 gap-4 print:block" aria-labelledby="titulo-resultados">
+      <header class="flex flex-wrap items-start justify-between gap-3 print:mb-3">
+        <div>
+          <h2 id="titulo-resultados" class="m-0">Resultados</h2>
+          <p class="mt-1 mb-0 text-label text-muted">
+            {{ history.nombreZona(filtros.zoneId) }} · {{ fechaDia(filtros.desde) }} al {{ fechaDia(filtros.hasta) }} (Lima)
+            · Por {{ filtros.periodo === 'hora' ? 'hora' : 'día' }}
+          </p>
+          @if (history.rows.length === 2000) {
+            <p class="mt-1 mb-0 text-caption text-muted">Se muestran los primeros 2000 periodos del rango.</p>
+          }
+        </div>
+        <app-acciones-exportacion [total]="history.rows.length" [habilitada]="exportable"
+          (descargarCsv)="exportarCsv()" (imprimir)="imprimir()" />
+      </header>
+
+      @if (history.rows.length) { <app-ocupacion-historica [filas]="history.rows" /> }
+      <app-indicator-view [query]="history" [printAll]="printing" />
+    </section>
   }
-</section>
+</div>

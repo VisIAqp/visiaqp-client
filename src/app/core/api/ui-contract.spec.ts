@@ -1,11 +1,14 @@
 import { IndicatorQuery } from './indicator-query';
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { Auth } from '../auth/auth';
 import { Dashboard } from '../../pages/dashboard/dashboard';
-import { Camaras } from '../../pages/camaras/camaras';
+import { Camaras } from '../../pages/camaras/listado/camaras';
+import { FormularioCamara } from '../../pages/camaras/formulario/formulario-camara';
+import { EditorPoligono } from '../../shared/editor-poligono/editor-poligono';
 import { Analisis } from '../../pages/analisis/analisis';
 import { Reportes } from '../../pages/reportes/reportes';
 import { Procesamiento } from '../models/analisis.model';
@@ -51,7 +54,7 @@ describe('Integrated page behavior with HTTP test responses', () => {
   beforeEach(() => {
     sessionStorage.clear();
     TestBed.configureTestingModule({
-      imports: [Dashboard, Camaras, Analisis, Reportes],
+      imports: [Dashboard, Camaras, FormularioCamara, Analisis, Reportes],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -107,20 +110,17 @@ describe('Integrated page behavior with HTTP test responses', () => {
     http.expectOne(base + '/admin/camaras').flush([camera]);
     http.expectOne(base + '/zonas').flush([zone]);
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).not.toContain('+ Nueva cámara');
+    expect(fixture.nativeElement.textContent).not.toContain('Nueva cámara');
     expect(fixture.nativeElement.textContent).not.toContain('Desactivar');
-    fixture.componentInstance.abrirFormulario();
-    expect(fixture.componentInstance.mostrarFormulario).toBeFalse();
     fixture.destroy();
   });
   it('waits for server confirmation and leaves a rejected camera form open', () => {
     role('Administrador');
-    const fixture = TestBed.createComponent(Camaras);
+    const fixture = TestBed.createComponent(FormularioCamara);
     fixture.detectChanges();
-    http.expectOne(base + '/admin/camaras').flush([]);
     http.expectOne(base + '/zonas').flush([zone]);
     const page = fixture.componentInstance;
-    page.abrirFormulario();
+    fixture.detectChanges();
     page.nuevaCamara = {
       nombre: 'Cámara contrato',
       zonaId: 23,
@@ -131,30 +131,28 @@ describe('Integrated page behavior with HTTP test responses', () => {
       zonePolygon: null,
     };
     page.guardarCamara();
-    expect(page.mostrarFormulario).toBeTrue();
-    expect(page.camaras.length).toBe(0);
+    expect(fixture.nativeElement.querySelector('form')).not.toBeNull();
     const req = http.expectOne(base + '/admin/camaras');
     req.flush({ detail: 'Conflicto de datos' }, { status: 409, statusText: 'Conflict' });
     fixture.detectChanges();
-    expect(page.mostrarFormulario).toBeTrue();
-    expect(page.camaras.length).toBe(0);
+    expect(fixture.nativeElement.querySelector('form')).not.toBeNull();
     expect(fixture.nativeElement.textContent).toContain('Conflicto de datos');
     fixture.destroy();
   });
   it('does not send an invalid normalized polygon to the API', () => {
     role('Administrador');
-    const fixture = TestBed.createComponent(Camaras);
+    const fixture = TestBed.createComponent(FormularioCamara);
     fixture.detectChanges();
-    http.expectOne(base + '/admin/camaras').flush([]);
     http.expectOne(base + '/zonas').flush([zone]);
     const page = fixture.componentInstance;
-    page.abrirFormulario();
+    fixture.detectChanges();
     page.nuevaCamara.nombre = 'Cámara';
     page.nuevaCamara.zonaId = 23;
     page.nuevaCamara.urlStream = 'rtsp://example.invalid/video';
-    page.poligono = '[[0,0],[2,0],[1,1]]';
+    const editor = fixture.debugElement.query(By.directive(EditorPoligono)).componentInstance as EditorPoligono;
+    editor.coordenadas.set('[[0,0],[2,0],[1,1]]');
     page.guardarCamara();
-    expect(page.saving.error()).toContain('coordenadas entre 0 y 1');
+    expect(editor.errorCoordenadas()).toContain('coordenadas entre 0 y 1');
     http.expectNone((r) => r.method === 'POST');
     fixture.destroy();
   });

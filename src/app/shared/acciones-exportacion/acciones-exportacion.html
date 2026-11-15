@@ -1,0 +1,12 @@
+<div class="flex flex-col gap-2 print:hidden">
+  <div class="flex flex-wrap gap-2 desktop:justify-end">
+    <button type="button" class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2"
+      [disabled]="!habilitada()" (click)="descargarCsv.emit()">Descargar CSV</button>
+    <button type="button" class="ui-focus cursor-pointer rounded-lg border-0 bg-brand px-4 py-2 text-white hover:bg-brand-hover"
+      [disabled]="!habilitada()" (click)="imprimir.emit()">Imprimir / guardar PDF</button>
+  </div>
+  <p class="m-0 text-caption text-muted desktop:text-right">
+    @if (total()) { Ambos formatos incluyen los {{ total() | number }} periodos de esta consulta. }
+    @else { La exportación se habilita cuando hay periodos para la consulta. }
+  </p>
+</div>

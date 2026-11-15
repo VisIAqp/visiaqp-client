@@ -127,13 +127,6 @@ app-pagination span { font-size: .75rem; color: var(--color-muted); }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
 @media print { .ui-card { box-shadow: none; } .form-guide { display: none; } }
 
-/* Compact analytical hierarchy, keeping each camera/run separate. */
-app-dashboard .metrica { border-top: 2px solid #dce6ff; }
-app-dashboard .metrica strong { color: #193f9e; }
-app-dashboard .kicker { color: var(--color-brand); letter-spacing: .12em; font-weight: 700; }
-app-dashboard .grafico { height: 19rem; }
-app-dashboard .grafico-corto { height: 15rem; }
-app-dashboard .panel { margin: 1rem 0; }
 app-monitoreo aside button[aria-pressed="true"] { border-left: 3px solid var(--color-brand); color: #1945c4; }
 
 
@@ -174,5 +167,3 @@ app-monitoreo h4 { border-top: 1px solid var(--color-border); padding-top: 1.25r
 .form-section-title { grid-column:1/-1; margin:.4rem 0 0; padding-bottom:.6rem; border-bottom:1px solid var(--color-divider); font-weight:600; font-size:.8125rem; color:#405578; }
 .status-badge.is-error { background:var(--color-danger-soft); color:var(--color-danger); }
 @media print { .section-navigation, .reading-help { display:none; } .report-heading { display:block; } }
-
-app-dashboard .filtros[hidden] { display: none; }

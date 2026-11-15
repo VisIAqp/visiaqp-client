@@ -38,7 +38,7 @@ export class Reportes implements OnInit {
         'Periodo',
         'Inicio (Lima)',
         'Fin (Lima)',
-        'Suma de conteos',
+        'Suma de conteos por ventana',
         'Promedio por ventana',
         'Máximo por ventana',
         'Ocupación promedio',

@@ -1,162 +1,324 @@
-<section class="mx-auto min-w-0 max-w-page">
-  <header class="cabecera">
-    <div><p class="kicker">VISIAQP · ANÁLISIS PEATONAL</p><h2>Panorama de actividad</h2>
-      <p class="text-muted">Ocupación observada, patrones y estado del monitoreo.</p></div>
-    <div class="flex flex-wrap items-center gap-3">
-      <button type="button" class="boton" (click)="refrescarMetricas()" [disabled]="!consulta">Actualizar métricas</button>
-      <button type="button" class="boton boton-principal" aria-controls="filtros-dashboard" [attr.aria-expanded]="mostrarFiltros" (click)="mostrarFiltros = !mostrarFiltros">{{ mostrarFiltros ? 'Ocultar filtros' : 'Mostrar filtros' }}</button>
-    </div>
-  </header>
-  <app-api-state [loading]="request.loading()" [error]="request.error()" (retry)="cargar()" />
-  <form id="filtros-dashboard" class="ui-card filtros" [hidden]="!mostrarFiltros" (ngSubmit)="buscar()">
-    <label>Desde<input class="ui-field" type="date" name="desde" [(ngModel)]="desde" required /></label>
-    <label>Hasta<input class="ui-field" type="date" name="hasta" [(ngModel)]="hasta" required /></label>
-    <label>Zona<select class="ui-field" name="zona" [(ngModel)]="zonaSeleccionada" (ngModelChange)="cambiarZona()">
-      <option [ngValue]="0">Todas las zonas</option>
-      @for (z of zonas; track z.id) { <option [ngValue]="z.id">{{ z.nombre }}</option> }
-    </select></label>
-    <label>Cámara<select class="ui-field" name="camara" [(ngModel)]="camaraSeleccionada" (ngModelChange)="ejecucionId = null">
-      <option [ngValue]="0">Todas las cámaras</option>
-      @for (c of camarasFiltradas; track c.id) { <option [ngValue]="c.id">{{ c.nombre }}</option> }
-    </select></label>
-    <label>Fuente<select class="ui-field" name="fuente" [(ngModel)]="fuente" (ngModelChange)="ejecucionId = null">
-      <option value="">Todas las fuentes</option><option value="stream">Transmisiones</option>
-      <option value="video">Videos</option><option value="imagen">Imágenes</option>
-    </select></label>
-    <label>Agrupar por<select class="ui-field" name="periodo" [(ngModel)]="periodoTipo">
-      <option value="hora">Hora</option><option value="dia">Día</option>
-    </select></label>
-    <label>Ejecución opcional<input class="ui-field" name="ejecucion" type="number" min="1" step="1" placeholder="ID del análisis" [(ngModel)]="ejecucionId" /></label>
-    <button class="boton boton-principal" type="submit" [disabled]="request.loading()">Aplicar filtros</button>
-    <small class="filtros-nota text-muted">Hasta 31 días. Horas de captura de Lima. Los cambios se aplican al consultar.</small>
-  </form>
-  @if (errorFiltros) { <p class="aviso text-danger" role="alert">{{ errorFiltros }}</p> }
-
-  <app-api-state [loading]="resumenEstado.cargaInicial()" [error]="resumenEstado.error()" [actualizado]="resumenEstado.actualizado()" (retry)="cargarResumen()" />
-  @if (resumen; as r) {
-    <div class="contexto text-muted">
-      <span>Rango consultado: {{ fecha(r.desde) }} → {{ fecha(r.hasta) }} (fin exclusivo)</span>
-      <span>Consulta: {{ fecha(r.consultado_en) }}</span>
-    </div>
-    <div class="metricas">
-
-      <article class="ui-card metrica"><span>Suma de identificadores</span><strong>{{ r.suma_identificadores | number }}</strong><small>Puede repetir personas. No son visitantes únicos.</small></article>
-      <article class="ui-card metrica"><span>Transmisiones reportando</span><strong>{{ r.transmisiones_reportando | number }}</strong><small>Estado actual del motor, según filtros</small></article>
-      <article class="ui-card metrica"><span>Cámaras habilitadas</span><strong>{{ r.camaras_habilitadas }}/{{ r.camaras_registradas }}</strong><small>{{ r.zonas_activas }} zonas activas en el inventario filtrado</small></article>
-      <article class="ui-card metrica"><span>Ejecuciones en curso</span><strong>{{ r.procesamientos_en_curso | number }}</strong><small>Total actual según los filtros aplicados</small></article>
-      <article class="ui-card metrica"><span>Videos pendientes</span><strong>{{ r.videos_pendientes | number }}</strong><small>Cola actual, independiente del rango de captura</small></article>
-    </div>
-    <p class="aviso text-muted">Última captura incluida: <strong>{{ fecha(r.ultima_ventana_fin) }}</strong> · Última recepción: <strong>{{ fecha(r.ultima_recepcion) }}</strong>. Los contadores operativos reflejan el estado actual.</p>
-    @if (r.cantidad_ventanas > 0 && r.ventanas_con_ocupacion === 0) {
-      <p class="aviso text-warning">El rango contiene conteos históricos, pero aún no tiene mediciones de ocupación. Los conteos no se convierten en personas presentes.</p>
+<section class="mx-auto grid min-w-0 max-w-page gap-5">
+  <section aria-labelledby="titulo-actividad">
+    <header class="mb-3 flex flex-wrap items-center justify-between gap-3">
+      <h2 id="titulo-actividad" class="m-0">Actividad general</h2>
+      <a routerLink="/monitoreo" class="ui-focus rounded-sm text-label font-semibold text-brand no-underline hover:underline">
+        Ir a Monitoreo <span aria-hidden="true">→</span>
+      </a>
+    </header>
+    <app-api-state [loading]="resumenEstado.cargaInicial()" [error]="resumenEstado.error()"
+      [actualizado]="resumenEstado.actualizado()" (retry)="cargarResumen()" />
+    @if (resumen; as r) {
+      <dl class="m-0 grid gap-3 desktop:grid-cols-3">
+        <div class="ui-card border-t-2 border-t-brand bg-brand-soft p-4">
+          <dt class="text-label font-medium">Transmisiones reportando</dt>
+          <dd class="m-0 mt-1 text-stat font-semibold text-brand tabular-nums">{{ r.transmisiones_reportando | number }}</dd>
+        </div>
+        <div class="ui-card p-4">
+          <dt class="text-label text-muted">Ejecuciones en curso</dt>
+          <dd class="m-0 mt-1 text-stat font-semibold tabular-nums">{{ r.procesamientos_en_curso | number }}</dd>
+        </div>
+        <div class="ui-card p-4">
+          <dt class="text-label text-muted">Videos pendientes</dt>
+          <dd class="m-0 mt-1 text-stat font-semibold tabular-nums">{{ r.videos_pendientes | number }}</dd>
+        </div>
+      </dl>
+      <p class="mt-2 mb-0 text-caption text-muted">Última consulta · {{ fecha(r.consultado_en) }} (Lima)</p>
     }
-    @if (r.cantidad_ventanas === 0) { <p class="aviso">No hay ventanas para los filtros seleccionados. La ausencia de observaciones no significa cero personas.</p> }
-  }
+  </section>
 
-  <section class="ui-card panel" aria-labelledby="titulo-serie">
-    <div class="titulo"><div><h3 id="titulo-serie">Personas presentes a lo largo del tiempo</h3>
-      <details class="reading-help"><summary>Cómo interpretar este gráfico</summary><p class="text-muted">Promedio temporal por cámara y ejecución. Los huecos de la selección visible quedan sin conectar. Un periodo cerrado no garantiza cobertura completa.</p></details></div>
-      @if (ejecucionesSerie.length) {
-        <label>Series de esta página<select class="ui-field" [(ngModel)]="serieElegida" (ngModelChange)="actualizarSerie()">
-          @if (ejecucionesSerie.length <= 8) { <option [ngValue]="0">Comparar todas ({{ ejecucionesSerie.length }})</option> }
-          @for (s of ejecucionesSerie; track s.id_procesamiento) { <option [ngValue]="s.id_procesamiento">{{ etiquetaSerie(s) }}</option> }
-        </select></label>
-      }
-    </div>
-    <app-api-state [loading]="serie.estado.cargaInicial()" [error]="serie.estado.error()" [actualizado]="serie.estado.actualizado()" (retry)="serie.reintentar()" />
-    <div class="grafico" [hidden]="!serieConMedicion"><canvas #serieCanvas role="img" aria-label="Ocupación temporal por cámara y ejecución. Los valores se describen en la tabla siguiente."></canvas></div>
-    @if (serie.pagina; as p) {
-      @if (!p.datos.length) { <p>No hay series para los filtros seleccionados.</p> }
-      @else if (!serieConMedicion) { <p>No hay ocupación consolidada en la selección. Revisa el estado de las mediciones en el detalle.</p> }
-      <p class="nota text-muted">Gráfico de la página {{ serie.numeroPagina }} de {{ serie.paginas }}. {{ p.total }} grupos en total. Si hay más de ocho ejecuciones, selecciona una serie para leerla con claridad.</p>
-      @if (filasTablaSerie.length) {
-        <details><summary>Detalle accesible · {{ filasTablaSerie.length }} filas de la selección visible</summary>
-          <div class="tabla-scroll"><table class="tabla"><thead><tr><th>Periodo (Lima)</th><th>Ejecución</th><th>Promedio / máximo</th><th>Observación</th><th>Estado</th></tr></thead><tbody>
-            @for (f of filasTablaSerie; track f.id_procesamiento + ':' + f.periodo_inicio) {
-              <tr><td>{{ fecha(f.periodo_inicio) }}<small>{{ f.periodo_cerrado ? 'Periodo cerrado' : 'Periodo abierto' }}</small></td>
-                <td>{{ etiquetaSerie(f) }}</td><td>{{ f.promedio_presentes === null ? 'Sin medición' : (f.promedio_presentes | number:'1.0-2') }} / {{ f.max_presentes ?? '—' }}</td>
-                <td>{{ f.segundos_observados === null ? 'Sin medición' : (f.segundos_observados | number:'1.0-1') }} s</td><td>{{ estadoMedicion(f.estado_ocupacion) }}</td></tr>
+  <section class="ui-card p-4 desktop:p-5" aria-labelledby="titulo-serie">
+    <header class="mb-4 flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h2 id="titulo-serie" class="mt-0 mb-1">Ocupación observada</h2>
+        @if (consulta) {
+          <p class="m-0 text-label text-muted">{{ rangoAplicado }} (Lima)</p>
+          <ul class="mt-2 mb-0 flex list-none flex-wrap gap-2 p-0 text-caption" aria-label="Filtros aplicados" role="list">
+            @for (filtro of filtrosAplicados; track $index) {
+              <li class="rounded-full bg-canvas px-2.5 py-1 text-muted">{{ filtro }}</li>
             }
-          </tbody></table></div>
+          </ul>
+        }
+      </div>
+    </header>
+
+    <app-api-state [loading]="request.loading()" [error]="request.error()" (retry)="cargar()" />
+    <form class="mb-4 rounded-lg border border-solid border-divider p-3" (ngSubmit)="buscar()">
+      <div class="grid gap-3 desktop:grid-cols-2 expanded:grid-cols-4">
+        <label class="grid min-w-0 gap-1">
+          Desde
+          <input class="ui-field w-full" type="date" name="desde" [(ngModel)]="desde" required />
+        </label>
+        <label class="grid min-w-0 gap-1">
+          Hasta
+          <input class="ui-field w-full" type="date" name="hasta" [(ngModel)]="hasta" required />
+        </label>
+        <label class="grid min-w-0 gap-1">
+          Zona
+          <select class="ui-field w-full" name="zona" [(ngModel)]="zonaSeleccionada" (ngModelChange)="cambiarZona()">
+            <option [ngValue]="0">Todas las zonas</option>
+            @for (z of zonas; track z.id) { <option [ngValue]="z.id">{{ z.nombre }}</option> }
+          </select>
+        </label>
+        <label class="grid min-w-0 gap-1">
+          Cámara
+          <select class="ui-field w-full" name="camara" [(ngModel)]="camaraSeleccionada" (ngModelChange)="ejecucionId = null">
+            <option [ngValue]="0">Todas las cámaras</option>
+            @for (c of camarasFiltradas; track c.id) { <option [ngValue]="c.id">{{ c.nombre }}</option> }
+          </select>
+        </label>
+      </div>
+      <details class="mt-3 text-label">
+        <summary class="ui-focus cursor-pointer rounded-sm font-medium">Filtros avanzados</summary>
+        <div class="mt-3 grid gap-3 desktop:grid-cols-3">
+          <label class="grid min-w-0 gap-1">
+            Fuente
+            <select class="ui-field w-full" name="fuente" [(ngModel)]="fuente" (ngModelChange)="ejecucionId = null">
+              <option value="">Todas las fuentes</option>
+              <option value="stream">Transmisiones</option>
+              <option value="video">Videos</option>
+              <option value="imagen">Imágenes</option>
+            </select>
+          </label>
+          <label class="grid min-w-0 gap-1">
+            Agrupar por
+            <select class="ui-field w-full" name="periodo" [(ngModel)]="periodoTipo">
+              <option value="hora">Hora</option>
+              <option value="dia">Día</option>
+            </select>
+          </label>
+          <label class="grid min-w-0 gap-1">
+            ID de ejecución (opcional)
+            <input class="ui-field w-full" name="ejecucion" type="number" min="1" step="1" [(ngModel)]="ejecucionId" />
+          </label>
+        </div>
+      </details>
+      <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <small class="text-muted">Hasta 31 días.</small>
+        <button type="submit" class="ui-focus cursor-pointer rounded-lg border-0 bg-brand px-4 py-2 text-white hover:bg-brand-hover"
+          [disabled]="request.loading()">Aplicar filtros</button>
+      </div>
+    </form>
+    @if (errorFiltros) { <p class="text-label text-danger" role="alert">{{ errorFiltros }}</p> }
+
+    <app-api-state [loading]="serie.estado.cargaInicial()" [error]="serie.estado.error()"
+      [actualizado]="serie.estado.actualizado()" (retry)="serie.reintentar()" />
+
+    @if (ejecucionesSerie.length) {
+      <label class="mb-3 grid max-w-md gap-1">
+        Series de esta página
+        <select class="ui-field w-full" [(ngModel)]="serieElegida" (ngModelChange)="actualizarSerie()">
+          @if (ejecucionesSerie.length <= 8) { <option [ngValue]="0">Todas ({{ ejecucionesSerie.length }})</option> }
+          @for (s of ejecucionesSerie; track s.id_procesamiento) { <option [ngValue]="s.id_procesamiento">{{ etiquetaSerie(s) }}</option> }
+        </select>
+      </label>
+    }
+
+    <div class="relative h-72 min-w-0 desktop:h-88" [class.hidden]="!serieConMedicion">
+      <canvas #serieCanvas role="img" aria-label="Promedio de personas presentes por cámara y ejecución. Los valores están en la tabla de ocupación."></canvas>
+    </div>
+    @let maximo = maximoVisible;
+    @if (serieConMedicion && maximo !== null) {
+      <p class="mt-2 mb-0 text-label text-muted">
+        Máximo observado en las series visibles · <strong class="text-content">{{ maximo | number }}</strong>
+      </p>
+    }
+
+    @if (serie.pagina; as p) {
+      @if (!p.datos.length) { <p class="text-label text-muted">No hay series para los filtros seleccionados.</p> }
+      @else if (!serieConMedicion) {
+        <p class="text-label text-muted">No hay ocupación consolidada en la selección.
+          @if (serieSoloConteos) { Solo conteos históricos. }
+        </p>
+      }
+      @if (filasTablaSerie.length) {
+        <details class="mt-3 text-label">
+          <summary class="ui-focus cursor-pointer rounded-sm font-medium">Ver tabla de ocupación</summary>
+          <p class="text-muted">Los huecos indican periodos sin medición. Un cero indica que se observó el área sin personas.</p>
+          <div class="my-3 max-h-96 overflow-auto" tabindex="0" role="region" aria-label="Tabla de ocupación">
+            <table class="w-full min-w-table border-collapse text-label">
+              <thead><tr>
+                <th class="ui-table-cell px-3 py-2" scope="col">Periodo (Lima)</th>
+                <th class="ui-table-cell px-3 py-2" scope="col">Ejecución</th>
+                <th class="ui-table-cell px-3 py-2" scope="col">Promedio / máximo</th>
+                <th class="ui-table-cell px-3 py-2" scope="col">Tiempo observado</th>
+                <th class="ui-table-cell px-3 py-2" scope="col">Estado</th>
+              </tr></thead>
+              <tbody>
+                @for (f of filasTablaSerie; track f.id_procesamiento + ':' + f.periodo_inicio) {
+                  <tr>
+                    <td class="ui-table-cell px-3 py-2">{{ fecha(f.periodo_inicio) }}<small class="block text-muted">{{ f.periodo_cerrado ? 'Periodo cerrado' : 'Periodo abierto' }}</small></td>
+                    <td class="ui-table-cell px-3 py-2">{{ etiquetaSerie(f) }}</td>
+                    <td class="ui-table-cell px-3 py-2">{{ f.promedio_presentes === null ? 'Sin medición' : (f.promedio_presentes | number:'1.0-2') }} / {{ f.max_presentes ?? '—' }}</td>
+                    <td class="ui-table-cell px-3 py-2">{{ f.segundos_observados === null ? 'Sin medición' : (f.segundos_observados | number:'1.0-1') + ' s' }}</td>
+                    <td class="ui-table-cell px-3 py-2">{{ estadoMedicion(f.estado_ocupacion) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         </details>
       }
-      <app-pagination [unit]="'grupos de serie'" [page]="serie.numeroPagina" [pages]="serie.paginas" [total]="p.total" (pageChange)="cargarSerie(serie.desplazamiento($event))" />
+      @if (serie.paginas > 1 || serie.numeroPagina > 1) {
+        <app-pagination unit="grupos de serie" [page]="serie.numeroPagina" [pages]="serie.paginas" [total]="p.total"
+          (pageChange)="cargarSerie(serie.desplazamiento($event))" />
+      }
     }
   </section>
 
-  <section class="ui-card panel" aria-labelledby="titulo-contexto-integrado">
-    <div class="titulo"><div><h3 id="titulo-contexto-integrado">¿Qué ocurría durante estas observaciones?</h3>
-      <p class="text-muted">Consulta el clima y las fechas especiales junto a la ocupación del rango aplicado. No modifican los umbrales.</p></div>
-      @if (consulta?.id_zona) { <button type="button" class="boton" [attr.aria-expanded]="verContexto" aria-controls="detalle-contexto" (click)="verContexto = !verContexto">{{ verContexto ? 'Ocultar contexto' : 'Ver contexto del rango' }}</button> }
-    </div>
-    @if (!consulta?.id_zona) { <p class="nota text-muted">Selecciona una zona y aplica los filtros para consultar su clima y calendario.</p> }
-    @if (verContexto && consulta?.id_zona) { <div id="detalle-contexto"><app-contexto [filtros]="consulta" /></div> }
-  </section>
+  <section class="grid min-w-0 gap-4" aria-labelledby="titulo-analisis">
+    <h2 id="titulo-analisis" class="m-0">Análisis complementario</h2>
+    <div class="grid gap-4 expanded:grid-cols-2">
+      <section class="ui-card p-4 desktop:p-5" aria-labelledby="titulo-comparativa">
+        <h3 id="titulo-comparativa" class="mt-0">Comparación entre zonas</h3>
+        <app-api-state [loading]="comparativa.estado.cargaInicial()" [error]="comparativa.estado.error()"
+          [actualizado]="comparativa.estado.actualizado()" (retry)="comparativa.reintentar()" />
+        <div class="relative h-60 min-w-0" [class.hidden]="!comparativaConMedicion">
+          <canvas #comparativaCanvas role="img" aria-label="Promedio de ocupación por zona. Los valores están en la tabla."></canvas>
+        </div>
+        @if (comparativa.pagina; as p) {
+          @if (!p.datos.length) { <p class="text-label text-muted">No hay zonas con resultados en el rango.</p> }
+          @else {
+            <details class="mt-3 text-label" [open]="!comparativaConMedicion">
+              <summary class="ui-focus cursor-pointer rounded-sm font-medium">Ver datos por zona</summary>
+              <div class="mt-2 overflow-x-auto">
+                <table class="w-full border-collapse text-label">
+                  <thead><tr><th class="ui-table-cell px-3 py-2" scope="col">Zona</th><th class="ui-table-cell px-3 py-2" scope="col">Promedio</th><th class="ui-table-cell px-3 py-2" scope="col">Estado</th></tr></thead>
+                  <tbody>
+                    @for (f of p.datos; track f.id_zona) {
+                      <tr><td class="ui-table-cell px-3 py-2">{{ f.nombre_zona }}</td>
+                        <td class="ui-table-cell px-3 py-2">{{ f.promedio_presentes === null ? 'Sin medición' : (f.promedio_presentes | number:'1.0-2') }}</td>
+                        <td class="ui-table-cell px-3 py-2">{{ estadoMedicion(f.estado_ocupacion) }}</td></tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          }
+          @if (comparativa.paginas > 1 || comparativa.numeroPagina > 1) {
+            <app-pagination unit="zonas con resultados" [page]="comparativa.numeroPagina" [pages]="comparativa.paginas"
+              [total]="p.total" (pageChange)="cargarComparativa(comparativa.desplazamiento($event))" />
+          }
+        }
+      </section>
 
-  <div class="dos-columnas">
-    <section class="ui-card panel" aria-labelledby="titulo-comparativa">
-      <h3 id="titulo-comparativa">Comparación entre zonas</h3><details class="reading-help"><summary>Cómo interpretar este gráfico</summary><p class="text-muted">Ocupación promedio del rango. Las vistas y ejecuciones diferentes no se fusionan automáticamente.</p></details>
-      <app-api-state [loading]="comparativa.estado.cargaInicial()" [error]="comparativa.estado.error()" [actualizado]="comparativa.estado.actualizado()" (retry)="comparativa.reintentar()" />
-      <div class="grafico grafico-corto" [hidden]="!comparativaConMedicion"><canvas #comparativaCanvas role="img" aria-label="Promedio de ocupación por zona. Los valores y estados están en la tabla siguiente."></canvas></div>
-      @if (comparativa.pagina; as p) {
-        @if (!p.datos.length) { <p>No hay zonas con resultados en el rango.</p> }
-        <div class="tabla-scroll"><table class="tabla"><thead><tr><th>Zona</th><th>Promedio</th><th>Estado</th></tr></thead><tbody>
-          @for (f of p.datos; track f.id_zona) { <tr><td>{{ f.nombre_zona }}</td><td>{{ f.promedio_presentes === null ? 'Sin medición' : (f.promedio_presentes | number:'1.0-2') }}</td><td>{{ estadoMedicion(f.estado_ocupacion) }}</td></tr> }
-        </tbody></table></div>
-        <app-pagination [unit]="'zonas con resultados'" [page]="comparativa.numeroPagina" [pages]="comparativa.paginas" [total]="p.total" (pageChange)="cargarComparativa(comparativa.desplazamiento($event))" />
+      <section class="ui-card p-4 desktop:p-5" aria-labelledby="titulo-niveles">
+        <h3 id="titulo-niveles" class="mt-0">Periodos por nivel de ocupación</h3>
+        <app-api-state [loading]="niveles.estado.cargaInicial()" [error]="niveles.estado.error()"
+          [actualizado]="niveles.estado.actualizado()" (retry)="niveles.reintentar()" />
+        <div class="relative h-60 min-w-0" [class.hidden]="!distribucionVisible.length">
+          <canvas #nivelesCanvas role="img" aria-label="Cantidad de periodos por nivel y estado. Los valores aparecen en la lista."></canvas>
+        </div>
+        @if (niveles.pagina; as p) {
+          @if (!p.datos.length) { <p class="text-label text-muted">No hay periodos para clasificar.</p> }
+          <ul class="m-0 list-none divide-y divide-divider p-0 text-label" role="list">
+            @for (f of distribucionVisible; track f.clave) {
+              <li class="flex justify-between gap-3 py-2"><span>{{ f.nombre | titlecase }}</span><strong>{{ f.cantidad | number }}</strong></li>
+            }
+          </ul>
+          @if (niveles.paginas > 1 || niveles.numeroPagina > 1) {
+            <app-pagination unit="grupos de nivel" [page]="niveles.numeroPagina" [pages]="niveles.paginas" [total]="p.total"
+              (pageChange)="cargarNiveles(niveles.desplazamiento($event))" />
+          }
+        }
+      </section>
+    </div>
+
+    <section class="ui-card p-4 desktop:p-5" aria-labelledby="titulo-patrones">
+      <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <h3 id="titulo-patrones" class="m-0">Patrones por día y hora</h3>
+        @if (zonasPatron.length) {
+          <label class="grid min-w-0 gap-1">Zona de esta página
+            <select class="ui-field w-full" [(ngModel)]="zonaPatron">
+              @for (z of zonasPatron; track z[0]) { <option [ngValue]="z[0]">{{ z[1] }}</option> }
+            </select>
+          </label>
+        }
+      </div>
+      <app-api-state [loading]="patron.estado.cargaInicial()" [error]="patron.estado.error()"
+        [actualizado]="patron.estado.actualizado()" (retry)="patron.reintentar()" />
+      @if (patron.pagina; as p) {
+        @if (!p.datos.length) { <p class="text-label text-muted">No hay patrones para los filtros seleccionados.</p> }
+        @else {
+          <div class="ui-focus overflow-x-auto rounded-sm" tabindex="0" role="region" aria-label="Patrones de ocupación por día y hora">
+            <table class="w-full border-separate border-spacing-1 text-caption tabular-nums">
+              <caption class="pb-2 text-left text-label text-muted">Hora de Lima · — Sin grupo en esta página · ND Sin medición · 0 Cero medido</caption>
+              <thead><tr>
+                <th scope="col">Día</th>
+                @for (hora of horas; track hora) { <th class="w-10 min-w-10 text-muted" scope="col">{{ hora }} h</th> }
+              </tr></thead>
+              <tbody>
+                @for (dia of dias; track dia; let d = $index) {
+                  <tr><th scope="row">{{ dia }}</th>
+                    @for (hora of horas; track hora) {
+                      @let f = celda(d, hora);
+                      <td class="h-9 min-w-10 rounded-sm text-center" [class]="claseCelda(f)" [title]="descripcionCelda(d, hora)"
+                        [attr.aria-label]="descripcionCelda(d, hora)">{{ !f ? '—' : f.promedio_presentes === null ? 'ND' : (f.promedio_presentes | number:'1.0-1') }}</td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+        @if (patron.paginas > 1 || patron.numeroPagina > 1) {
+          <app-pagination unit="grupos de día y hora" [page]="patron.numeroPagina" [pages]="patron.paginas" [total]="p.total"
+            (pageChange)="cargarPatron(patron.desplazamiento($event))" />
+        }
       }
     </section>
-    <section class="ui-card panel" aria-labelledby="titulo-niveles">
-      <h3 id="titulo-niveles">Distribución de niveles</h3><details class="reading-help"><summary>Cómo interpretar este gráfico</summary><p class="text-muted">Periodos por cámara y ejecución, según los umbrales actuales. No representa personas ni horas únicas de zona.</p></details>
-      <app-api-state [loading]="niveles.estado.cargaInicial()" [error]="niveles.estado.error()" [actualizado]="niveles.estado.actualizado()" (retry)="niveles.reintentar()" />
-      <div class="grafico grafico-corto" [hidden]="!distribucionVisible.length"><canvas #nivelesCanvas role="img" aria-label="Cantidad de periodos por nivel y estado. Los valores aparecen en la lista siguiente."></canvas></div>
-      @if (niveles.pagina; as p) {
-        @if (!p.datos.length) { <p>No hay periodos para clasificar.</p> }
-        <ul class="lista-niveles">@for (f of distribucionVisible; track f.clave) { <li><span>{{ f.nombre | titlecase }}</span><strong>{{ f.cantidad | number }}</strong></li> }</ul>
-        <p class="nota text-muted">Los valores corresponden a la página visible; las ausencias de medición se muestran por separado del nivel bajo.</p>
-        <app-pagination [unit]="'grupos de nivel'" [page]="niveles.numeroPagina" [pages]="niveles.paginas" [total]="p.total" (pageChange)="cargarNiveles(niveles.desplazamiento($event))" />
-      }
-    </section>
-  </div>
 
-  <section class="ui-card panel" aria-labelledby="titulo-patrones">
-    <div class="titulo"><div><h3 id="titulo-patrones">Patrones por día y hora</h3><p class="text-muted">Promedio de ocupación de las observaciones seleccionadas, en hora de Lima.</p></div>
-      @if (zonasPatron.length) { <label>Zona de esta página<select class="ui-field" [(ngModel)]="zonaPatron">@for (z of zonasPatron; track z[0]) { <option [ngValue]="z[0]">{{ z[1] }}</option> }</select></label> }
-    </div>
-    <app-api-state [loading]="patron.estado.cargaInicial()" [error]="patron.estado.error()" [actualizado]="patron.estado.actualizado()" (retry)="patron.reintentar()" />
-    @if (patron.pagina; as p) {
-      @if (!p.datos.length) { <p>No hay patrones para los filtros seleccionados.</p> }
-      @else {
-        <div class="tabla-scroll" tabindex="0" role="region" aria-label="Tabla de ocupación por día y hora; desplázate horizontalmente para consultar todas las horas">
-          <table class="calor"><caption>— Sin datos en esta página · ND Sin ocupación consolidada · 0 Cero personas medido. El color indica el nivel y el número, el promedio.</caption>
-            <thead><tr><th scope="col">Día</th>@for (hora of horas; track hora) { <th scope="col">{{ hora }} h</th> }</tr></thead><tbody>
-              @for (dia of dias; track dia; let d = $index) { <tr><th scope="row">{{ dia }}</th>@for (hora of horas; track hora) {
-                @let f = celda(d, hora);
-                <td [class]="claseCelda(f)" [title]="descripcionCelda(d, hora)" [attr.aria-label]="descripcionCelda(d, hora)">{{ !f ? '—' : f.promedio_presentes === null ? 'ND' : (f.promedio_presentes | number:'1.0-1') }}</td>
-              }</tr> }
+    <section class="ui-card p-4 desktop:p-5" aria-labelledby="titulo-contexto-integrado">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h3 id="titulo-contexto-integrado" class="m-0">Clima y calendario</h3>
+        @if (consulta?.id_zona) {
+          <button type="button" class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-3 py-2"
+            [attr.aria-expanded]="verContexto" aria-controls="detalle-contexto" (click)="verContexto = !verContexto">
+            {{ verContexto ? 'Ocultar contexto' : 'Ver contexto' }}
+          </button>
+        } @else { <p class="m-0 text-label text-muted">Aplica el filtro de zona para ver el contexto.</p> }
+      </div>
+      <div id="detalle-contexto">
+        @if (verContexto && consulta?.id_zona) { <app-contexto [filtros]="consulta" /> }
+      </div>
+    </section>
+
+    <details class="ui-card p-4 desktop:p-5">
+      <summary class="ui-focus cursor-pointer rounded-sm font-semibold">Estado actual de las cámaras</summary>
+      <app-api-state [loading]="actividad.estado.cargaInicial()" [error]="actividad.estado.error()"
+        [actualizado]="actividad.estado.actualizado()" (retry)="actividad.reintentar()" />
+      @if (actividad.pagina; as p) {
+        <p class="text-label text-muted">Estado según zona y cámara, independiente del rango histórico.</p>
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-table border-collapse text-label">
+            <thead><tr>
+              <th class="ui-table-cell px-3 py-2" scope="col">Cámara / zona</th>
+              <th class="ui-table-cell px-3 py-2" scope="col">Estado</th>
+              <th class="ui-table-cell px-3 py-2" scope="col">Última actividad (Lima)</th>
+              <th class="ui-table-cell px-3 py-2" scope="col">FPS efectivos</th>
+              <th class="ui-table-cell px-3 py-2" scope="col">Edad de imagen</th>
+            </tr></thead>
+            <tbody>
+              @for (c of p.datos; track c.id_camara) {
+                <tr>
+                  <td class="ui-table-cell px-3 py-2">
+                    <a class="ui-focus rounded-sm text-brand" [routerLink]="['/monitoreo', c.id_camara]">{{ c.nombre_camara }}</a>
+                    <small class="block text-muted">{{ c.nombre_zona }}</small>
+                  </td>
+                  <td class="ui-table-cell px-3 py-2">{{ estadoOperativo(c.estado_operativo) }}</td>
+                  <td class="ui-table-cell px-3 py-2">{{ fecha(c.ultima_actividad) }}</td>
+                  <td class="ui-table-cell px-3 py-2">{{ c.fps_procesamiento === null ? 'Sin medición' : (c.fps_procesamiento | number:'1.0-2') }}</td>
+                  <td class="ui-table-cell px-3 py-2">{{ c.edad_imagen_seg === null ? 'Sin medición' : (c.edad_imagen_seg | number:'1.0-2') + ' s' }}</td>
+                </tr>
+              } @empty { <tr><td class="ui-table-cell px-3 py-2" colspan="5">No hay cámaras para esta selección.</td></tr> }
             </tbody>
           </table>
         </div>
+        @if (actividad.paginas > 1 || actividad.numeroPagina > 1) {
+          <app-pagination unit="cámaras" [page]="actividad.numeroPagina" [pages]="actividad.paginas" [total]="p.total"
+            (pageChange)="cargarActividad(actividad.desplazamiento($event))" />
+        }
       }
-      <p class="nota text-muted">Solo grupos de la página visible. Una celda vacía puede corresponder a otra página y no implica ausencia de personas. Filtra una zona para consultar su patrón completo.</p>
-      <app-pagination [unit]="'grupos de día y hora'" [page]="patron.numeroPagina" [pages]="patron.paginas" [total]="p.total" (pageChange)="cargarPatron(patron.desplazamiento($event))" />
-    }
-  </section>
-
-  <section class="ui-card panel" aria-labelledby="titulo-camaras">
-    <div class="titulo"><div><h3 id="titulo-camaras">Estado actual de las cámaras</h3><p class="text-muted">Según zona y cámara. Independiente del rango histórico, tipo de fuente y ejecución seleccionados.</p></div>
-      <button class="boton" type="button" (click)="actividad.refrescar()" [disabled]="!consulta">Actualizar estado</button></div>
-    <app-api-state [loading]="actividad.estado.cargaInicial()" [error]="actividad.estado.error()" [actualizado]="actividad.estado.actualizado()" (retry)="actividad.reintentar()" />
-    @if (actividad.pagina; as p) {
-      <p class="nota text-muted">Consulta operativa: {{ fecha(p.consultado_en) }}.</p>
-      <div class="tabla-scroll"><table class="tabla"><thead><tr><th>Cámara / zona</th><th>Estado</th><th>Última actividad</th><th>FPS efectivos</th><th>Edad de imagen</th></tr></thead><tbody>
-        @for (c of p.datos; track c.id_camara) {
-          <tr><td>{{ c.nombre_camara }}<small>{{ c.nombre_zona }}</small></td><td><span class="estado" [class.nivel-bajo]="c.estado_operativo === 'reportando'">{{ estadoOperativo(c.estado_operativo) }}</span></td>
-            <td>{{ fecha(c.ultima_actividad) }}</td><td>{{ c.fps_procesamiento === null ? 'Sin medición' : (c.fps_procesamiento | number:'1.0-2') }}</td><td>{{ c.edad_imagen_seg === null ? 'Sin medición' : (c.edad_imagen_seg | number:'1.0-2') + ' s' }}</td></tr>
-        } @empty { <tr><td colspan="5">No hay cámaras para esta selección.</td></tr> }
-      </tbody></table></div>
-      <p class="nota text-muted">La edad se mide desde la recepción local hasta procesar la imagen; no incluye el retraso previo del sensor o la red.</p>
-      <app-pagination [unit]="'cámaras'" [page]="actividad.numeroPagina" [pages]="actividad.paginas" [total]="p.total" (pageChange)="cargarActividad(actividad.desplazamiento($event))" />
-    }
+    </details>
   </section>
 </section>

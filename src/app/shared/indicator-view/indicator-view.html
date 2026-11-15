@@ -68,11 +68,11 @@
       ><strong class="block text-metric">{{ query().rows.length }}</strong>
     </div>
     <div class="ui-card p-5">
-      <span class="text-muted">Suma de conteos</span
+      <span class="text-muted">Suma de conteos por ventana</span
       ><strong class="block text-metric">{{
         query().rows.length ? query().sum : 'Sin datos'
       }}</strong
-      ><small class="text-muted">Puede repetir personas entre ventanas o cámaras</small>
+      ><small class="text-muted">Una persona puede contarse en varias ventanas o cámaras.</small>
     </div>
     <div class="ui-card p-5">
       <span class="text-muted">Máximo por ventana</span
@@ -82,19 +82,20 @@
 }
 <div class="ui-card mb-5 overflow-hidden">
   <h3 class="px-5">Indicadores por {{ query().periodo === 'hora' ? 'hora' : 'día' }}</h3>
-  <p class="px-5 text-label text-muted">
-    Hasta 2000 periodos por consulta, ordenados desde el inicio del rango. Las fechas se muestran en
-    hora de Lima. Los datos son agregados de zona. La suma de identificadores puede repetir personas;
-    no mide entradas ni visitantes únicos. La ocupación requiere nuevas mediciones y una única vista
-    consolidable; los periodos antiguos o con varias fuentes se muestran sin ocupación.
-  </p>
+  <details class="mb-3 px-5 text-label text-muted print:hidden">
+    <summary class="ui-focus cursor-pointer rounded-sm">Cómo interpretar los indicadores</summary>
+    <p>
+      Hasta 2000 periodos por zona, en hora de Lima. La ocupación se muestra cuando las mediciones
+      del periodo pueden consolidarse en una sola vista.
+    </p>
+  </details>
   <div class="overflow-x-auto">
     <table class="w-full min-w-table border-collapse">
       <thead>
         <tr>
           <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Inicio del periodo</th>
           <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Zona</th>
-          <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Suma de conteos</th>
+          <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">Suma de conteos por ventana</th>
           <th class="ui-table-cell py-3.5 text-caption uppercase text-muted">
             Promedio por ventana
           </th>

@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, DestroyRef, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { filter, forkJoin, timer } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Contexto } from '../contexto/contexto';
@@ -22,8 +23,9 @@ import { addDays, exclusiveEnd, limaToday } from '../../core/api/dates';
 import { estadoMedicion, estadoOperativo, mostrarFecha, prepararSeries, rangoValido } from '../../core/api/metricas-presentacion';
 
 @Component({
-  selector: 'app-dashboard', imports: [CommonModule, FormsModule, ApiState, Pagination, Contexto],
-  templateUrl: './dashboard.html', styleUrl: './dashboard.css',
+  selector: 'app-dashboard', imports: [CommonModule, FormsModule, RouterLink, ApiState, Pagination, Contexto],
+  templateUrl: './dashboard.html',
+  host: { class: 'block' },
 })
 export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   private zonasApi = inject(ZonaService);
@@ -54,7 +56,6 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   errorFiltros = '';
   consulta: FiltrosMetricas | null = null;
   verContexto = false;
-  mostrarFiltros = false;
   serieElegida = 0;
   zonaPatron = 0;
   readonly dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
@@ -70,6 +71,29 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   private graficoNiveles?: Chart<'doughnut', number[], string>;
 
   get camarasFiltradas() { return this.camaras.filter((c) => !this.zonaSeleccionada || c.zonaId === this.zonaSeleccionada); }
+  get rangoAplicado() {
+    const consulta = this.consulta;
+    if (!consulta) return '';
+    const inicio = consulta.desde.slice(0, 10);
+    const fin = addDays(consulta.hasta.slice(0, 10), -1);
+    const formatoDia = (dia: string) => dia.split('-').reverse().join('/');
+    return inicio === fin ? formatoDia(inicio) : `${formatoDia(inicio)} al ${formatoDia(fin)}`;
+  }
+  get filtrosAplicados() {
+    const consulta = this.consulta;
+    if (!consulta) return [];
+    const zona = this.zonas.find((z) => z.id === consulta.id_zona)?.nombre;
+    const camara = this.camaras.find((c) => c.id === consulta.id_camara)?.nombre;
+    const fuentes = { stream: 'Transmisiones', video: 'Videos', imagen: 'Imágenes' };
+    const filtros = [
+      zona ?? 'Todas las zonas',
+      camara ?? 'Todas las cámaras',
+      consulta.tipo_fuente ? fuentes[consulta.tipo_fuente] : 'Todas las fuentes',
+      consulta.periodo === 'hora' ? 'Por hora' : 'Por día',
+    ];
+    if (consulta.id_procesamiento) filtros.push(`Ejecución #${consulta.id_procesamiento}`);
+    return filtros;
+  }
   get ejecucionesSerie() {
     return [...new Map(this.serie.filas.map((f) => [f.id_procesamiento, f])).values()];
   }
@@ -77,6 +101,14 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   get filasSerie() { return this.serieElegida ? this.serie.filas.filter((f) => f.id_procesamiento === this.serieElegida) : this.serie.filas; }
   get filasTablaSerie() { return this.filasSerie; }
   get serieConMedicion() { return this.filasSerie.some((f) => f.promedio_presentes !== null); }
+  get serieSoloConteos() {
+    const filas = this.filasSerie;
+    return filas.length > 0 && filas.every((f) => f.estado_ocupacion === 'sin_datos');
+  }
+  get maximoVisible() {
+    const valores = this.filasSerie.flatMap((f) => f.max_presentes === null ? [] : [f.max_presentes]);
+    return valores.length ? Math.max(...valores) : null;
+  }
   get comparativaConMedicion() { return this.comparativa.filas.some((f) => f.promedio_presentes !== null); }
   get distribucionVisible() {
     const orden = ['bajo', 'medio', 'alto', 'sin_datos', 'datos_incompletos', 'fuentes_sin_consolidar', 'ejecuciones_sin_consolidar'];
@@ -234,7 +266,15 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   }
   private actualizarGraficos() { this.actualizarSerie(); this.actualizarComparativa(); this.actualizarNiveles(); }
   celda(dia: number, hora: number) { return this.patron.filas.find((f) => f.id_zona === this.zonaPatron && f.dia_semana === dia && f.hora === hora); }
-  claseCelda(fila: PatronHorario | undefined) { return fila?.promedio_presentes === null || !fila ? 'sin-medicion' : 'nivel-' + fila.nivel_ocupacion; }
+  claseCelda(fila: PatronHorario | undefined) {
+    if (!fila || fila.promedio_presentes === null) return 'bg-canvas text-muted';
+    const estilos = {
+      bajo: 'nivel-bajo bg-success-soft text-success',
+      medio: 'bg-warning-soft text-warning',
+      alto: 'bg-danger-soft text-danger',
+    };
+    return fila.nivel_ocupacion ? estilos[fila.nivel_ocupacion] : 'bg-canvas text-content';
+  }
   descripcionCelda(dia: number, hora: number) {
     const fila = this.celda(dia, hora);
     return `${this.dias[dia]} ${hora}:00: ${fila ? estadoMedicion(fila.estado_ocupacion) + (fila.promedio_presentes !== null ? ', ' + fila.promedio_presentes + ' personas presentes en promedio' : '') : 'Sin grupo en esta página'}`;

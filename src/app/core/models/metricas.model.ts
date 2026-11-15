@@ -1,13 +1,15 @@
 export type EstadoMedicion = 'disponible' | 'sin_datos' | 'datos_incompletos' |
   'fuentes_sin_consolidar' | 'ejecuciones_sin_consolidar';
-export interface FiltrosMetricas {
-  desde: string;
-  hasta: string;
-  periodo: 'hora' | 'dia';
+export interface FiltrosOrigenMetricas {
   id_zona?: number;
   id_camara?: number;
   id_procesamiento?: number;
   tipo_fuente?: 'imagen' | 'video' | 'stream';
+}
+export interface FiltrosMetricas extends FiltrosOrigenMetricas {
+  desde: string;
+  hasta: string;
+  periodo: 'hora' | 'dia';
 }
 export interface PaginaMetricas<T> {
   consultado_en: string;
@@ -63,6 +65,25 @@ export interface PuntoSerie extends MedicionAgregada {
   periodo_inicio: string;
   periodo_fin: string;
   periodo_cerrado: boolean;
+}
+export interface VentanaOcupacion {
+  id_resultado: number;
+  nombre_zona: string;
+  id_camara: number | null;
+  id_procesamiento: number;
+  tipo_fuente: string;
+  periodo_inicio: string;
+  periodo_fin: string;
+  promedio_presentes: number | null;
+  max_presentes: number | null;
+  segundos_observados: number | null;
+}
+export interface DatosOcupacionReciente {
+  desde: string;
+  hasta: string;
+  datos: VentanaOcupacion[];
+  limite: number;
+  tiene_mas: boolean;
 }
 export interface PatronHorario extends MedicionAgregada {
   dia_semana: number;

@@ -19,11 +19,12 @@ import { Zona } from '../../core/models/zona.model';
 import { Camara } from '../../core/models/camara.model';
 import { DistribucionNivel, EstadoCamara, FiltrosMetricas, MedicionAgregada, PatronHorario,
   PuntoSerie, ResumenMetricas } from '../../core/models/metricas.model';
+import { OcupacionReciente } from './ocupacion-reciente/ocupacion-reciente';
 import { addDays, exclusiveEnd, limaToday } from '../../core/api/dates';
-import { estadoMedicion, estadoOperativo, mostrarFecha, prepararSeries, rangoValido } from '../../core/api/metricas-presentacion';
+import { estadoMedicion, estadoOperativo, etiquetaEjecucion, mostrarFecha, prepararSeries, rangoValido } from '../../core/api/metricas-presentacion';
 
 @Component({
-  selector: 'app-dashboard', imports: [CommonModule, FormsModule, RouterLink, ApiState, Pagination, Contexto],
+  selector: 'app-dashboard', imports: [CommonModule, FormsModule, RouterLink, ApiState, Pagination, Contexto, OcupacionReciente],
   templateUrl: './dashboard.html',
   host: { class: 'block' },
 })
@@ -56,6 +57,7 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   errorFiltros = '';
   consulta: FiltrosMetricas | null = null;
   verContexto = false;
+  vistaOcupacion: 'historico' | 'reciente' = 'historico';
   serieElegida = 0;
   zonaPatron = 0;
   readonly dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
@@ -89,7 +91,7 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
       zona ?? 'Todas las zonas',
       camara ?? 'Todas las cámaras',
       consulta.tipo_fuente ? fuentes[consulta.tipo_fuente] : 'Todas las fuentes',
-      consulta.periodo === 'hora' ? 'Por hora' : 'Por día',
+      this.vistaOcupacion === 'reciente' ? 'Por ventana de reporte' : consulta.periodo === 'hora' ? 'Por hora' : 'Por día',
     ];
     if (consulta.id_procesamiento) filtros.push(`Ejecución #${consulta.id_procesamiento}`);
     return filtros;
@@ -230,10 +232,7 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     if (this.consulta) this.actividad.cargar(this.metricas.estadoCamaras({ id_zona: this.consulta.id_zona,
       id_camara: this.consulta.id_camara }, desplazamiento));
   }
-  etiquetaSerie(fila: PuntoSerie) {
-    const camara = this.camaras.find((c) => c.id === fila.id_camara)?.nombre ?? 'Sin cámara';
-    return `${fila.nombre_zona} · ${camara} · ${fila.tipo_fuente} #${fila.id_procesamiento}`;
-  }
+  etiquetaSerie(fila: PuntoSerie) { return etiquetaEjecucion(fila, this.camaras); }
   actualizarSerie() {
     if (!this.graficoSerie) return;
     const preparada = prepararSeries(this.filasSerie, this.consulta?.periodo ?? this.periodoTipo);

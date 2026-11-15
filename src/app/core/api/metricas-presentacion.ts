@@ -1,3 +1,4 @@
+import { Camara } from '../models/camara.model';
 import { PuntoSerie } from '../models/metricas.model';
 
 export function fechaMetrica(valor: string): Date {
@@ -8,6 +9,13 @@ export function mostrarFecha(valor: string | null | undefined): string {
     timeZone: 'America/Lima', day: '2-digit', month: '2-digit', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
   }) : 'Sin registro';
+}
+export function etiquetaEjecucion(
+  fila: Pick<PuntoSerie, 'id_camara' | 'nombre_zona' | 'tipo_fuente' | 'id_procesamiento'>,
+  camaras: readonly Camara[],
+): string {
+  const camara = camaras.find((c) => c.id === fila.id_camara)?.nombre ?? 'Sin cámara';
+  return `${fila.nombre_zona} · ${camara} · ${fila.tipo_fuente} #${fila.id_procesamiento}`;
 }
 export function estadoMedicion(estado: string | null | undefined): string {
   const textos: Record<string, string> = {

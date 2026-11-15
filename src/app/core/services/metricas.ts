@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { map, of, switchMap } from 'rxjs';
 import { Api } from '../api/api';
-import { DistribucionNivel, FiltrosMetricas, MedicionAgregada, PaginaCamaras,
+import { DatosOcupacionReciente, DistribucionNivel, FiltrosMetricas, FiltrosOrigenMetricas, MedicionAgregada, PaginaCamaras,
   PaginaMetricas, PatronHorario, PuntoSerie, ResumenMetricas } from '../models/metricas.model';
 
 @Injectable({ providedIn: 'root' })
@@ -12,6 +12,11 @@ export class MetricasService {
   }
   series(filtros: FiltrosMetricas, desplazamiento = 0, limite = 200) {
     return this.api.get<PaginaMetricas<PuntoSerie>>('/metricas/series', { ...filtros, desplazamiento, limite });
+  }
+  ocupacionReciente({ id_zona, id_camara, id_procesamiento, tipo_fuente }: FiltrosOrigenMetricas) {
+    return this.api.get<DatosOcupacionReciente>('/metricas/ocupacion-reciente', {
+      id_zona, id_camara, id_procesamiento, tipo_fuente,
+    });
   }
   comparativas(filtros: FiltrosMetricas, desplazamiento = 0) {
     return this.api.get<PaginaMetricas<MedicionAgregada>>('/metricas/comparativas', { ...filtros, desplazamiento, limite: 100 });

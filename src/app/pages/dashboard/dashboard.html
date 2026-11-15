@@ -32,7 +32,7 @@
       <div>
         <h2 id="titulo-serie" class="mt-0 mb-1">Ocupación observada</h2>
         @if (consulta) {
-          <p class="m-0 text-label text-muted">{{ rangoAplicado }} (Lima)</p>
+          <p class="m-0 text-label text-muted">{{ vistaOcupacion === 'reciente' ? 'Últimos 60 minutos' : rangoAplicado }} (Lima)</p>
           <ul class="mt-2 mb-0 flex list-none flex-wrap gap-2 p-0 text-caption" aria-label="Filtros aplicados" role="list">
             @for (filtro of filtrosAplicados; track $index) {
               <li class="rounded-full bg-canvas px-2.5 py-1 text-muted">{{ filtro }}</li>
@@ -94,13 +94,26 @@
         </div>
       </details>
       <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
-        <small class="text-muted">Hasta 31 días.</small>
+        <small class="text-muted">Hasta 31 días para el histórico.</small>
         <button type="submit" class="ui-focus cursor-pointer rounded-lg border-0 bg-brand px-4 py-2 text-white hover:bg-brand-hover"
           [disabled]="request.loading()">Aplicar filtros</button>
       </div>
     </form>
     @if (errorFiltros) { <p class="text-label text-danger" role="alert">{{ errorFiltros }}</p> }
 
+    <div class="mb-4 flex flex-wrap gap-2" role="group" aria-label="Vista de ocupación">
+      <button type="button" class="ui-focus cursor-pointer rounded-lg border border-solid border-field px-3 py-2 text-label"
+        [class.bg-brand-soft]="vistaOcupacion === 'historico'" [class.text-brand]="vistaOcupacion === 'historico'"
+        [attr.aria-pressed]="vistaOcupacion === 'historico'" (click)="vistaOcupacion = 'historico'">Histórico</button>
+      <button type="button" class="ui-focus cursor-pointer rounded-lg border border-solid border-field px-3 py-2 text-label"
+        [class.bg-brand-soft]="vistaOcupacion === 'reciente'" [class.text-brand]="vistaOcupacion === 'reciente'"
+        [attr.aria-pressed]="vistaOcupacion === 'reciente'" (click)="vistaOcupacion = 'reciente'">Últimos 60 minutos</button>
+    </div>
+    @if (vistaOcupacion === 'reciente' && consulta; as filtros) {
+      <app-ocupacion-reciente [filtros]="filtros" [camaras]="camaras" />
+    }
+
+    <div [class.hidden]="vistaOcupacion !== 'historico'">
     <app-api-state [loading]="serie.estado.cargaInicial()" [error]="serie.estado.error()"
       [actualizado]="serie.estado.actualizado()" (retry)="serie.reintentar()" />
 
@@ -174,6 +187,7 @@
           (pageChange)="cargarSerie(serie.desplazamiento($event))" />
       }
     }
+    </div>
   </section>
 
   <section class="grid min-w-0 gap-4" aria-labelledby="titulo-analisis">

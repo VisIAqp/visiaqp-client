@@ -1,6 +1,7 @@
 import { Location } from '@angular/common';
 import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { RequestState } from '../../../core/api/request-state';
 import { Auth } from '../../../core/auth/auth';
@@ -32,14 +33,29 @@ export class Camaras implements OnInit {
   readonly configuraciones = configuraciones;
   readonly camaras = signal<Camara[]>([]);
   private readonly zonas = signal<Zona[]>([]);
+  private readonly parametros = toSignal(inject(ActivatedRoute).queryParamMap);
+  readonly zonaId = computed(() => {
+    const id = Number(this.parametros()?.get('zona'));
+    return Number.isSafeInteger(id) && id > 0 ? id : null;
+  });
+  readonly nombreZonaFiltrada = computed(() => {
+    const id = this.zonaId();
+    return id === null ? null : this.zonas().find((zona) => zona.id === id)?.nombre ?? 'Zona ' + id;
+  });
   readonly busqueda = signal('');
   private readonly estadoNavegacion = inject(Location).getState() as { camaraGuardada?: number } | null;
   readonly mensaje = signal(this.estadoNavegacion?.camaraGuardada ? 'Cámara guardada.' : '');
 
+  readonly camarasEnZona = computed(() => {
+    const id = this.zonaId();
+    const camaras = this.camaras();
+    return id === null ? camaras : camaras.filter((camara) => camara.zonaId === id);
+  });
+
   readonly filas = computed(() => {
     const zonas = new Map(this.zonas().map((zona) => [zona.id, zona.nombre]));
     const consulta = this.busqueda().trim().toLocaleLowerCase('es-PE');
-    return this.camaras().map((camara) => ({
+    return this.camarasEnZona().map((camara) => ({
       camara,
       zona: zonas.get(camara.zonaId) ?? 'Zona ' + camara.zonaId,
     })).filter(({ camara, zona }) =>

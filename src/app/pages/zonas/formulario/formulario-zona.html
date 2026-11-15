@@ -1,0 +1,69 @@
+<section class="mx-auto grid min-w-0 max-w-4xl gap-4">
+  <header>
+    <a routerLink="/zonas" class="ui-focus inline-flex items-center gap-2 rounded-sm text-label font-semibold text-brand no-underline hover:underline">
+      <span aria-hidden="true">←</span> Volver a Zonas
+    </a>
+    <h2 class="mb-0">{{ soloUmbrales ? 'Consultar umbrales' : id() === null ? 'Nueva zona' : 'Editar zona' }}</h2>
+    @if (zona(); as actual) { <p class="m-0 text-muted">{{ actual.nombre }}</p> }
+  </header>
+
+  @if (idInvalido()) { <p class="ui-card p-4 text-muted">El identificador de la zona no es válido.</p> }
+  <app-api-state [loading]="consulta.cargaInicial()" [error]="consulta.error()" (retry)="cargar()" />
+
+  @if (!soloUmbrales && (id() === null || zona())) {
+    <form class="grid gap-4" (ngSubmit)="guardar()">
+      <fieldset class="m-0 grid min-w-0 gap-4 border-0 p-0" [disabled]="guardado.loading()">
+        <section class="ui-card p-4 desktop:p-5" aria-labelledby="titulo-identificacion">
+          <h3 id="titulo-identificacion" class="mt-0">Identificación</h3>
+          <div class="grid gap-3 desktop:grid-cols-2">
+            <label class="grid min-w-0 gap-1">Nombre
+              <input name="nombre" class="ui-field w-full" [(ngModel)]="formulario.nombre" maxlength="100" required />
+            </label>
+            @if (zona()) {
+              <label class="grid min-w-0 gap-1">Estado
+                <select name="estado" class="ui-field w-full" [(ngModel)]="formulario.estado">
+                  <option value="activa">Activa</option><option value="inactiva">Inactiva</option>
+                </select>
+              </label>
+            }
+            <label class="grid min-w-0 gap-1 desktop:col-span-2">Descripción (opcional)
+              <textarea name="descripcion" class="ui-field w-full p-2" [(ngModel)]="formulario.descripcion" rows="2" maxlength="255"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section class="ui-card p-4 desktop:p-5" aria-labelledby="titulo-ubicacion">
+          <h3 id="titulo-ubicacion" class="mt-0">Ubicación</h3>
+          <div class="grid gap-3 desktop:grid-cols-2">
+            <label class="grid min-w-0 gap-1">Ubicación (opcional)
+              <input name="ubicacion" class="ui-field w-full" [(ngModel)]="formulario.ubicacion" maxlength="150" />
+            </label>
+            <label class="grid min-w-0 gap-1">Código de país
+              <input name="pais" class="ui-field w-full uppercase" [(ngModel)]="formulario.pais" maxlength="2"
+                pattern="[A-Za-z]{2}" required />
+            </label>
+            <label class="grid min-w-0 gap-1">Latitud (opcional)
+              <input name="latitud" type="number" min="-90" max="90" step="any" class="ui-field w-full" [(ngModel)]="formulario.latitud" />
+            </label>
+            <label class="grid min-w-0 gap-1">Longitud (opcional)
+              <input name="longitud" type="number" min="-180" max="180" step="any" class="ui-field w-full" [(ngModel)]="formulario.longitud" />
+            </label>
+          </div>
+        </section>
+      </fieldset>
+
+      <app-api-state [loading]="guardado.loading()" [error]="guardado.error()" [retryable]="false" />
+      <div class="flex flex-wrap justify-end gap-2">
+        @if (!guardado.loading()) {
+          <a routerLink="/zonas" class="ui-focus rounded-lg border border-solid border-field bg-white px-4 py-2 text-content no-underline">Cancelar</a>
+        }
+        <button type="submit" class="ui-focus cursor-pointer rounded-lg border-0 bg-brand px-4 py-2.5 text-white hover:bg-brand-hover"
+          [disabled]="guardado.loading()">Guardar zona</button>
+      </div>
+    </form>
+  }
+
+  @if (zona(); as actual) {
+    <app-umbrales-zona [zonaId]="actual.id" [editable]="!soloUmbrales" />
+  }
+</section>

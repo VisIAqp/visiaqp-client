@@ -1,0 +1,82 @@
+<section class="mx-auto grid min-w-0 max-w-page gap-4">
+  <header class="flex flex-wrap items-center justify-between gap-3">
+    <h2 class="m-0">Catálogo de zonas</h2>
+    @if (auth.isAdmin()) {
+      <a routerLink="/zonas/nueva" class="ui-focus rounded-lg bg-brand px-4 py-2.5 text-white no-underline hover:bg-brand-hover">
+        Nueva zona
+      </a>
+    }
+  </header>
+
+  <app-api-state [loading]="request.cargaInicial()" [error]="request.error()"
+    [actualizado]="request.actualizado()" (retry)="cargar()" />
+  @if (mensaje) {
+    <p class="m-0 rounded-lg bg-success-soft p-3 text-label text-success" role="status">{{ mensaje }}</p>
+  }
+
+  @if (request.actualizado()) {
+    <section class="ui-card overflow-hidden" aria-label="Directorio de zonas">
+      <div class="flex flex-wrap items-end justify-between gap-3 px-4 py-3 desktop:px-5">
+        <app-busqueda-catalogo class="block w-full max-w-sm" etiqueta="Buscar zona o ubicación" [(texto)]="busqueda" />
+        <p class="m-0 text-label text-muted">{{ filas().length }} de {{ zonas().length }} zonas</p>
+      </div>
+      @if (filas().length) {
+        <div class="ui-focus overflow-x-auto" tabindex="0" role="region" aria-label="Listado de zonas">
+          <table class="w-full min-w-table border-collapse text-label">
+            <thead>
+              <tr>
+                <th class="ui-table-cell py-3 text-caption text-muted" scope="col">Zona</th>
+                <th class="ui-table-cell py-3 text-caption text-muted" scope="col">Ubicación</th>
+                <th class="ui-table-cell py-3 text-caption text-muted" scope="col">Cámaras</th>
+                <th class="ui-table-cell py-3 text-caption text-muted" scope="col">Estado</th>
+                <th class="ui-table-cell py-3 text-caption text-muted" scope="col">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (fila of filas(); track fila.zona.id) {
+                @let zona = fila.zona;
+                <tr>
+                  <th class="ui-table-cell wrap-anywhere py-3 font-medium" scope="row">{{ zona.nombre }}</th>
+                  <td class="ui-table-cell py-3">
+                    @if (zona.ubicacion) {
+                      <span class="block wrap-anywhere">{{ zona.ubicacion }}</span>
+                      <small class="text-muted">{{ zona.pais }}</small>
+                    } @else {
+                      {{ zona.pais }}
+                    }
+                  </td>
+                  <td class="ui-table-cell py-3">
+                    <a class="ui-focus rounded-sm font-semibold text-brand no-underline hover:underline"
+                      routerLink="/camaras" [queryParams]="{ zona: zona.id }"
+                      [attr.aria-label]="'Ver cámaras de ' + zona.nombre + ' (' + fila.camaras + ')'">
+                      {{ fila.camaras }}
+                    </a>
+                  </td>
+                  <td class="ui-table-cell py-3">
+                    <span class="inline-flex rounded-full px-2.5 py-1 text-caption font-semibold"
+                      [class]="zona.estado === 'activa' ? 'bg-success-soft text-success' : 'bg-canvas text-muted'">
+                      {{ zona.estado === 'activa' ? 'Activa' : 'Inactiva' }}
+                    </span>
+                  </td>
+                  <td class="ui-table-cell py-3">
+                    @if (auth.isAdmin()) {
+                      <a class="ui-focus rounded-sm font-semibold text-brand no-underline hover:underline"
+                        [routerLink]="['/zonas', zona.id, 'editar']">Editar</a>
+                    } @else {
+                      <a class="ui-focus rounded-sm font-semibold text-brand no-underline hover:underline"
+                        [routerLink]="['/zonas', zona.id, 'umbrales']">Ver umbrales</a>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="m-0 px-4 pb-4 text-label text-muted desktop:px-5">
+          {{ zonas().length ? 'No hay zonas para esta búsqueda.' : 'No hay zonas registradas.' }}
+        </p>
+      }
+    </section>
+  }
+</section>

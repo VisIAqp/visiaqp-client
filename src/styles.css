@@ -105,7 +105,6 @@ main tbody tr:hover { background: #f7faff; }
 main th { letter-spacing: .045em; font-weight: 600; }
 main td { vertical-align: middle; }
 main table button { font-size: .75rem; padding: .4rem .65rem; }
-app-zonas > section > p[role="status"] { padding: .8rem 1rem; border: 1px solid #b9e4d1; border-radius: .5rem; background: #ecf9f2; color: #17603d; }
 .section-eyebrow { margin: 0 0 .5rem; color: var(--color-brand); font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .13em; }
 .status-badge { display: inline-flex; align-items: center; gap: .35rem; padding: .2rem .6rem; border-radius: 2rem; background: #f0f2f6; color: #536074; font-size: .75rem; white-space: nowrap; }
 .status-badge::before { content: ''; width: .35rem; height: .35rem; border-radius: 50%; background: currentColor; }

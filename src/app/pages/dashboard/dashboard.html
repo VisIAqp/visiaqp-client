@@ -114,6 +114,11 @@
       </label>
     }
 
+    @if (serieConMedicionParcial) {
+      <p class="mb-3 rounded-lg bg-warning-soft px-3 py-2 text-label text-warning">
+        Hay periodos con medición incompleta. Sus valores se calculan con las ventanas válidas.
+      </p>
+    }
     <div class="relative h-72 min-w-0 desktop:h-88" [class.hidden]="!serieConMedicion">
       <canvas #serieCanvas role="img" aria-label="Promedio de personas presentes por cámara y ejecución. Los valores están en la tabla de ocupación."></canvas>
     </div>
@@ -151,7 +156,12 @@
                     <td class="ui-table-cell px-3 py-2">{{ etiquetaSerie(f) }}</td>
                     <td class="ui-table-cell px-3 py-2">{{ f.promedio_presentes === null ? 'Sin medición' : (f.promedio_presentes | number:'1.0-2') }} / {{ f.max_presentes ?? '—' }}</td>
                     <td class="ui-table-cell px-3 py-2">{{ f.segundos_observados === null ? 'Sin medición' : (f.segundos_observados | number:'1.0-1') + ' s' }}</td>
-                    <td class="ui-table-cell px-3 py-2">{{ estadoMedicion(f.estado_ocupacion) }}</td>
+                    <td class="ui-table-cell px-3 py-2">
+                      {{ estadoMedicion(f.estado_ocupacion) }}
+                      @if (f.estado_ocupacion === 'datos_incompletos') {
+                        <small class="block text-muted">{{ f.ventanas_con_ocupacion }} de {{ f.cantidad_ventanas }} ventanas válidas</small>
+                      }
+                    </td>
                   </tr>
                 }
               </tbody>

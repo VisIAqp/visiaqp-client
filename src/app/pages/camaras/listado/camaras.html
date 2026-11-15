@@ -7,6 +7,12 @@
       </a>
     }
   </header>
+  @if (nombreZonaFiltrada(); as nombre) {
+    <div class="flex flex-wrap items-center gap-2 text-label">
+      <span class="rounded-full bg-brand-soft px-3 py-1 text-brand">{{ nombre }}</span>
+      <a routerLink="/camaras" class="ui-focus rounded-sm text-brand">Ver todas las cámaras</a>
+    </div>
+  }
   <app-api-state [loading]="request.cargaInicial()" [error]="request.error()"
     [actualizado]="request.actualizado()" (retry)="cargar()" />
   <app-api-state [error]="saving.error()" [retryable]="false" />
@@ -16,7 +22,7 @@
     <section class="ui-card overflow-hidden" aria-label="Directorio de cámaras">
       <div class="flex flex-wrap items-end justify-between gap-3 px-4 py-3 desktop:px-5">
         <app-busqueda-catalogo class="block w-full max-w-sm" etiqueta="Buscar cámara o zona" [(texto)]="busqueda" />
-        <p class="m-0 text-label text-muted">{{ filas().length }} de {{ camaras().length }} cámaras</p>
+        <p class="m-0 text-label text-muted">{{ filas().length }} de {{ camarasEnZona().length }} cámaras</p>
       </div>
       @if (filas().length) {
         <div class="ui-focus overflow-x-auto" tabindex="0" role="region" aria-label="Listado de cámaras">
@@ -66,7 +72,13 @@
         </div>
       } @else {
         <p class="m-0 px-4 pb-4 text-label text-muted desktop:px-5">
-          {{ camaras().length ? 'No hay cámaras para esta búsqueda.' : 'No hay cámaras registradas.' }}
+          @if (camarasEnZona().length) {
+            No hay cámaras para esta búsqueda.
+          } @else if (zonaId() !== null) {
+            No hay cámaras registradas en esta zona.
+          } @else {
+            No hay cámaras registradas.
+          }
         </p>
       }
     </section>

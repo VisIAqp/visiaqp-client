@@ -20,6 +20,9 @@ export class ZonaService {
       .get<ZonaDto[]>('/zonas')
       .pipe(map((rows) => rows.map((d) => this.mapper.zona(d))));
   }
+  obtener(id: number) {
+    return this.api.get<ZonaDto>('/zonas/' + id).pipe(map((dato) => this.mapper.zona(dato)));
+  }
   guardar(datos: ZonaInput, id?: number) {
     const req = id
       ? this.api.patch<ZonaDto>('/zonas/' + id, datos)

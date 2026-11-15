@@ -101,6 +101,9 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   get filasSerie() { return this.serieElegida ? this.serie.filas.filter((f) => f.id_procesamiento === this.serieElegida) : this.serie.filas; }
   get filasTablaSerie() { return this.filasSerie; }
   get serieConMedicion() { return this.filasSerie.some((f) => f.promedio_presentes !== null); }
+  get serieConMedicionParcial() {
+    return this.filasSerie.some((f) => f.estado_ocupacion === 'datos_incompletos' && f.promedio_presentes !== null);
+  }
   get serieSoloConteos() {
     const filas = this.filasSerie;
     return filas.length > 0 && filas.every((f) => f.estado_ocupacion === 'sin_datos');

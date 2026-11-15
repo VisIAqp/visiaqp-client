@@ -1,0 +1,31 @@
+<section class="ui-card p-4 desktop:p-5" aria-labelledby="titulo-umbrales">
+  <h3 id="titulo-umbrales" class="mt-0">Umbrales de ocupación</h3>
+  <app-api-state [loading]="consulta.cargaInicial()" [error]="consulta.error()" (retry)="cargar()" />
+  @if (consulta.actualizado()) {
+    <p class="mt-0 text-label text-muted">{{ predeterminado() ? 'Usa los valores predeterminados.' : 'Usa umbrales propios.' }}</p>
+    @if (editable()) {
+      <form (ngSubmit)="guardar()">
+        <fieldset class="m-0 grid min-w-0 gap-3 border-0 p-0 desktop:grid-cols-2" [disabled]="guardado.loading()">
+          <label class="grid min-w-0 gap-1">Nivel medio desde
+            <input name="medio" type="number" min="0" step="1" class="ui-field w-full" [(ngModel)]="medio" required />
+          </label>
+          <label class="grid min-w-0 gap-1">Nivel alto desde
+            <input name="alto" type="number" min="1" step="1" class="ui-field w-full" [(ngModel)]="alto" required />
+          </label>
+        </fieldset>
+        <p class="text-label text-muted">El nivel bajo corresponde a valores por debajo del umbral medio.</p>
+        <app-api-state [loading]="guardado.loading()" [error]="guardado.error()" [retryable]="false" />
+        @if (confirmacion()) {
+          <p class="rounded-lg bg-success-soft px-3 py-2 text-label text-success" role="status">Umbrales guardados.</p>
+        }
+        <button type="submit" class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2"
+          [disabled]="guardado.loading()">Guardar umbrales</button>
+      </form>
+    } @else {
+      <dl class="m-0 grid gap-3 desktop:grid-cols-2">
+        <div><dt class="text-label text-muted">Nivel medio desde</dt><dd class="m-0 font-semibold tabular-nums">{{ medio }}</dd></div>
+        <div><dt class="text-label text-muted">Nivel alto desde</dt><dd class="m-0 font-semibold tabular-nums">{{ alto }}</dd></div>
+      </dl>
+    }
+  }
+</section>

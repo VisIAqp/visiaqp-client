@@ -1,6 +1,8 @@
 import { Component, input, output } from '@angular/core';
+import { DatePipe } from '@angular/common';
 @Component({
   selector: 'app-api-state',
+  imports: [DatePipe],
   template: `@if (loading()) {
       <p class="text-label text-muted" role="status">Cargando datos…</p>
     }
@@ -10,6 +12,9 @@ import { Component, input, output } from '@angular/core';
         role="alert"
       >
         <p class="mt-0 mb-3 text-danger">{{ error() }}</p>
+        @if (actualizado(); as hora) {
+          <p class="text-label">Datos de la última consulta: {{ hora | date: 'dd/MM HH:mm:ss' : '-0500' }} (Lima).</p>
+        }
         @if (retryable()) {
           <button
             type="button"
@@ -26,5 +31,6 @@ export class ApiState {
   readonly loading = input(false);
   readonly error = input('');
   readonly retryable = input(true);
+  readonly actualizado = input<Date | null>(null);
   readonly retry = output<void>();
 }

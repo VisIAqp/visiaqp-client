@@ -1,6 +1,0 @@
-:host { display: block; }
-.nav-icon { width: 1.1rem; height: 1.1rem; flex-shrink: 0; }
-.nav-caption { margin: .5rem .75rem .75rem; font-size: .6rem; letter-spacing: .14em; color: #8c97a8; }
-.sidebar-location { display: block; padding-left: 1rem; margin-top: .45rem; font-size: .7rem; color: #8c97a8; }
-nav a { font-size: .8125rem; }
-@media (max-width: 47.5rem) { .nav-caption { display: none; } }

@@ -1,22 +1,5 @@
 <header
-  class="print:hidden box-border flex min-h-16 items-center justify-between gap-3 border-0 border-b border-solid border-border bg-white p-4 desktop:h-16 desktop:px-7 desktop:py-0"
+  class="print:hidden box-border flex min-h-16 items-center border-0 border-b border-solid border-border bg-white px-4 desktop:px-7"
 >
-  <div class="min-w-0">
-    <p class="m-0 text-caption text-muted">VisIAqp <span aria-hidden="true" class="mx-2">/</span> Espacio de trabajo</p><h1 class="m-0 text-panel text-content">{{ titulo }}</h1>
-
-  </div>
-  <div class="flex shrink-0 items-center gap-3">
-    <div class="hidden flex-col desktop:flex">
-      <span class="text-sm font-semibold"
-        >{{ auth.user()?.nombres }} {{ auth.user()?.apellidos }}</span
-      ><span class="text-xs text-subtle">{{ auth.role() }}</span>
-    </div>
-    <button
-      type="button"
-      class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2 disabled:cursor-default disabled:opacity-45"
-      (click)="auth.logout()"
-    >
-      Salir
-    </button>
-  </div>
+  <h1 class="m-0 text-panel text-content">{{ titulo() }}</h1>
 </header>

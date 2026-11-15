@@ -1,9 +1,12 @@
-import { AfterViewInit, Component, DestroyRef, ElementRef, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { filter, forkJoin, timer } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Contexto } from '../contexto/contexto';
 import { Chart } from 'chart.js/auto';
+import { Auth } from '../../core/auth/auth';
+import { API_CONFIG } from '../../core/api/api-config';
 import { RequestState } from '../../core/api/request-state';
 import { PanelMetricas } from '../../core/api/panel-metricas';
 import { ApiState } from '../../shared/api-state/api-state';
@@ -26,17 +29,21 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   private zonasApi = inject(ZonaService);
   private camarasApi = inject(CamaraService);
   private metricas = inject(MetricasService);
+  private auth = inject(Auth);
+  private config = inject(API_CONFIG);
   private ref = inject(DestroyRef);
   readonly request = new RequestState(this.ref);
-  readonly resumenEstado = new RequestState(this.ref);
-  readonly serie = new PanelMetricas<PuntoSerie>(this.ref);
-  readonly comparativa = new PanelMetricas<MedicionAgregada>(this.ref);
-  readonly patron = new PanelMetricas<PatronHorario>(this.ref);
-  readonly niveles = new PanelMetricas<DistribucionNivel>(this.ref);
-  readonly actividad = new PanelMetricas<EstadoCamara>(this.ref);
+  readonly resumenEstado = new RequestState(this.ref, true);
+  readonly serie = new PanelMetricas<PuntoSerie>(this.ref, true);
+  readonly comparativa = new PanelMetricas<MedicionAgregada>(this.ref, true);
+  readonly patron = new PanelMetricas<PatronHorario>(this.ref, true);
+  readonly niveles = new PanelMetricas<DistribucionNivel>(this.ref, true);
+  readonly actividad = new PanelMetricas<EstadoCamara>(this.ref, true);
+  private readonly paneles = [this.serie, this.comparativa, this.patron, this.niveles, this.actividad];
   zonas: Zona[] = [];
   camaras: Camara[] = [];
-  resumen: ResumenMetricas | null = null;
+  private readonly resumenDatos = signal<ResumenMetricas | null>(null);
+  get resumen() { return this.resumenDatos(); }
   zonaSeleccionada = 0;
   camaraSeleccionada = 0;
   ejecucionId: number | null = null;
@@ -83,7 +90,14 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
       nombre: clave === 'sin_nivel' ? 'Medición sin nivel' : ['bajo', 'medio', 'alto'].includes(clave) ? clave : estadoMedicion(clave),
       cantidad: conteos.get(clave)! }));
   }
-  ngOnInit() { this.cargar(); }
+  ngOnInit() {
+    this.cargar();
+    const intervalo = this.config.pollMs * 2;
+    timer(intervalo, intervalo).pipe(
+      filter(() => !document.hidden && this.auth.validToken()),
+      takeUntilDestroyed(this.ref),
+    ).subscribe(() => this.refrescarMetricas());
+  }
   ngAfterViewInit() {
     this.graficoSerie = new Chart<'line', (number | null)[], string>(this.serieCanvas.nativeElement, {
       type: 'line', data: { labels: [], datasets: [] },
@@ -113,25 +127,26 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   }
   cambiarZona() { this.camaraSeleccionada = 0; this.ejecucionId = null; }
   buscar() {
-    this.verContexto = false;
-    this.resumenEstado.cancel();
-    this.resumenEstado.error.set('');
-    this.resumen = null;
-    for (const panel of [this.serie, this.comparativa, this.patron, this.niveles, this.actividad]) panel.limpiar();
-    this.consulta = null;
     this.errorFiltros = '';
-    this.actualizarGraficos();
     if (!rangoValido(this.desde, this.hasta)) {
+      this.limpiarConsulta();
       this.errorFiltros = 'Selecciona un rango válido de hasta 31 días, incluyendo ambas fechas.';
       return;
     }
     if (this.ejecucionId !== null && (!Number.isInteger(this.ejecucionId) || this.ejecucionId < 1)) {
+      this.limpiarConsulta();
       this.errorFiltros = 'El identificador de ejecución debe ser un entero positivo o quedar vacío.';
       return;
     }
-    this.consulta = { desde: this.desde + 'T00:00:00', hasta: exclusiveEnd(this.hasta)!, periodo: this.periodoTipo,
+    const consulta: FiltrosMetricas = { desde: this.desde + 'T00:00:00', hasta: exclusiveEnd(this.hasta)!, periodo: this.periodoTipo,
       id_zona: this.zonaSeleccionada || undefined, id_camara: this.camaraSeleccionada || undefined,
       id_procesamiento: this.ejecucionId ?? undefined, tipo_fuente: this.fuente || undefined };
+    if (JSON.stringify(consulta) === JSON.stringify(this.consulta)) {
+      this.refrescarMetricas();
+      return;
+    }
+    this.limpiarConsulta();
+    this.consulta = consulta;
     this.cargarResumen();
     this.cargarSerie();
     this.cargarComparativa();
@@ -139,8 +154,23 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     this.cargarNiveles();
     this.cargarActividad();
   }
+  private limpiarConsulta() {
+    this.verContexto = false;
+    this.consulta = null;
+    this.resumenEstado.reiniciar();
+    this.resumenDatos.set(null);
+    for (const panel of this.paneles) panel.limpiar();
+    this.actualizarGraficos();
+  }
+  refrescarMetricas() {
+    if (!this.consulta) return;
+    this.cargarResumen();
+    for (const panel of this.paneles) panel.refrescar();
+  }
   cargarResumen() {
-    if (this.consulta) this.resumenEstado.run(this.metricas.resumen(this.consulta), (r) => this.resumen = r);
+    if (this.consulta && !this.resumenEstado.loading()) {
+      this.resumenEstado.run(this.metricas.resumen(this.consulta), (r) => this.resumenDatos.set(r));
+    }
   }
   cargarSerie(desplazamiento = 0) {
     if (!this.consulta) return;
@@ -178,7 +208,7 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
       borderColor: colores[i % colores.length], backgroundColor: colores[i % colores.length],
       pointRadius: preparada.labels.length > 100 ? 0 : 2, borderWidth: 2, tension: 0, spanGaps: false,
     })) };
-    this.graficoSerie.update();
+    this.graficoSerie.update('none');
   }
   private colores() {
     const estilo = getComputedStyle(document.documentElement);
@@ -190,7 +220,7 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     this.graficoComparativa.data.labels = this.comparativa.filas.map((f) => f.nombre_zona);
     this.graficoComparativa.data.datasets[0].data = this.comparativa.filas.map((f) => f.promedio_presentes);
     this.graficoComparativa.data.datasets[0].backgroundColor = this.colores()[0];
-    this.graficoComparativa.update();
+    this.graficoComparativa.update('none');
   }
   private actualizarNiveles() {
     if (!this.graficoNiveles) return;
@@ -200,7 +230,7 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     const estilo = getComputedStyle(document.documentElement);
     this.graficoNiveles.data.datasets[0].backgroundColor = this.distribucionVisible.map((f) =>
       colores[f.clave] ? estilo.getPropertyValue('--color-' + ({ bajo: 'success', medio: 'warning', alto: 'danger' }[f.clave as 'bajo' | 'medio' | 'alto'])).trim() || '#777' : '#aaa');
-    this.graficoNiveles.update();
+    this.graficoNiveles.update('none');
   }
   private actualizarGraficos() { this.actualizarSerie(); this.actualizarComparativa(); this.actualizarNiveles(); }
   celda(dia: number, hora: number) { return this.patron.filas.find((f) => f.id_zona === this.zonaPatron && f.dia_semana === dia && f.hora === hora); }

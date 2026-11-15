@@ -103,7 +103,8 @@
         </select></label
       ><button
         class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-4 py-2 disabled:cursor-default disabled:opacity-45"
-        [disabled]="request.loading()"
+        type="button"
+        [disabled]="ejecucionesRequest.loading()"
         (click)="refrescar()"
       >
         Actualizar ejecuciones
@@ -112,7 +113,8 @@
     <p class="px-5 text-label text-muted">
       Hasta 500 ejecuciones cargadas, en páginas de 10. Solo se cancelan solicitudes pendientes. Los resultados históricos se consultan debajo del historial.
     </p>
-    @if (actualizado) {
+    <app-api-state [loading]="ejecucionesRequest.cargaInicial()" [error]="ejecucionesRequest.error()" [actualizado]="ejecucionesRequest.actualizado()" (retry)="refrescar()" />
+    @if (ejecucionesRequest.actualizado(); as actualizado) {
       <small class="px-5">Última consulta: {{ actualizado | date: 'HH:mm:ss' : '-0500' }}</small>
     }
     <div class="overflow-x-auto">
@@ -157,7 +159,7 @@
               </td>
             </tr>
           } @empty {
-            @if (!request.loading() && !request.error()) {
+            @if (ejecucionesRequest.actualizado()) {
               <tr>
                 <td colspan="5" class="ui-table-cell py-3.5 text-label">
                   No hay ejecuciones en esta consulta.

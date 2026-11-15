@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { filter, timer } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -25,33 +25,33 @@ export class Monitoreo implements OnInit {
   private auth = inject(Auth);
   private config = inject(API_CONFIG);
   private ref = inject(DestroyRef);
-  readonly request = new RequestState(this.ref);
-  readonly actividadRequest = new RequestState(this.ref);
-  readonly medicionRequest = new RequestState(this.ref);
-  readonly historialRequest = new RequestState(this.ref);
-  readonly pronosticoRequest = new RequestState(this.ref);
+  readonly request = new RequestState(this.ref, true);
+  readonly actividadRequest = new RequestState(this.ref, true);
+  readonly medicionRequest = new RequestState(this.ref, true);
+  readonly historialRequest = new RequestState(this.ref, true);
+  readonly pronosticoRequest = new RequestState(this.ref, true);
   readonly fecha = mostrarFecha;
   readonly estadoMedicion = estadoMedicion;
-  camaras: Camara[] = [];
-  zonas: Zona[] = [];
+  private readonly camaras = signal<Camara[]>([]);
+  private readonly zonas = signal<Zona[]>([]);
   procesamientos: Procesamiento[] = [];
   camaraSeleccionadaId = 0;
-  actualizado: Date | null = null;
-  estadoActual: EstadoCamara | null = null;
-  ultimaMedicion: PuntoSerie | null = null;
-  pronostico: PronosticoOcupacion | null = null;
-  private actividadConsultada = false;
-  get camarasDisponibles() { return this.camaras.filter((c) => c.estado === 'activa'); }
-  get camaraSeleccionada() { return this.camaras.find((c) => c.id === this.camaraSeleccionadaId); }
+  readonly estadoActual = signal<EstadoCamara | null>(null);
+  private readonly medicion = signal<PuntoSerie | null>(null);
+  readonly pronostico = signal<PronosticoOcupacion | null>(null);
+  readonly camarasDisponibles = computed(() => this.camaras().filter((c) => c.estado === 'activa'));
+  get camaraSeleccionada() {
+    return this.camarasDisponibles().find((c) => c.id === this.camaraSeleccionadaId);
+  }
   get ejecuciones() { return this.procesamientos.filter((p) => p.camaraId === this.camaraSeleccionadaId); }
-  get transmision() { return this.ejecuciones.filter((p) => p.tipoFuente === 'stream').sort((a, b) => b.id - a.id)[0]; }
+  get ultimaMedicion() { return this.medicion(); }
   get estadoTransmision() {
-    if (this.actividadRequest.loading()) return 'Consultando actividad…';
+    const estado = this.estadoActual();
+    if (estado) return estadoOperativo(estado.estado_operativo);
+    if (this.actividadRequest.actualizado()) return 'Sin estado disponible';
+    if (this.actividadRequest.cargaInicial()) return 'Consultando actividad.';
     if (this.actividadRequest.error()) return 'Actividad no disponible';
-    if (this.estadoActual) return estadoOperativo(this.estadoActual.estado_operativo);
-    if (this.actividadConsultada) return 'Sin estado disponible';
-    // Solo para una vista aún no consultada; las respuestas nuevas son la fuente operativa.
-    const p = this.transmision;
+    const p = this.ejecuciones.filter((e) => e.tipoFuente === 'stream').sort((a, b) => b.id - a.id)[0];
     if (!p) return 'Sin transmisión registrada';
     if (p.estado !== 'procesando') return p.estado === 'error' ? 'Transmisión interrumpida' : 'Transmisión finalizada';
     if (!p.ultimaActividad) return 'Sin señal de actividad';
@@ -60,55 +60,74 @@ export class Monitoreo implements OnInit {
   ngOnInit() {
     this.cargar();
     timer(this.config.pollMs, this.config.pollMs).pipe(
-      filter(() => !document.hidden && this.auth.validToken() && !this.request.loading() && !this.actividadRequest.loading() && !this.medicionRequest.loading() && !this.historialRequest.loading() && !this.pronosticoRequest.loading()),
+      filter(() => !document.hidden && this.auth.validToken()),
       takeUntilDestroyed(this.ref),
     ).subscribe(() => this.cargar());
   }
   cargar() {
+    this.cargarCatalogo();
+    this.consultarSeleccion();
+  }
+  cargarCatalogo() {
+    if (this.request.loading()) return;
     this.request.run(this.api.consultar(), (d) => {
-      this.camaras = d.camaras;
-      this.zonas = d.zonas;
-      this.actualizado = new Date();
-      if (!this.camarasDisponibles.some((c) => c.id === this.camaraSeleccionadaId)) {
-        this.camaraSeleccionadaId = 0;
-        this.limpiarSeleccion();
-      } else this.consultarSeleccion();
+      this.camaras.set(d.camaras);
+      this.zonas.set(d.zonas);
+      if (this.camaraSeleccionadaId && !this.camaraSeleccionada) this.seleccionarCamara(0);
     });
+  }
+  seleccionarCamara(id: number) {
+    if (id !== this.camaraSeleccionadaId) {
+      this.limpiarSeleccion();
+      this.camaraSeleccionadaId = id;
+    }
+    this.consultarSeleccion();
   }
   private limpiarSeleccion() {
     for (const estado of [this.actividadRequest, this.medicionRequest, this.historialRequest, this.pronosticoRequest]) {
-      estado.cancel(); estado.error.set('');
+      estado.reiniciar();
     }
-    this.estadoActual = null; this.ultimaMedicion = null; this.procesamientos = []; this.actividadConsultada = false;
-    this.pronostico = null;
+    this.estadoActual.set(null);
+    this.medicion.set(null);
+    this.procesamientos = [];
+    this.pronostico.set(null);
   }
-  seleccionarCamara(id: number) { this.camaraSeleccionadaId = id; this.consultarSeleccion(); }
-  consultarSeleccion() {
+  private consultarSeleccion() {
+    this.consultarActividad();
+    this.consultarHistorial();
+    this.consultarPronostico();
+  }
+  consultarActividad() {
     const id = this.camaraSeleccionadaId;
-    this.limpiarSeleccion();
-    if (!id) return;
+    if (!id || this.actividadRequest.loading()) return;
     this.actividadRequest.run(this.metricas.estadoCamaras({ id_camara: id }), (p) => {
-      this.actividadConsultada = true;
-      this.estadoActual = p.datos[0] ?? null;
+      const estado = p.datos[0] ?? null;
+      if (estado?.id_procesamiento !== this.estadoActual()?.id_procesamiento) {
+        this.medicionRequest.reiniciar();
+        this.medicion.set(null);
+      }
+      this.estadoActual.set(estado);
       this.consultarMedicion();
     });
+  }
+  consultarHistorial() {
+    const id = this.camaraSeleccionadaId;
+    if (!id || this.historialRequest.loading()) return;
     this.historialRequest.run(this.analisis.listar(undefined, id), (p) => this.procesamientos = p);
-    this.consultarPronostico();
   }
   consultarPronostico() {
     const id = this.camaraSeleccionadaId;
-    if (!id) return;
-    this.pronosticoRequest.run(this.api.pronostico(id), (p) => this.pronostico = p);
+    if (!id || this.pronosticoRequest.loading()) return;
+    this.pronosticoRequest.run(this.api.pronostico(id), (p) => this.pronostico.set(p));
   }
   consultarMedicion() {
-    this.ultimaMedicion = null;
-    const estado = this.estadoActual;
-    if (!estado?.id_procesamiento) return;
+    const estado = this.estadoActual();
+    if (!estado?.id_procesamiento || this.medicionRequest.loading()) return;
     const hoy = limaToday();
     this.medicionRequest.run(this.metricas.ultimaSerie({ desde: addDays(hoy, -1) + 'T00:00:00',
       hasta: exclusiveEnd(hoy)!, periodo: 'hora', id_camara: estado.id_camara,
       id_procesamiento: estado.id_procesamiento, tipo_fuente: 'stream' }),
-      (p) => this.ultimaMedicion = p.datos[0] ?? null);
+      (p) => this.medicion.set(p.datos[0] ?? null));
   }
-  nombreZona(id: number) { return this.zonas.find((z) => z.id === id)?.nombre || 'Zona ' + id; }
+  nombreZona(id: number) { return this.zonas().find((z) => z.id === id)?.nombre || 'Zona ' + id; }
 }

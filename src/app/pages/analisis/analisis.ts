@@ -5,6 +5,7 @@ import {
   ElementRef,
   inject,
   OnDestroy,
+  signal,
   ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -41,10 +42,13 @@ export class Analisis implements AfterViewInit, OnDestroy {
   private config = inject(API_CONFIG);
   private ref = inject(DestroyRef);
   readonly request = new RequestState(this.ref);
+  readonly ejecucionesRequest = new RequestState(this.ref, true);
   readonly saving = new RequestState(this.ref);
   videos: VideoDto[] = [];
   camaras: Camara[] = [];
-  procesamientos: Procesamiento[] = [];
+  private readonly historialEjecuciones = signal<Procesamiento[]>([]);
+  get procesamientos() { return this.historialEjecuciones(); }
+  set procesamientos(filas: Procesamiento[]) { this.historialEjecuciones.set(filas); }
   videoId = 0;
   camaraId = 0;
   fechaCaptura = '';
@@ -57,7 +61,6 @@ export class Analisis implements AfterViewInit, OnDestroy {
   get ejecucionesVisibles() { return this.procesamientos.slice((this.paginaEjecuciones - 1) * this.tamanoPagina, this.paginaEjecuciones * this.tamanoPagina); }
   irA(id: string) { document.getElementById(id)?.scrollIntoView({ block: 'start' }); }
   cambiarPagina(delta: number) { this.paginaEjecuciones = Math.min(this.paginasEjecuciones, Math.max(1, this.paginaEjecuciones + delta)); }
-  actualizado: Date | null = null;
   @ViewChild('graficoPeatones') grafico!: ElementRef<HTMLCanvasElement>;
   private chart?: Chart;
   ngAfterViewInit() {
@@ -73,13 +76,14 @@ export class Analisis implements AfterViewInit, OnDestroy {
     this.history.changed = () => this.renderChart();
     this.history.inicializar();
     this.cargar();
+    this.refrescar();
     timer(this.config.pollMs, this.config.pollMs)
       .pipe(
         filter(
           () =>
             !document.hidden &&
             this.auth.validToken() &&
-            !this.request.loading() &&
+            !this.ejecucionesRequest.loading() &&
             !this.saving.loading(),
         ),
         takeUntilDestroyed(this.ref),
@@ -91,28 +95,24 @@ export class Analisis implements AfterViewInit, OnDestroy {
       forkJoin({
         videos: this.videosApi.listar(),
         camaras: this.camarasApi.listar(),
-        procesamientos: this.api.listar(
-          this.filtroEstado || undefined,
-          this.filtroCamara || undefined,
-        ),
       }),
       (d) => {
         this.videos = d.videos;
         this.camaras = d.camaras;
-        this.procesamientos = d.procesamientos;
-        this.cambiarPagina(0);
-        this.actualizado = new Date();
       },
     );
   }
   refrescar(reiniciar = false) {
-    if (reiniciar) this.paginaEjecuciones = 1;
-    this.request.run(
+    if (reiniciar) {
+      this.ejecucionesRequest.reiniciar();
+      this.procesamientos = [];
+      this.paginaEjecuciones = 1;
+    }
+    this.ejecucionesRequest.run(
       this.api.listar(this.filtroEstado || undefined, this.filtroCamara || undefined),
       (rows) => {
         this.procesamientos = rows;
         this.cambiarPagina(0);
-        this.actualizado = new Date();
       },
     );
   }

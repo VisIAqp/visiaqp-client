@@ -1,63 +1,28 @@
-import { Auth } from '../../core/auth/auth';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
-import { filter, Subscription } from 'rxjs';
+import { filter, map } from 'rxjs';
+import { navegacion } from '../navigation';
 
 @Component({
   selector: 'app-navbar',
-  imports: [],
   templateUrl: './navbar.html',
 })
-export class Navbar implements OnInit, OnDestroy {
-  readonly auth = inject(Auth);
-  titulo = 'Dashboard';
+export class Navbar {
+  private readonly router = inject(Router);
+  readonly titulo = toSignal(
+    this.router.events.pipe(
+      filter((evento) => evento instanceof NavigationEnd),
+      map((evento) => this.tituloDe(evento.urlAfterRedirects)),
+    ),
+    { initialValue: this.tituloDe(this.router.url) },
+  );
 
-  private subscription?: Subscription;
-
-  constructor(private router: Router) {}
-
-  ngOnInit(): void {
-    this.actualizarTitulo(this.router.url);
-
-    this.subscription = this.router.events
-      .pipe(filter((event) => event instanceof NavigationEnd))
-      .subscribe((event) => {
-        const navigation = event as NavigationEnd;
-
-        this.actualizarTitulo(navigation.urlAfterRedirects);
-      });
-  }
-
-  ngOnDestroy(): void {
-    this.subscription?.unsubscribe();
-  }
-
-  private actualizarTitulo(url: string): void {
-    if (url.includes('/zonas')) {
-      this.titulo = 'Zonas';
-      return;
-    }
-
-    if (url.includes('/camaras')) {
-      this.titulo = 'Cámaras';
-      return;
-    }
-
-    if (url.includes('/monitoreo')) {
-      this.titulo = 'Monitoreo';
-      return;
-    }
-
-    if (url.includes('/analisis')) {
-      this.titulo = 'Análisis';
-      return;
-    }
-
-    if (url.includes('/reportes')) {
-      this.titulo = 'Reportes';
-      return;
-    }
-
-    this.titulo = 'Dashboard';
+  private tituloDe(url: string): string {
+    const ruta = this.router.parseUrl(url).root.children['primary']?.segments[0]?.path;
+    return (
+      Object.values(navegacion).find((enlace) => enlace.ruta === '/' + ruta)?.etiqueta ??
+      navegacion.resumen.etiqueta
+    );
   }
 }

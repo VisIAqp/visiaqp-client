@@ -1,5 +1,10 @@
 <div class="min-h-screen bg-canvas">
-  <app-sidebar></app-sidebar>
+  <app-sidebar
+    [usuario]="nombreUsuario()"
+    [rol]="auth.role()"
+    [puedeConfigurar]="auth.isAdmin()"
+    (cerrarSesion)="auth.logout()"
+  />
 
   <div class="min-h-screen min-w-0 desktop:ml-sidebar print:ml-0">
     <app-navbar></app-navbar>

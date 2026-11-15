@@ -2,10 +2,11 @@ import { ChangeDetectorRef, Component, HostListener, inject, OnInit } from '@ang
 import { CommonModule } from '@angular/common';
 import { IndicatorQuery } from '../../core/api/indicator-query';
 import { IndicatorView } from '../../shared/indicator-view/indicator-view';
+import { OcupacionHistorica } from '../../shared/ocupacion-historica/ocupacion-historica';
 import { createCsv } from '../../core/api/csv';
 @Component({
   selector: 'app-reportes',
-  imports: [CommonModule, IndicatorView],
+  imports: [CommonModule, IndicatorView, OcupacionHistorica],
   providers: [IndicatorQuery],
   templateUrl: './reportes.html',
 })

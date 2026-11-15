@@ -1,0 +1,49 @@
+<section id="solicitud-video" class="ui-card p-4 desktop:p-5" aria-labelledby="titulo-solicitud">
+  <h2 id="titulo-solicitud" class="mt-0">Solicitar análisis</h2>
+  <app-api-state [loading]="catalogo().cargaInicial()" [error]="catalogo().error()"
+    (retry)="recargarCatalogo.emit()" />
+  <form (ngSubmit)="enviar()">
+    <fieldset class="m-0 grid min-w-0 gap-3 border-0 p-0 desktop:grid-cols-2 expanded:grid-cols-3"
+      [disabled]="catalogo().loading() || envio().loading()">
+      <label class="grid min-w-0 content-start gap-1">
+        Video
+        <select name="video" class="ui-field w-full" [ngModel]="videoId()" (ngModelChange)="seleccionarVideo($event)" required>
+          <option [ngValue]="0">Selecciona un video</option>
+          @for (video of disponibles(); track video.id_video) {
+            <option [ngValue]="video.id_video">
+              {{ video.nombre_archivo }} ({{ video.tamano_bytes / 1048576 | number:'1.1-1' }} MB)
+            </option>
+          }
+        </select>
+      </label>
+      <label class="grid min-w-0 content-start gap-1">
+        Cámara
+        <select name="camara" class="ui-field w-full" [ngModel]="camaraId()" (ngModelChange)="camaraId.set($event)" required>
+          <option [ngValue]="0">Selecciona una cámara</option>
+          @for (camara of activas(); track camara.id) {
+            <option [ngValue]="camara.id">{{ camara.nombre }}</option>
+          }
+        </select>
+        @if (camara() && !camara()?.zonePolygon) {
+          <small class="text-danger">Configura el área de esta cámara antes de solicitar el análisis.</small>
+        }
+      </label>
+      <label class="grid min-w-0 content-start gap-1">
+        Inicio de la grabación (Lima)
+        <input name="fecha" class="ui-field w-full" type="datetime-local" step="1"
+          [ngModel]="fechaCaptura()" (ngModelChange)="fechaCaptura.set($event); errorValidacion.set('')" required />
+        <small class="text-muted">Confirma la hora real de inicio. La fecha sugerida se puede editar.</small>
+      </label>
+    </fieldset>
+
+    <app-api-state [loading]="envio().loading()" [error]="errorValidacion() || envio().error()" [retryable]="false" />
+    @if (catalogo().actualizado()) {
+      @if (!disponibles().length) { <p class="mb-0 text-label text-muted">No hay videos disponibles en el catálogo.</p> }
+      @if (!activas().length) { <p class="mb-0 text-label text-muted">No hay cámaras habilitadas.</p> }
+    }
+    <button type="submit" class="ui-focus mt-3 cursor-pointer rounded-lg border-0 bg-brand px-4 py-2.5 text-white hover:bg-brand-hover"
+      [disabled]="envio().loading() || catalogo().loading() || !videoId() || !camara()?.zonePolygon || !fechaCaptura()">
+      Solicitar análisis
+    </button>
+  </form>
+</section>

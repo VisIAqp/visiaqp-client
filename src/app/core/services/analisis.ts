@@ -2,14 +2,16 @@ import { inject, Injectable } from '@angular/core';
 import { map } from 'rxjs';
 import { Api } from '../api/api';
 import { DtoMapper, ProcesamientoDto } from '../api/dto';
-import { EstadoProcesamiento } from '../models/analisis.model';
+import { EstadoProcesamiento, TipoFuente } from '../models/analisis.model';
 @Injectable({ providedIn: 'root' })
 export class AnalisisService {
   private api = inject(Api);
   private mapper = inject(DtoMapper);
-  listar(estado?: EstadoProcesamiento, camaraId?: number) {
+  listar(estado?: EstadoProcesamiento, camaraId?: number, tipoFuente?: TipoFuente) {
     return this.api
-      .get<ProcesamientoDto[]>('/procesamientos', { estado, id_camara: camaraId, limite: 500 })
+      .get<ProcesamientoDto[]>('/procesamientos', {
+        estado, id_camara: camaraId, tipo_fuente: tipoFuente, limite: 500,
+      })
       .pipe(map((rows) => rows.map((d) => this.mapper.procesamiento(d))));
   }
   solicitar(videoId: number, camaraId: number, fecha: string) {

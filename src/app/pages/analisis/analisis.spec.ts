@@ -46,7 +46,7 @@ describe('Analisis', () => {
     c.filtroCamara = 8;
     c.refrescar(true);
     expect(c.paginaEjecuciones).toBe(1);
-    expect(api).toHaveBeenCalledWith(undefined, 8);
+    expect(api).toHaveBeenCalledWith(undefined, 8, 'video');
     api.and.returnValue(of([]));
     c.refrescar();
     expect(c.paginasEjecuciones).toBe(1);

@@ -1,0 +1,82 @@
+<section id="historial-ejecuciones" class="ui-card overflow-hidden" aria-labelledby="titulo-seguimiento">
+  <header class="flex flex-wrap items-end justify-between gap-3 px-4 pt-4 pb-3 desktop:px-5">
+    <h2 id="titulo-seguimiento" class="m-0">Seguimiento</h2>
+    <div class="flex flex-wrap gap-3">
+      <label class="grid min-w-0 gap-1">
+        Estado
+        <select class="ui-field" [ngModel]="filtroEstado()" (ngModelChange)="filtroEstado.set($event)">
+          <option value="">Todos</option>
+          @for (estado of estados; track estado[0]) {
+            <option [value]="estado[0]">{{ estado[1].etiqueta }}</option>
+          }
+        </select>
+      </label>
+      <label class="grid min-w-0 gap-1">
+        Cámara
+        <select class="ui-field" [ngModel]="filtroCamara()" (ngModelChange)="filtroCamara.set($event)">
+          <option [ngValue]="0">Todas las cámaras</option>
+          @for (camara of camaras(); track camara.id) {
+            <option [ngValue]="camara.id">{{ camara.nombre }}</option>
+          }
+        </select>
+      </label>
+    </div>
+  </header>
+
+  <div class="px-4 desktop:px-5">
+    <app-api-state [loading]="consulta().cargaInicial()" [error]="consulta().error()"
+      [actualizado]="consulta().actualizado()" (retry)="reintentar.emit()" />
+    <app-api-state [error]="cancelacion().error()" [retryable]="false" />
+    @if (mensaje()) {
+      <p class="mt-0 mb-3 rounded-lg bg-success-soft px-3 py-2 text-label text-success" role="status">{{ mensaje() }}</p>
+    }
+    @if (consulta().actualizado(); as hora) {
+      <p class="mt-0 mb-3 text-caption text-muted">Última consulta · {{ hora | date:'HH:mm:ss':'-0500' }} (Lima)</p>
+    }
+  </div>
+
+  @if (filas().length) {
+    <div class="ui-focus overflow-x-auto" tabindex="0" role="region" aria-label="Ejecuciones de videos">
+      <table class="w-full min-w-table border-collapse text-label">
+        <thead><tr>
+          <th scope="col" class="ui-table-cell py-3 text-caption text-muted">Video y solicitud</th>
+          <th scope="col" class="ui-table-cell py-3 text-caption text-muted">Cámara</th>
+          <th scope="col" class="ui-table-cell py-3 text-caption text-muted">Grabación (Lima)</th>
+          <th scope="col" class="ui-table-cell py-3 text-caption text-muted">Estado</th>
+          <th scope="col" class="ui-table-cell py-3 text-caption text-muted">Acciones</th>
+        </tr></thead>
+        <tbody>
+          @for (fila of filas(); track fila.id) {
+            <tr [id]="'ejecucion-' + fila.id" tabindex="-1" [class.bg-brand-soft]="destacada() === fila.id"
+              class="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand">
+              <td class="ui-table-cell py-3">
+                <span class="block wrap-anywhere font-medium">{{ fila.rutaArchivo || 'Video' }}</span>
+                <small class="text-muted">Solicitud #{{ fila.id }}</small>
+              </td>
+              <td class="ui-table-cell py-3">{{ nombreCamara(fila.camaraId) }}</td>
+              <td class="ui-table-cell py-3">{{ fila.fechaCapturaInicio | date:'dd/MM/yyyy HH:mm':'-0500' }}</td>
+              <td class="ui-table-cell py-3">
+                <app-estado-ejecucion-badge [estado]="fila.estado" />
+                @if (fila.mensajeError) { <small class="mt-1 block wrap-anywhere text-danger">{{ fila.mensajeError }}</small> }
+              </td>
+              <td class="ui-table-cell py-3">
+                @if (puedeCancelar()(fila)) {
+                  <button type="button" class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-3 py-2"
+                    [disabled]="cancelacion().loading()" (click)="cancelar.emit(fila)">
+                    Cancelar solicitud
+                  </button>
+                } @else { <span class="text-muted">—</span> }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else if (consulta().actualizado()) {
+    <p class="mx-4 mt-0 mb-4 text-label text-muted desktop:mx-5">No hay ejecuciones de video para estos filtros.</p>
+  }
+  @if (paginas() > 1) {
+    <app-pagination [page]="pagina()" [pages]="paginas()" [total]="total()" unit="ejecuciones"
+      (pageChange)="cambiarPagina.emit($event)" />
+  }
+</section>

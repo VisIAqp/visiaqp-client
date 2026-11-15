@@ -23,4 +23,7 @@
     página visible. CSV es compatible con hojas de cálculo.
   </p></details>
   <app-indicator-view [query]="history" [printAll]="printing" />
+  @if (!history.request.loading() && !history.request.error()) {
+    <app-ocupacion-historica [filas]="history.rows" />
+  }
 </section>

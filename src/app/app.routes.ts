@@ -3,7 +3,6 @@ import { MainLayout } from './layout/main-layout/main-layout';
 import { Zonas } from './pages/zonas/zonas';
 import { Camaras } from './pages/camaras/camaras';
 import { Monitoreo } from './pages/monitoreo/listado/monitoreo';
-import { Reportes } from './pages/reportes/reportes';
 import { Login } from './pages/login/login';
 import { authGuard } from './core/auth/auth-guard';
 export const routes: Routes = [
@@ -22,7 +21,7 @@ export const routes: Routes = [
       { path: 'monitoreo/:id', loadComponent: () =>
         import('./pages/monitoreo/detalle/detalle-camara').then((m) => m.DetalleCamara) },
       { path: 'analisis', loadComponent: () => import('./pages/analisis/analisis').then((m) => m.Analisis) },
-      { path: 'reportes', component: Reportes },
+      { path: 'reportes', loadComponent: () => import('./pages/reportes/reportes').then((m) => m.Reportes) },
       { path: 'contexto', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },

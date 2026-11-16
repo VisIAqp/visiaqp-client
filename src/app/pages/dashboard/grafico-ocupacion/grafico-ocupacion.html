@@ -1,0 +1,17 @@
+<div class="relative h-72 min-w-0 desktop:h-88" [attr.aria-busy]="cargando()">
+  <div class="absolute inset-0" [class.invisible]="!hayMediciones()">
+    <canvas #canvas role="img" aria-label="Ocupación observada. Los valores están en la tabla de ocupación."></canvas>
+  </div>
+  @if (cargando() || error() || !hayMediciones()) {
+    <div class="pointer-events-none absolute inset-0 grid place-items-center p-4 text-center text-label text-muted" aria-live="polite">
+      <div class="max-w-sm rounded-lg bg-white px-4 py-3">
+        @if (cargando()) { <span>Actualizando…</span> }
+        @else if (error()) {
+          <p class="m-0 text-danger">{{ error() }}</p>
+          <button type="button" class="ui-focus pointer-events-auto mt-2 cursor-pointer rounded-md border-0 bg-brand-soft px-3 py-2 text-brand"
+            (click)="reintentar.emit()">Reintentar</button>
+        } @else { <span>{{ mensajeVacio() }}</span> }
+      </div>
+    </div>
+  }
+</div>

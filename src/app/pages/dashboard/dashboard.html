@@ -27,68 +27,127 @@
     }
   </section>
 
-  <section class="ui-card p-4 desktop:p-5" aria-labelledby="titulo-serie">
+  <section class="min-w-0 rounded-lg bg-white p-4 desktop:p-5" aria-labelledby="titulo-serie">
     <header class="mb-3">
       <h2 id="titulo-serie" class="mt-0 mb-1">Ocupación observada</h2>
-      @if (consulta && vistaOcupacion === 'historico') {
-        <p class="m-0 text-caption text-muted">
-          {{ rangoAplicado }} · {{ consulta.periodo === 'hora' ? 'Por hora' : 'Por día' }} · Lima
-        </p>
-      }
+      <p class="m-0 min-h-5 truncate text-caption text-muted">
+        @if (vistaOcupacion === 'reciente') { Últimos 60 min · Transmisiones · Lima }
+        @else if (consulta) { {{ rangoAplicado }} · {{ consulta.periodo === 'hora' ? 'Por hora' : 'Por día' }} · Transmisiones · Lima }
+      </p>
     </header>
 
     <app-api-state [loading]="request.cargaInicial()" [error]="request.error()" (retry)="cargar()" />
-    <app-filtros-ocupacion class="mb-4 block border-b border-solid border-divider pb-4"
+    <app-filtros-ocupacion class="mb-4 block"
       [zonas]="zonas" [camaras]="camaras" [zona]="zonaSeleccionada" [camara]="camaraSeleccionada"
       [agrupacion]="agrupacion" [vista]="vistaOcupacion"
-      [opciones]="{ desde, hasta, periodo: periodoTipo, fuente }"
+      [opciones]="{ desde, hasta, periodo: periodoTipo }"
       (zonaChange)="cambiarZona($event)" (camaraChange)="cambiarCamara($event)"
-      (agrupacionChange)="cambiarAgrupacion($event)" (vistaChange)="vistaOcupacion = $event"
+      (agrupacionChange)="cambiarAgrupacion($event)" (vistaChange)="cambiarVista($event)"
       (aplicar)="aplicarOpciones($event)" />
     @if (errorFiltros) { <p class="text-label text-danger" role="alert">{{ errorFiltros }}</p> }
 
-    @if (agrupacion === 'zona' && consulta; as filtrosZona) {
-      <app-grafico-zonas [filtros]="filtrosZona" [vista]="vistaOcupacion" [actualizacionAutomatica]="true" />
-    } @else if (vistaOcupacion === 'reciente' && consulta; as filtros) {
-      <app-ocupacion-reciente [filtros]="filtros" [camaras]="camaras" />
-    }
+    <app-grafico-ocupacion class="block"
+      [agrupacion]="agrupacion" [vista]="vistaOcupacion" [periodo]="periodoTipo" [camaras]="camaras"
+      [historico]="filasSerie" [reciente]="datosRecientes()" [ventanas]="ventanasVisibles()"
+      [zonas]="serieZonas.filas" [hayMediciones]="hayMediciones"
+      [cargando]="request.cargaInicial() || estadoOcupacion.cargaInicial()"
+      [error]="estadoOcupacion.error()" [mensajeVacio]="mensajeVacio" (reintentar)="reintentarOcupacion()" />
 
-    <div [class.hidden]="vistaOcupacion !== 'historico' || agrupacion !== 'camara'">
-    <app-api-state [loading]="serie.estado.cargaInicial()" [error]="serie.estado.error()"
-      [actualizado]="serie.estado.actualizado()" (retry)="serie.reintentar()" />
-
-    @if (camarasSerie.size > 8) {
-      <label class="mb-2 grid max-w-xs gap-1 text-caption text-muted">
-        Cámara en esta página
-        <select class="ui-field w-full text-label" [(ngModel)]="serieElegida" (ngModelChange)="actualizarSerie()">
+    @if (agrupacion === 'camara' && camarasSerie.size > 8) {
+      <label class="mt-3 grid max-w-xs gap-1 text-caption text-muted">
+        Cámara en el gráfico
+        <select class="ui-field w-full text-label" [ngModel]="serieElegida()" (ngModelChange)="serieElegida.set($event)">
           @for (item of camarasSerie; track item[0]) { <option [ngValue]="item[0]">{{ etiquetaCamara(item[1]) }}</option> }
         </select>
       </label>
     }
 
-    @if (serieConMedicionParcial) {
-      <p class="mb-3 rounded-lg bg-warning-soft px-3 py-2 text-label text-warning">
-        Hay periodos con medición incompleta. Sus valores se calculan con las ventanas válidas.
+    @if (agrupacion === 'zona') {
+      <p class="mt-2 mb-0 text-caption text-muted">
+        Promedio por cámara con medición.
       </p>
-    }
-    <div class="relative h-72 min-w-0 desktop:h-88" [class.hidden]="!serieConMedicion">
-      <canvas #serieCanvas role="img" aria-label="Promedio de personas presentes por cámara y ejecución. Los valores están en la tabla de ocupación."></canvas>
-    </div>
-    @let maximo = maximoVisible;
-    @if (serieConMedicion && maximo !== null) {
-      <p class="mt-2 mb-0 text-label text-muted">
-        Máximo observado en las series visibles · <strong class="text-content">{{ maximo | number }}</strong>
-      </p>
-    }
-
-    @if (serie.pagina; as p) {
-      @if (!p.datos.length) { <p class="text-label text-muted">No hay series para los filtros seleccionados.</p> }
-      @else if (!serieConMedicion) {
-        <p class="text-label text-muted">No hay ocupación consolidada en la selección.
-          @if (serieSoloConteos) { Solo conteos históricos. }
+      @if (serieZonas.pagina; as p) {
+        @if (vistaOcupacion === 'reciente' && p.tiene_mas) {
+          <p class="text-caption text-muted">Se muestran los puntos más recientes. Filtra por zona para ver más detalle.</p>
+        }
+        @if (p.datos.length) {
+          <details class="mt-3 text-label">
+            <summary class="ui-focus cursor-pointer rounded-sm font-medium">Ver tabla de ocupación</summary>
+            <div class="ui-focus my-3 max-h-96 overflow-auto" tabindex="0" role="region" aria-label="Ocupación por zona">
+              <table class="w-full min-w-table border-collapse">
+                <thead><tr>
+                  <th class="ui-table-cell px-3 py-2" scope="col">Periodo (Lima)</th>
+                  <th class="ui-table-cell px-3 py-2" scope="col">Zona</th>
+                  <th class="ui-table-cell px-3 py-2" scope="col">Promedio por cámara</th>
+                  <th class="ui-table-cell px-3 py-2" scope="col">Cámaras con medición</th>
+                </tr></thead>
+                <tbody>
+                  @for (fila of p.datos; track fila.id_zona + ':' + fila.periodo_inicio) {
+                    <tr>
+                      <td class="ui-table-cell px-3 py-2">{{ fecha(fila.periodo_inicio) }}</td>
+                      <td class="ui-table-cell px-3 py-2">{{ fila.nombre_zona }}</td>
+                      <td class="ui-table-cell px-3 py-2">{{ fila.promedio_presentes | number:'1.0-2' }}</td>
+                      <td class="ui-table-cell px-3 py-2">{{ fila.camaras_con_medicion | number }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </details>
+        }
+        @if (vistaOcupacion === 'historico' && (serieZonas.paginas > 1 || serieZonas.numeroPagina > 1)) {
+          <app-pagination unit="resultados" [page]="serieZonas.numeroPagina" [pages]="serieZonas.paginas" [total]="p.total"
+            (pageChange)="cargarOcupacion(serieZonas.desplazamiento($event))" />
+        }
+      }
+    } @else if (vistaOcupacion === 'reciente') {
+      @if (datosRecientes()?.tiene_mas) {
+        <p class="mt-2 text-caption text-muted">
+          Se muestran las {{ datosRecientes()?.limite }} ventanas más recientes. Filtra por cámara para ver más detalle.
         </p>
       }
-      @if (filasTablaSerie.length) {
+      @if (hayMediciones) { <p class="mt-2 mb-0 text-caption text-muted">Cada punto es una ventana de reporte. Los huecos indican tramos sin medición.</p> }
+      @if (ventanasVisibles().length) {
+        <details class="mt-3 text-label">
+          <summary class="ui-focus cursor-pointer rounded-sm font-medium">Ver tabla de ocupación</summary>
+          <div class="ui-focus my-3 max-h-96 overflow-auto" tabindex="0" role="region" aria-label="Ocupación reciente">
+            <table class="w-full min-w-table border-collapse">
+              <thead><tr>
+                <th class="ui-table-cell px-3 py-2" scope="col">Inicio de ventana (Lima)</th>
+                <th class="ui-table-cell px-3 py-2" scope="col">Ejecución</th>
+                <th class="ui-table-cell px-3 py-2" scope="col">Promedio / máximo</th>
+                <th class="ui-table-cell px-3 py-2" scope="col">Tiempo observado</th>
+              </tr></thead>
+              <tbody>
+                @for (fila of ventanasVisibles(); track fila.id_resultado) {
+                  <tr>
+                    <td class="ui-table-cell px-3 py-2">{{ fecha(fila.periodo_inicio, true) }}</td>
+                    <td class="ui-table-cell px-3 py-2">{{ etiquetaSerie(fila) }}</td>
+                    <td class="ui-table-cell px-3 py-2">
+                      @if (fila.promedio_presentes === null) { Sin medición }
+                      @else { {{ fila.promedio_presentes | number:'1.0-2' }} / {{ fila.max_presentes ?? '-' }} }
+                    </td>
+                    <td class="ui-table-cell px-3 py-2">{{ fila.segundos_observados === null ? '-' : (fila.segundos_observados | number:'1.0-1') + ' s' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </details>
+      }
+    } @else if (serie.pagina; as p) {
+      @if (serieConMedicionParcial) {
+        <p class="mt-2 rounded-lg bg-warning-soft px-3 py-2 text-label text-warning">
+          Hay periodos con medición incompleta. Sus valores se calculan con las ventanas válidas.
+        </p>
+      }
+      @let maximo = maximoVisible;
+      @if (serieConMedicion && maximo !== null) {
+        <p class="mt-2 mb-0 text-label text-muted">
+          Máximo observado · <strong class="text-content">{{ maximo | number }}</strong>
+        </p>
+      }
+      @if (filasSerie.length) {
         <details class="mt-3 text-label">
           <summary class="ui-focus cursor-pointer rounded-sm font-medium">Ver tabla de ocupación</summary>
           <p class="text-muted">Los huecos indican periodos sin medición. Un cero indica que se observó el área sin personas.</p>
@@ -102,7 +161,7 @@
                 <th class="ui-table-cell px-3 py-2" scope="col">Estado</th>
               </tr></thead>
               <tbody>
-                @for (f of filasTablaSerie; track f.id_procesamiento + ':' + f.periodo_inicio) {
+                @for (f of filasSerie; track f.id_procesamiento + ':' + f.periodo_inicio) {
                   <tr>
                     <td class="ui-table-cell px-3 py-2">{{ fecha(f.periodo_inicio) }}<small class="block text-muted">{{ f.periodo_cerrado ? 'Periodo cerrado' : 'Periodo abierto' }}</small></td>
                     <td class="ui-table-cell px-3 py-2">{{ etiquetaSerie(f) }}</td>
@@ -126,12 +185,12 @@
           (pageChange)="cargarSerie(serie.desplazamiento($event))" />
       }
     }
-    </div>
   </section>
 
   @if (consulta?.id_camara) {
     <section class="ui-card p-4 desktop:p-5" aria-labelledby="titulo-pronostico-resumen">
       <h2 id="titulo-pronostico-resumen" class="mt-0">Pronóstico de ocupación</h2>
+      @if (nombreCamaraSeleccionada; as nombre) { <p class="text-label text-muted">{{ nombre }}</p> }
       <app-api-state [loading]="pronosticoRequest.cargaInicial()" [error]="pronosticoRequest.error()"
         (retry)="cargarPronostico()" />
       @if (pronostico(); as p) { <app-pronostico-ocupacion [datos]="p" [breve]="true" /> }

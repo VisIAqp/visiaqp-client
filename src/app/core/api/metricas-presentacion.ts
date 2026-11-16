@@ -4,10 +4,11 @@ import { PuntoSerie } from '../models/metricas.model';
 export function fechaMetrica(valor: string): Date {
   return new Date(/(?:Z|[+-]\d{2}:\d{2})$/i.test(valor) ? valor : valor + '-05:00');
 }
-export function mostrarFecha(valor: string | null | undefined): string {
+export function mostrarFecha(valor: string | null | undefined, conSegundos = false): string {
   return valor ? fechaMetrica(valor).toLocaleString('es-PE', {
     timeZone: 'America/Lima', day: '2-digit', month: '2-digit', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
+    ...(conSegundos ? { second: '2-digit' } : {}),
   }) : 'Sin registro';
 }
 export function etiquetaEjecucion(
@@ -55,6 +56,7 @@ export function prepararSeries(filas: PuntoSerie[], periodo: 'hora' | 'dia') {
     grupos.set(fila.id_procesamiento, grupo);
   }
   return {
+    tiempos: ejes,
     labels: ejes.map((t) => new Date(t).toLocaleString('es-PE', { timeZone: 'America/Lima',
       day: '2-digit', month: '2-digit', ...(periodo === 'hora' ? { hour: '2-digit', minute: '2-digit' } as const : {}) })),
     series: [...grupos.entries()].map(([id, grupo]) => {

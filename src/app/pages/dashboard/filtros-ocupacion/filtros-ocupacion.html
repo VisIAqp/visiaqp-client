@@ -1,79 +1,68 @@
-<div class="flex flex-wrap gap-2">
-  <div class="inline-flex max-w-full rounded-lg border border-solid border-divider bg-canvas p-0.5" role="group" aria-label="Agrupación del gráfico">
+<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+  <div class="inline-flex max-w-full gap-0.5 rounded-lg border border-solid border-field bg-canvas p-0.5"
+    role="group" aria-label="Agrupación del gráfico">
     @for (opcion of agrupaciones; track opcion.valor) {
-      <button type="button" class="ui-focus cursor-pointer rounded-md border-0 px-2.5 py-2 text-label font-medium"
+      <button type="button" class="ui-focus cursor-pointer rounded-md border-0 px-3 py-2 text-label font-medium"
         [class]="agrupacion() === opcion.valor ? 'bg-brand-soft text-brand' : 'bg-transparent text-muted hover:text-content'"
-        [attr.aria-pressed]="agrupacion() === opcion.valor" (click)="agrupacionChange.emit(opcion.valor)">{{ opcion.nombre }}</button>
+        [attr.aria-pressed]="agrupacion() === opcion.valor" (click)="agrupacionChange.emit(opcion.valor)">
+        {{ opcion.nombre }}
+      </button>
     }
   </div>
-  <div class="inline-flex max-w-full rounded-lg border border-solid border-divider bg-canvas p-0.5" role="group" aria-label="Rango del gráfico">
+  <div class="inline-flex max-w-full gap-0.5 rounded-lg border border-solid border-field bg-canvas p-0.5"
+    role="group" aria-label="Rango del gráfico">
     @for (opcion of vistas; track opcion.valor) {
-      <button type="button" class="ui-focus cursor-pointer rounded-md border-0 px-2.5 py-2 text-label font-medium"
+      <button type="button" class="ui-focus cursor-pointer rounded-md border-0 px-3 py-2 text-label font-medium"
         [class]="vista() === opcion.valor ? 'bg-brand-soft text-brand' : 'bg-transparent text-muted hover:text-content'"
-        [attr.aria-pressed]="vista() === opcion.valor" (click)="seleccionarVista(opcion.valor)">{{ opcion.nombre }}</button>
+        [attr.aria-pressed]="vista() === opcion.valor" (click)="vistaChange.emit(opcion.valor)">
+        {{ opcion.nombre }}
+      </button>
     }
   </div>
 </div>
 
-<div class="mt-3 flex flex-wrap items-end gap-2">
-  <label class="grid min-w-0 w-44 max-w-full gap-1 text-caption font-medium text-muted">
+<div class="mt-3 grid grid-cols-2 items-end gap-2 sm:flex sm:flex-wrap">
+  <label class="grid min-w-0 gap-1 text-caption font-medium text-muted sm:w-36">
     Zona
-    <select class="ui-field w-full text-label" [ngModel]="zona()" (ngModelChange)="zonaChange.emit($event)">
+    <select class="ui-field min-h-10 w-full text-label" [ngModel]="zona()" (ngModelChange)="zonaChange.emit($event)">
       <option [ngValue]="0">Todas las zonas</option>
       @for (item of zonas(); track item.id) { <option [ngValue]="item.id">{{ item.nombre }}</option> }
     </select>
   </label>
   @if (agrupacion() === 'camara') {
-    <label class="grid min-w-0 w-44 max-w-full gap-1 text-caption font-medium text-muted">
+    <label class="grid min-w-0 gap-1 text-caption font-medium text-muted sm:w-36">
       Cámara
-      <select class="ui-field w-full text-label" [ngModel]="camara()" (ngModelChange)="camaraChange.emit($event)">
+      <select class="ui-field min-h-10 w-full text-label" [ngModel]="camara()" (ngModelChange)="camaraChange.emit($event)">
         <option [ngValue]="0">Todas las cámaras</option>
         @for (item of camarasDisponibles(); track item.id) { <option [ngValue]="item.id">{{ item.nombre }}</option> }
       </select>
     </label>
   }
-  <button #boton type="button" class="ui-focus inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-solid border-field bg-white px-3 py-2 text-label font-medium text-content hover:bg-canvas"
-    [attr.aria-expanded]="abierto()" aria-controls="opciones-ocupacion" (click)="alternar()">
-    Filtros
-    @if (etiquetaFuente(); as fuente) { <span class="rounded-sm bg-brand-soft px-1.5 py-0.5 text-caption text-brand">{{ fuente }}</span> }
-    <span class="text-caption text-muted" aria-hidden="true">{{ abierto() ? '▴' : '▾' }}</span>
-  </button>
-</div>
 
-@if (abierto()) {
-  <form id="opciones-ocupacion" class="mt-3 rounded-lg border border-solid border-divider bg-canvas p-3"
-    (ngSubmit)="aplicarOpciones(boton)" (keydown.escape)="cerrar(boton)">
-    <div class="grid gap-3 sm:grid-cols-2 desktop:grid-cols-4">
-      <label class="grid min-w-0 gap-1 text-label">
-        Fuente
-        <select class="ui-field w-full" name="fuente" [(ngModel)]="borrador.fuente">
-          @for (opcion of fuentes; track opcion.valor) {
-            <option [ngValue]="opcion.valor">{{ !opcion.valor && agrupacion() === 'zona' ? 'Transmisiones (predeterminado)' : opcion.nombre }}</option>
-          }
+  @if (vista() === 'historico') {
+    <form class="col-span-2 grid grid-cols-2 items-end gap-2 sm:flex sm:flex-wrap" (ngSubmit)="aplicarOpciones()">
+      <label class="grid min-w-0 gap-1 text-caption font-medium text-muted sm:w-32">
+        Desde
+        <input class="ui-field min-h-10 w-full text-label" type="date" name="desde" required
+          [ngModel]="borrador().desde" (ngModelChange)="editar('desde', $event)" />
+      </label>
+      <label class="grid min-w-0 gap-1 text-caption font-medium text-muted sm:w-32">
+        Hasta
+        <input class="ui-field min-h-10 w-full text-label" type="date" name="hasta" required
+          [ngModel]="borrador().hasta" (ngModelChange)="editar('hasta', $event)" />
+      </label>
+      <label class="grid min-w-0 gap-1 text-caption font-medium text-muted sm:w-24">
+        Intervalo
+        <select class="ui-field min-h-10 w-full text-label" name="periodo"
+          [ngModel]="borrador().periodo" (ngModelChange)="editar('periodo', $event)">
+          <option value="hora">Hora</option>
+          <option value="dia">Día</option>
         </select>
       </label>
-      @if (vista() === 'historico') {
-        <label class="grid min-w-0 gap-1 text-label">
-          Desde
-          <input class="ui-field w-full" type="date" name="desde" [(ngModel)]="borrador.desde" required />
-        </label>
-        <label class="grid min-w-0 gap-1 text-label">
-          Hasta
-          <input class="ui-field w-full" type="date" name="hasta" [(ngModel)]="borrador.hasta" required />
-        </label>
-        <label class="grid min-w-0 gap-1 text-label">
-          Agrupar por
-          <select class="ui-field w-full" name="periodo" [(ngModel)]="borrador.periodo">
-            <option value="hora">Hora</option>
-            <option value="dia">Día</option>
-          </select>
-        </label>
-      }
-    </div>
-    @if (error()) { <p class="mb-0 text-label text-danger" role="alert">{{ error() }}</p> }
-    <div class="mt-3 flex flex-wrap justify-end gap-2">
-      <button type="button" class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-3 py-2 text-label" (click)="cerrar(boton)">Cancelar</button>
-      <button type="submit" class="ui-focus cursor-pointer rounded-lg border-0 bg-brand px-3 py-2 text-label font-semibold text-white hover:bg-brand-hover">Aplicar</button>
-    </div>
-  </form>
-}
+      <button type="submit" class="ui-focus min-h-10 cursor-pointer justify-self-start rounded-lg border-0 bg-brand px-3 py-2 text-label font-semibold text-white hover:bg-brand-hover disabled:cursor-default disabled:bg-canvas disabled:text-muted"
+        [disabled]="!pendiente()">Aplicar</button>
+    </form>
+  }
+</div>
+
+@if (vista() === 'historico' && error()) { <p class="mt-2 mb-0 text-label text-danger" role="alert">{{ error() }}</p> }

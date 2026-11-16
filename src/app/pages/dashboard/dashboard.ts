@@ -1,10 +1,9 @@
-import { AfterViewInit, Component, DestroyRef, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { filter, forkJoin, timer } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Chart } from 'chart.js/auto';
 import { Auth } from '../../core/auth/auth';
 import { API_CONFIG } from '../../core/api/api-config';
 import { RequestState } from '../../core/api/request-state';
@@ -16,23 +15,23 @@ import { CamaraService } from '../../core/services/camara';
 import { MetricasService } from '../../core/services/metricas';
 import { Zona } from '../../core/models/zona.model';
 import { Camara } from '../../core/models/camara.model';
-import { EstadoCamara, FiltrosMetricas, PuntoSerie, ResumenMetricas } from '../../core/models/metricas.model';
+import { DatosOcupacionReciente, EstadoCamara, FiltrosMetricas, PuntoSerie, PuntoZona, ResumenMetricas, VentanaOcupacion } from '../../core/models/metricas.model';
 import { PronosticoOcupacion as DatosPronostico } from '../../core/models/pronostico.model';
 import { MonitoreoService } from '../../core/services/monitoreo';
 import { GraficoZonas } from '../../shared/grafico-zonas/grafico-zonas';
 import { PronosticoOcupacion } from '../../shared/pronostico-ocupacion/pronostico-ocupacion';
-import { alternarCamara, camarasOcultas, claveSerieCamara, detalleEjecucion, estiloCamara, etiquetasCamaras, nombreSerieCamara } from '../../shared/graficos/ocupacion-estilo';
-import { AgrupacionOcupacion, FiltrosOcupacion, FuenteOcupacion, OpcionesOcupacion, VistaOcupacion } from './filtros-ocupacion/filtros-ocupacion';
-import { OcupacionReciente } from './ocupacion-reciente/ocupacion-reciente';
+import { claveSerieCamara, nombreSerieCamara } from '../../shared/graficos/ocupacion-estilo';
+import { AgrupacionOcupacion, FiltrosOcupacion, OpcionesOcupacion, VistaOcupacion } from './filtros-ocupacion/filtros-ocupacion';
+import { GraficoOcupacion } from './grafico-ocupacion/grafico-ocupacion';
 import { addDays, exclusiveEnd, limaToday } from '../../core/api/dates';
-import { estadoMedicion, estadoOperativo, etiquetaEjecucion, mostrarFecha, prepararSeries, rangoValido } from '../../core/api/metricas-presentacion';
+import { estadoMedicion, estadoOperativo, etiquetaEjecucion, mostrarFecha, rangoValido } from '../../core/api/metricas-presentacion';
 
 @Component({
-  selector: 'app-dashboard', imports: [CommonModule, FormsModule, RouterLink, ApiState, Pagination, OcupacionReciente, GraficoZonas, PronosticoOcupacion, FiltrosOcupacion],
+  selector: 'app-dashboard', imports: [CommonModule, FormsModule, RouterLink, ApiState, Pagination, GraficoOcupacion, GraficoZonas, PronosticoOcupacion, FiltrosOcupacion],
   templateUrl: './dashboard.html',
   host: { class: 'block' },
 })
-export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
+export class Dashboard implements OnInit {
   private zonasApi = inject(ZonaService);
   private camarasApi = inject(CamaraService);
   private metricas = inject(MetricasService);
@@ -43,17 +42,18 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   readonly request = new RequestState(this.ref);
   readonly resumenEstado = new RequestState(this.ref, true);
   readonly serie = new PanelMetricas<PuntoSerie>(this.ref, true);
+  readonly serieZonas = new PanelMetricas<PuntoZona>(this.ref, true);
+  readonly recienteEstado = new RequestState(this.ref, true);
+  readonly datosRecientes = signal<DatosOcupacionReciente | null>(null);
   readonly pronosticoRequest = new RequestState(this.ref, true);
   readonly pronostico = signal<DatosPronostico | null>(null);
   readonly actividad = new PanelMetricas<EstadoCamara>(this.ref, true);
-  private readonly paneles = [this.serie, this.actividad];
   zonas: Zona[] = [];
   camaras: Camara[] = [];
   private readonly resumenDatos = signal<ResumenMetricas | null>(null);
   get resumen() { return this.resumenDatos(); }
   zonaSeleccionada = 0;
   camaraSeleccionada = 0;
-  fuente: FuenteOcupacion = '';
   periodoTipo: 'hora' | 'dia' = 'hora';
   desde = addDays(limaToday(), -6);
   hasta = limaToday();
@@ -62,12 +62,10 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   comparacionConsulta: FiltrosMetricas | null = null;
   agrupacion: AgrupacionOcupacion = 'camara';
   vistaOcupacion: VistaOcupacion = 'historico';
-  serieElegida = '';
+  readonly serieElegida = signal('');
   readonly fecha = mostrarFecha;
   readonly estadoMedicion = estadoMedicion;
   readonly estadoOperativo = estadoOperativo;
-  @ViewChild('serieCanvas') serieCanvas!: ElementRef<HTMLCanvasElement>;
-  private graficoSerie?: Chart<'line', (number | null)[], string>;
 
   get rangoAplicado() {
     const consulta = this.consulta;
@@ -77,11 +75,15 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     const formatoDia = (dia: string) => dia.split('-').reverse().join('/');
     return inicio === fin ? formatoDia(inicio) : `${formatoDia(inicio)} al ${formatoDia(fin)}`;
   }
-  get camarasSerie() {
-    return new Map(this.serie.filas.map((fila) => [claveSerieCamara(fila), fila]));
+  get nombreCamaraSeleccionada() {
+    return this.camaras.find((camara) => camara.id === this.consulta?.id_camara)?.nombre;
   }
-  get filasSerie() { return this.serieElegida ? this.serie.filas.filter((f) => claveSerieCamara(f) === this.serieElegida) : this.serie.filas; }
-  get filasTablaSerie() { return this.filasSerie; }
+  private readonly camarasHistoricas = computed(() => new Map(this.serie.filas.map((fila) => [claveSerieCamara(fila), fila])));
+  private readonly camarasRecientes = computed(() => new Map((this.datosRecientes()?.datos ?? []).map((fila) => [claveSerieCamara(fila), fila])));
+  get camarasSerie() { return this.vistaOcupacion === 'reciente' ? this.camarasRecientes() : this.camarasHistoricas(); }
+  private readonly historicoVisible = computed(() => this.filtrarCamara(this.serie.filas));
+  readonly ventanasVisibles = computed(() => this.filtrarCamara(this.datosRecientes()?.datos ?? []));
+  get filasSerie() { return this.historicoVisible(); }
   get serieConMedicion() { return this.filasSerie.some((f) => f.promedio_presentes !== null); }
   get serieConMedicionParcial() {
     return this.filasSerie.some((f) => f.estado_ocupacion === 'datos_incompletos' && f.promedio_presentes !== null);
@@ -94,6 +96,22 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     const valores = this.filasSerie.flatMap((f) => f.max_presentes === null ? [] : [f.max_presentes]);
     return valores.length ? Math.max(...valores) : null;
   }
+  get estadoOcupacion() {
+    if (this.agrupacion === 'zona') return this.serieZonas.estado;
+    return this.vistaOcupacion === 'reciente' ? this.recienteEstado : this.serie.estado;
+  }
+  get hayMediciones() {
+    if (this.agrupacion === 'zona') return this.serieZonas.filas.length > 0;
+    return this.vistaOcupacion === 'reciente'
+      ? this.ventanasVisibles().some((fila) => fila.promedio_presentes !== null) : this.serieConMedicion;
+  }
+  get mensajeVacio() {
+    if (this.agrupacion === 'camara' && this.vistaOcupacion === 'historico' && this.filasSerie.length) {
+      return this.serieSoloConteos ? 'No hay ocupación consolidada en la selección. Solo conteos históricos.'
+        : 'No hay ocupación consolidada en la selección.';
+    }
+    return 'Sin datos para esta selección.';
+  }
   ngOnInit() {
     this.cargar();
     const intervalo = this.config.pollMs * 2;
@@ -101,19 +119,6 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
       filter(() => !document.hidden && this.auth.validToken()),
       takeUntilDestroyed(this.ref),
     ).subscribe(() => this.refrescarMetricas());
-  }
-  ngAfterViewInit() {
-    this.graficoSerie = new Chart<'line', (number | null)[], string>(this.serieCanvas.nativeElement, {
-      type: 'line', data: { labels: [], datasets: [] },
-      options: { responsive: true, maintainAspectRatio: false, spanGaps: false,
-        plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 12, generateLabels: etiquetasCamaras }, onClick: alternarCamara },
-          tooltip: { callbacks: { afterLabel: detalleEjecucion } },
-        },
-        scales: { y: { beginAtZero: true, title: { display: true, text: 'Personas presentes' } },
-          x: { ticks: { maxTicksLimit: 8 } } } },
-    });
-    this.actualizarSerie();
   }
   cargar() {
     this.request.run(forkJoin({ zonas: this.zonasApi.listar(), camaras: this.camarasApi.listar() }), (d) => {
@@ -137,13 +142,19 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   cambiarAgrupacion(agrupacion: AgrupacionOcupacion) {
     if (this.agrupacion === agrupacion) return;
     this.agrupacion = agrupacion;
-    this.buscar();
+    this.limpiarOcupacion();
+    this.cargarOcupacion();
+  }
+  cambiarVista(vista: VistaOcupacion) {
+    if (vista === this.vistaOcupacion) return;
+    this.vistaOcupacion = vista;
+    this.limpiarOcupacion();
+    this.cargarOcupacion();
   }
   aplicarOpciones(opciones: OpcionesOcupacion) {
     this.desde = opciones.desde;
     this.hasta = opciones.hasta;
     this.periodoTipo = opciones.periodo;
-    this.fuente = opciones.fuente;
     this.buscar();
   }
   buscar() {
@@ -155,25 +166,20 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     }
     const consulta: FiltrosMetricas = { desde: this.desde + 'T00:00:00', hasta: exclusiveEnd(this.hasta)!, periodo: this.periodoTipo,
       id_zona: this.zonaSeleccionada || undefined,
-      id_camara: this.agrupacion === 'camara' ? this.camaraSeleccionada || undefined : undefined,
-      tipo_fuente: this.fuente || undefined };
+      id_camara: this.camaraSeleccionada || undefined };
     if (JSON.stringify(consulta) === JSON.stringify(this.consulta)) {
       this.refrescarMetricas();
       return;
     }
     const anterior = this.consulta;
     this.consulta = consulta;
-    this.resumenEstado.reiniciar();
-    this.resumenDatos.set(null);
-    this.serie.limpiar();
-    this.serieElegida = '';
-    this.actualizarSerie();
-    this.cargarResumen();
-    this.cargarSerie();
+    this.limpiarOcupacion();
+    this.cargarResumen(true);
+    this.cargarOcupacion();
     if (!anterior || anterior.desde !== consulta.desde || anterior.hasta !== consulta.hasta ||
-      anterior.periodo !== consulta.periodo || anterior.tipo_fuente !== consulta.tipo_fuente) {
+      anterior.periodo !== consulta.periodo) {
       this.comparacionConsulta = { desde: consulta.desde, hasta: consulta.hasta, periodo: consulta.periodo,
-        tipo_fuente: consulta.tipo_fuente };
+        tipo_fuente: 'stream' };
     }
     if (anterior?.id_camara !== consulta.id_camara) {
       this.pronosticoRequest.reiniciar();
@@ -192,32 +198,65 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     this.consulta = null;
     this.resumenEstado.reiniciar();
     this.resumenDatos.set(null);
-    this.serieElegida = '';
-    for (const panel of this.paneles) panel.limpiar();
-    this.actualizarSerie();
+    this.limpiarOcupacion();
+    this.actividad.limpiar();
+  }
+  private limpiarOcupacion() {
+    this.serie.limpiar();
+    this.serieZonas.limpiar();
+    this.recienteEstado.reiniciar();
+    this.datosRecientes.set(null);
+    this.serieElegida.set('');
   }
   refrescarMetricas() {
     if (!this.consulta) return;
     this.cargarResumen();
-    for (const panel of this.paneles) panel.refrescar();
+    if (this.agrupacion === 'zona') this.serieZonas.refrescar();
+    else if (this.vistaOcupacion === 'reciente') {
+      if (!this.recienteEstado.loading()) this.cargarOcupacion();
+    } else this.serie.refrescar();
+    this.actividad.refrescar();
     this.cargarPronostico();
   }
-  cargarResumen() {
-    if (this.consulta && !this.resumenEstado.loading()) {
+  cargarResumen(reemplazar = false) {
+    if (this.consulta && (reemplazar || !this.resumenEstado.loading())) {
       this.resumenEstado.run(this.metricas.resumen(this.consulta), (r) => this.resumenDatos.set(r));
     }
   }
   cargarSerie(desplazamiento = 0) {
     if (!this.consulta) return;
-    this.serie.cargar(this.metricas.series(this.consulta, desplazamiento), () => {
-      const camaras = this.camarasSerie;
-      if (camaras.size <= 8) this.serieElegida = '';
-      else if (!camaras.has(this.serieElegida)) {
-        const medida = this.serie.filas.find((fila) => fila.promedio_presentes !== null);
-        this.serieElegida = medida ? claveSerieCamara(medida) : camaras.keys().next().value ?? '';
-      }
-      this.actualizarSerie();
+    this.serie.cargar(this.metricas.series({ ...this.consulta, tipo_fuente: 'stream' }, desplazamiento), () => {
+      this.seleccionarSerieVisible(this.serie.filas);
     });
+  }
+  cargarOcupacion(desplazamiento = 0) {
+    if (!this.consulta) return;
+    const consulta: FiltrosMetricas = { ...this.consulta, tipo_fuente: 'stream' };
+    if (this.agrupacion === 'zona') {
+      this.serieZonas.cargar(this.metricas.ocupacionZonas({ ...consulta, id_camara: undefined }, this.vistaOcupacion, desplazamiento, 300));
+    } else if (this.vistaOcupacion === 'reciente') {
+      this.recienteEstado.run(this.metricas.ocupacionReciente(consulta), (datos) => {
+        this.datosRecientes.set(datos);
+        this.seleccionarSerieVisible(datos.datos);
+      });
+    } else this.cargarSerie(desplazamiento);
+  }
+  reintentarOcupacion() {
+    if (this.agrupacion === 'zona') this.serieZonas.reintentar();
+    else if (this.vistaOcupacion === 'reciente') this.cargarOcupacion();
+    else this.serie.reintentar();
+  }
+  private filtrarCamara<T extends PuntoSerie | VentanaOcupacion>(filas: T[]): T[] {
+    const elegida = this.serieElegida();
+    return elegida ? filas.filter((fila) => claveSerieCamara(fila) === elegida) : filas;
+  }
+  private seleccionarSerieVisible(filas: (PuntoSerie | VentanaOcupacion)[]) {
+    const camaras = this.camarasSerie;
+    if (camaras.size <= 8) this.serieElegida.set('');
+    else if (!camaras.has(this.serieElegida())) {
+      const medida = filas.find((fila) => fila.promedio_presentes !== null);
+      this.serieElegida.set(medida ? claveSerieCamara(medida) : camaras.keys().next().value ?? '');
+    }
   }
   cargarPronostico() {
     const id = this.consulta?.id_camara;
@@ -228,19 +267,6 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     if (this.consulta) this.actividad.cargar(this.metricas.estadoCamaras({ id_zona: this.consulta.id_zona,
       id_camara: this.consulta.id_camara }, desplazamiento));
   }
-  etiquetaSerie(fila: PuntoSerie) { return etiquetaEjecucion(fila, this.camaras); }
-  etiquetaCamara(fila: PuntoSerie) { return nombreSerieCamara(fila, this.camaras); }
-  actualizarSerie() {
-    if (!this.graficoSerie) return;
-    const preparada = prepararSeries(this.filasSerie, this.consulta?.periodo ?? this.periodoTipo);
-    const estilos = getComputedStyle(this.serieCanvas.nativeElement);
-    const ocultas = camarasOcultas(this.graficoSerie);
-    this.graficoSerie.data = { labels: preparada.labels, datasets: preparada.series.map((s) => {
-      const estilo = estiloCamara(this.filasSerie.find((f) => f.id_procesamiento === s.id)!, this.camaras, estilos);
-      return { ...estilo, data: s.datos, hidden: ocultas.has(estilo.claveCamara),
-        pointRadius: preparada.labels.length > 100 ? 0 : 2, borderWidth: 2, tension: 0, spanGaps: false };
-    }) };
-    this.graficoSerie.update('none');
-  }
-  ngOnDestroy() { this.graficoSerie?.destroy(); }
+  etiquetaSerie(fila: PuntoSerie | VentanaOcupacion) { return etiquetaEjecucion(fila, this.camaras); }
+  etiquetaCamara(fila: PuntoSerie | VentanaOcupacion) { return nombreSerieCamara(fila, this.camaras); }
 }

@@ -1,7 +1,6 @@
 import { NivelConcentracion } from './monitoreo.model';
 export type PeriodoTipo = 'hora' | 'dia';
-export interface Indicador {
-  id: number;
+export interface IndicadorPeriodo {
   zonaId: number;
   periodoTipo: PeriodoTipo;
   periodoInicio: Date;
@@ -9,12 +8,15 @@ export interface Indicador {
   totalPeatones: number;
   promedioPeatones: number;
   maxPeatones: number;
-  nivelConcentracion: NivelConcentracion;
   promedioPresentes?: number | null;
   maxPresentes?: number | null;
   segundosObservados?: number | null;
   nivelOcupacion?: NivelConcentracion | null;
   estadoOcupacion?: string;
+}
+export interface Indicador extends IndicadorPeriodo {
+  id: number;
+  nivelConcentracion: NivelConcentracion;
 }
 export interface UmbralConcentracion {
   zonaId: number;

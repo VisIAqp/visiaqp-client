@@ -4,7 +4,7 @@
   <div class="flex flex-wrap items-start justify-between gap-3 p-4 desktop:p-5 print:p-2">
     <div>
       <h3 id="titulo-tabla-indicadores" class="m-0">Detalle por {{ datos.aplicado()?.periodo === 'hora' ? 'hora' : 'día' }}</h3>
-      <p class="mt-1 mb-0 text-label text-muted">Promedio y máximo de personas presentes en cada periodo.</p>
+      <p class="mt-1 mb-0 text-label text-muted">El promedio da el mismo peso a cada cámara con medición.</p>
     </div>
     @if (datos.rows.length) {
       <button type="button" class="ui-focus cursor-pointer rounded-lg border border-solid border-field bg-white px-3 py-2 text-label print:hidden"
@@ -27,7 +27,7 @@
           <tr>
             <th class="ui-table-cell px-3 py-2 print:px-1" scope="col">Periodo (Lima)</th>
             <th class="ui-table-cell px-3 py-2 print:px-1" scope="col">Promedio de ocupación</th>
-            <th class="ui-table-cell px-3 py-2 print:px-1" scope="col">Máximo observado</th>
+            <th class="ui-table-cell px-3 py-2 print:px-1" scope="col">Máximo en una cámara</th>
             <th class="ui-table-cell px-3 py-2 print:px-1" scope="col">Nivel / estado</th>
             @if (conConteos) {
               <th class="ui-table-cell px-3 py-2 print:px-1" scope="col">Suma de conteos por ventana</th>
@@ -37,7 +37,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (fila of printAll() ? datos.rows : datos.visible; track fila.id) {
+          @for (fila of printAll() ? datos.rows : datos.visible; track fila.periodoInicio.getTime()) {
             <tr class="print:break-inside-avoid">
               <td class="ui-table-cell px-3 py-2 print:px-1">
                 {{ fila.periodoInicio | date:(fila.periodoTipo === 'hora' ? 'dd/MM/yyyy HH:mm' : 'dd/MM/yyyy'):'-0500' }}

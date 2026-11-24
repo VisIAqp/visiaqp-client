@@ -1,5 +1,4 @@
 import { ChangeDetectorRef, Component, computed, HostListener, inject, OnInit } from '@angular/core';
-import { exclusiveEnd } from '../../core/api/dates';
 import { rangoValido } from '../../core/api/metricas-presentacion';
 import { FiltrosMetricas } from '../../core/models/metricas.model';
 import { GraficosReportes } from './graficos-reportes/graficos-reportes';
@@ -20,9 +19,7 @@ export class Reportes implements OnInit {
   readonly history = inject(IndicatorQuery);
   readonly filtrosGraficos = computed<FiltrosMetricas | null>(() => {
     const f = this.history.aplicado();
-    if (!f || !rangoValido(f.desde, f.hasta)) return null;
-    return { id_zona: f.zoneId, desde: f.desde + 'T00:00:00', hasta: exclusiveEnd(f.hasta)!,
-      periodo: f.periodo, tipo_fuente: 'stream' };
+    return f && rangoValido(f.desde, f.hasta) ? f.consulta : null;
   });
   private cdr = inject(ChangeDetectorRef);
   printing = false;
@@ -55,10 +52,11 @@ export class Reportes implements OnInit {
         'Suma de conteos por ventana',
         'Promedio por ventana',
         'Máximo por ventana',
-        'Ocupación promedio',
-        'Ocupación máxima',
+        'Ocupación promedio por cámara',
+        'Ocupación máxima en una cámara',
         'Nivel de ocupación',
         'Estado de ocupación',
+        'Fuente',
       ],
       ...this.history.rows.map((i) => [
         this.history.nombreZona(i.zonaId),
@@ -72,6 +70,7 @@ export class Reportes implements OnInit {
         i.maxPresentes ?? '',
         i.nivelOcupacion ?? '',
         i.estadoOcupacion ?? 'sin_datos',
+        'Transmisiones en vivo',
       ]),
     ];
     const url = URL.createObjectURL(

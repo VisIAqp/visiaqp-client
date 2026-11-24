@@ -38,22 +38,18 @@
     </section>
     <section class="ui-card p-4 desktop:p-5 print:break-inside-avoid" aria-labelledby="titulo-niveles">
       <h3 id="titulo-niveles" class="mt-0">Periodos por nivel de ocupación</h3>
-      <app-api-state [loading]="niveles.estado.cargaInicial()" [error]="niveles.estado.error()"
-        [actualizado]="niveles.estado.actualizado()" (retry)="niveles.reintentar()" />
-      <div class="relative h-60 min-w-0" [class.hidden]="!distribucion().length">
+      @let niveles = distribucion();
+      <div class="relative h-60 min-w-0" [class.hidden]="!niveles.length">
         <canvas #nivelesCanvas role="img" aria-label="Cantidad de periodos por nivel y estado. Los valores aparecen en la lista."></canvas>
       </div>
-      @if (niveles.pagina; as pagina) {
-        @if (!pagina.datos.length) { <p class="text-label text-muted">No hay periodos para clasificar.</p> }
+      @if (niveles.length) {
         <ul class="m-0 list-none divide-y divide-divider p-0 text-label" role="list">
-          @for (fila of distribucion(); track fila.clave) {
+          @for (fila of niveles; track fila.clave) {
             <li class="flex justify-between gap-3 py-2"><span>{{ fila.nombre | titlecase }}</span><strong>{{ fila.cantidad | number }}</strong></li>
           }
         </ul>
-        @if (niveles.paginas > 1 || niveles.numeroPagina > 1) {
-          <app-pagination unit="grupos de nivel" [page]="niveles.numeroPagina" [pages]="niveles.paginas" [total]="pagina.total"
-            (pageChange)="cargarNiveles(niveles.desplazamiento($event))" />
-        }
+      } @else {
+        <p class="text-label text-muted">No hay periodos para clasificar.</p>
       }
     </section>
   </div>

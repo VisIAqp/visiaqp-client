@@ -2,7 +2,7 @@ import { DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { ZonaService } from '../services/zona';
 import { IndicadorService } from '../services/indicador';
 import { Zona } from '../models/zona.model';
-import { Indicador, PeriodoTipo } from '../models/indicador.model';
+import { IndicadorPeriodo, PeriodoTipo } from '../models/indicador.model';
 import { RequestState } from './request-state';
 import { addDays, exclusiveEnd, limaToday } from './dates';
 
@@ -13,6 +13,16 @@ interface FiltrosIndicadores {
   hasta: string;
 }
 
+function filtrosTransmisiones(filtros: FiltrosIndicadores, hasta: string) {
+  return {
+    id_zona: filtros.zoneId,
+    periodo: filtros.periodo,
+    desde: filtros.desde + 'T00:00:00',
+    hasta,
+    tipo_fuente: 'stream' as const,
+  };
+}
+
 @Injectable()
 export class IndicatorQuery {
   private zonasApi = inject(ZonaService);
@@ -20,11 +30,11 @@ export class IndicatorQuery {
   private readonly ref = inject(DestroyRef);
   readonly catalogo = new RequestState(this.ref);
   readonly request = new RequestState(this.ref, true);
-  readonly aplicado = signal<FiltrosIndicadores | null>(null);
+  readonly aplicado = signal<(FiltrosIndicadores & { consulta: ReturnType<typeof filtrosTransmisiones> }) | null>(null);
   readonly errorFiltros = signal('');
   private ultimoIntento: FiltrosIndicadores | null = null;
   zonas: Zona[] = [];
-  rows: Indicador[] = [];
+  rows: IndicadorPeriodo[] = [];
   zoneId = 0;
   periodo: PeriodoTipo = 'hora';
   desde = addDays(limaToday(), -6);
@@ -65,18 +75,19 @@ export class IndicatorQuery {
     if (this.ultimoIntento) this.consultar(this.ultimoIntento);
   }
   private consultar(filtros: FiltrosIndicadores) {
+    const hasta = exclusiveEnd(filtros.hasta);
+    if (!hasta) {
+      this.errorFiltros.set('Revisa el rango de fechas.');
+      return;
+    }
+    const consulta = filtrosTransmisiones(filtros, hasta);
     this.ultimoIntento = filtros;
     this.request.run(
-      this.indicadoresApi.historico(
-        filtros.zoneId,
-        filtros.periodo,
-        filtros.desde + 'T00:00:00',
-        exclusiveEnd(filtros.hasta),
-      ),
+      this.indicadoresApi.transmisiones(consulta),
       (rows) => {
         this.rows = rows;
         this.pagina = 1;
-        this.aplicado.set(filtros);
+        this.aplicado.set({ ...filtros, consulta });
       },
     );
   }

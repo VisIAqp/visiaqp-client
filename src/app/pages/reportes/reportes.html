@@ -10,7 +10,7 @@
           <h2 id="titulo-resultados" class="m-0">Resultados</h2>
           <p class="mt-1 mb-0 text-label text-muted">
             {{ history.nombreZona(filtros.zoneId) }} · {{ fechaDia(filtros.desde) }} al {{ fechaDia(filtros.hasta) }} (Lima)
-            · Por {{ filtros.periodo === 'hora' ? 'hora' : 'día' }}
+            · Por {{ filtros.periodo === 'hora' ? 'hora' : 'día' }} · Transmisiones en vivo
           </p>
           @if (history.rows.length === 2000) {
             <p class="mt-1 mb-0 text-caption text-muted">Se muestran los primeros 2000 periodos del rango.</p>
@@ -24,7 +24,7 @@
       <app-indicator-view [query]="history" [printAll]="printing" />
     </section>
     @if (filtrosGraficos(); as filtrosAnalisis) {
-      <app-graficos-reportes [filtros]="filtrosAnalisis" />
+      <app-graficos-reportes [filtros]="filtrosAnalisis" [periodos]="history.rows" />
     } @else {
       <p class="text-label text-muted">Selecciona hasta 31 días para ver los gráficos de análisis.</p>
     }

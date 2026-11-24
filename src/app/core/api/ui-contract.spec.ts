@@ -183,18 +183,16 @@ describe('Integrated page behavior with HTTP test responses', () => {
     const fixture = TestBed.createComponent(Reportes);
     fixture.detectChanges();
     http.expectOne(base + '/zonas').flush([zone]);
-    const rows = Array.from({ length: 17 }, (_, id) => ({
-      id_indicador: id + 1,
+    const rows = Array.from({ length: 17 }, (_, hora) => ({
       id_zona: 23,
       periodo_tipo: 'hora',
-      periodo_inicio: '2026-10-09T08:00:00',
-      periodo_fin: '2026-10-09T09:00:00',
+      periodo_inicio: `2026-10-09T${String(hora).padStart(2, '0')}:00:00`,
+      periodo_fin: `2026-10-09T${String(hora + 1).padStart(2, '0')}:00:00`,
       total_peatones: 0,
       promedio_peatones: 0,
       max_peatones: 0,
-      nivel_concentracion: 'bajo',
     }));
-    http.expectOne((r) => r.url === base + '/indicadores').flush(rows);
+    http.expectOne((r) => r.url === base + '/indicadores/transmisiones').flush(rows);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelectorAll('tbody tr').length).toBe(15);
     fixture.componentInstance.beforePrint();

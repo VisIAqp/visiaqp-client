@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, effect, ElementRef, input, OnDestroy, viewChild } from '@angular/core';
 import { Chart } from 'chart.js/auto';
-import { Indicador } from '../../core/models/indicador.model';
+import { IndicadorPeriodo } from '../../core/models/indicador.model';
 
 interface PuntoOcupacion {
   x: number;
@@ -24,7 +24,7 @@ interface PuntoOcupacion {
   `,
 })
 export class OcupacionHistorica implements AfterViewInit, OnDestroy {
-  readonly filas = input.required<readonly Indicador[]>();
+  readonly filas = input.required<readonly IndicadorPeriodo[]>();
   private readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
   private grafico?: Chart<'line', PuntoOcupacion[]>;
   private readonly formato = new Intl.DateTimeFormat('es-PE', {
@@ -48,7 +48,7 @@ export class OcupacionHistorica implements AfterViewInit, OnDestroy {
     this.grafico = new Chart<'line', PuntoOcupacion[]>(this.canvas().nativeElement, {
       type: 'line',
       data: { datasets: [{
-        label: 'Personas presentes (promedio)', data: [],
+        label: 'Personas presentes en promedio por cámara', data: [],
         borderColor: colores.getPropertyValue('--color-brand').trim() || colores.color,
         spanGaps: false,
       }] },
@@ -75,7 +75,7 @@ export class OcupacionHistorica implements AfterViewInit, OnDestroy {
     this.grafico?.destroy();
   }
 
-  private actualizar(filas: readonly Indicador[]) {
+  private actualizar(filas: readonly IndicadorPeriodo[]) {
     if (!this.grafico) return;
     const puntos: PuntoOcupacion[] = [];
     let finAnterior: number | undefined;

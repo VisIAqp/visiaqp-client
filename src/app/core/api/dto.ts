@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { API_CONFIG } from './api-config';
 import { Zona } from '../models/zona.model';
 import { Camara } from '../models/camara.model';
-import { Indicador, PeriodoTipo } from '../models/indicador.model';
+import { Indicador, IndicadorPeriodo, PeriodoTipo } from '../models/indicador.model';
 import { Procesamiento, EstadoProcesamiento, TipoFuente } from '../models/analisis.model';
 import { NivelConcentracion } from '../models/monitoreo.model';
 
@@ -27,8 +27,7 @@ export interface CamaraDto {
   ultima_conexion: string | null;
   tiene_url_stream: boolean;
 }
-export interface IndicadorDto {
-  id_indicador: number;
+export interface IndicadorPeriodoDto {
   id_zona: number;
   periodo_tipo: PeriodoTipo;
   periodo_inicio: string;
@@ -36,12 +35,15 @@ export interface IndicadorDto {
   total_peatones: number;
   promedio_peatones: number;
   max_peatones: number;
-  nivel_concentracion: NivelConcentracion;
   promedio_presentes?: number | null;
   max_presentes?: number | null;
   segundos_observados?: number | null;
   nivel_ocupacion?: NivelConcentracion | null;
   estado_ocupacion?: string;
+}
+export interface IndicadorDto extends IndicadorPeriodoDto {
+  id_indicador: number;
+  nivel_concentracion: NivelConcentracion;
   nombre_zona?: string;
 }
 export interface ProcesamientoDto {
@@ -108,7 +110,13 @@ export class DtoMapper {
   }
   indicador(d: IndicadorDto): Indicador {
     return {
+      ...this.indicadorPeriodo(d),
       id: d.id_indicador,
+      nivelConcentracion: d.nivel_concentracion,
+    };
+  }
+  indicadorPeriodo(d: IndicadorPeriodoDto): IndicadorPeriodo {
+    return {
       zonaId: d.id_zona,
       periodoTipo: d.periodo_tipo,
       periodoInicio: this.date(d.periodo_inicio),
@@ -116,7 +124,6 @@ export class DtoMapper {
       totalPeatones: d.total_peatones,
       promedioPeatones: d.promedio_peatones,
       maxPeatones: d.max_peatones,
-      nivelConcentracion: d.nivel_concentracion,
       promedioPresentes: d.promedio_presentes ?? null,
       maxPresentes: d.max_presentes ?? null,
       segundosObservados: d.segundos_observados ?? null,

@@ -1,8 +1,14 @@
 import { inject, Injectable } from '@angular/core';
-import { map } from 'rxjs';
+import { EMPTY, expand, map, reduce } from 'rxjs';
 import { Api } from '../api/api';
 import { DtoMapper, IndicadorDto, IndicadorPeriodoDto } from '../api/dto';
-import { PeriodoTipo } from '../models/indicador.model';
+import { IndicadorPeriodo, PeriodoTipo } from '../models/indicador.model';
+
+interface PaginaIndicadoresTransmisionesDto {
+  datos: IndicadorPeriodoDto[];
+  siguiente_desde: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class IndicadorService {
   private api = inject(Api);
@@ -26,9 +32,15 @@ export class IndicadorService {
   transmisiones({ id_zona, periodo, desde, hasta }: {
     id_zona: number; periodo: PeriodoTipo; desde: string; hasta: string;
   }) {
-    return this.api.get<IndicadorPeriodoDto[]>('/indicadores/transmisiones', {
-      id_zona, periodo_tipo: periodo, desde, hasta, limite: 2000,
-    }).pipe(map((rows) => rows.map((d) => this.mapper.indicadorPeriodo(d))));
+    const cargarPagina = (inicio: string) =>
+      this.api.get<PaginaIndicadoresTransmisionesDto>('/indicadores/transmisiones/paginado', {
+        id_zona, periodo_tipo: periodo, desde: inicio, hasta,
+      });
+    return cargarPagina(desde).pipe(
+      expand((pagina) => pagina.siguiente_desde ? cargarPagina(pagina.siguiente_desde) : EMPTY, 1),
+      reduce((filas, pagina) =>
+        filas.concat(pagina.datos.map((fila) => this.mapper.indicadorPeriodo(fila))), [] as IndicadorPeriodo[]),
+    );
   }
   recalcular(zonaId: number, desde: string, hasta: string) {
     return this.api.post<{ horas_recalculadas: number }>('/indicadores/recalcular', {

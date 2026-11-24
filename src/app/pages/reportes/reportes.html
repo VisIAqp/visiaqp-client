@@ -12,9 +12,6 @@
             {{ history.nombreZona(filtros.zoneId) }} · {{ fechaDia(filtros.desde) }} al {{ fechaDia(filtros.hasta) }} (Lima)
             · Por {{ filtros.periodo === 'hora' ? 'hora' : 'día' }} · Transmisiones en vivo
           </p>
-          @if (history.rows.length === 2000) {
-            <p class="mt-1 mb-0 text-caption text-muted">Se muestran los primeros 2000 periodos del rango.</p>
-          }
         </div>
         <app-acciones-exportacion [total]="history.rows.length" [habilitada]="exportable"
           (descargarCsv)="exportarCsv()" (imprimir)="imprimir()" />

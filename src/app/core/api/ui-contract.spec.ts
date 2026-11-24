@@ -192,7 +192,16 @@ describe('Integrated page behavior with HTTP test responses', () => {
       promedio_peatones: 0,
       max_peatones: 0,
     }));
-    http.expectOne((r) => r.url === base + '/indicadores/transmisiones').flush(rows);
+    const ruta = base + '/indicadores/transmisiones/paginado';
+    const primera = http.expectOne((r) => r.url === ruta);
+    const siguienteDesde = rows[7].periodo_inicio;
+    primera.flush({ datos: rows.slice(0, 7), siguiente_desde: siguienteDesde });
+    expect(fixture.componentInstance.history.rows.length).toBe(0);
+    const segunda = http.expectOne((r) => r.url === ruta && r.params.get('desde') === siguienteDesde);
+    expect(segunda.request.params.get('hasta')).toBe(primera.request.params.get('hasta'));
+    expect(segunda.request.params.get('id_zona')).toBe(primera.request.params.get('id_zona'));
+    expect(segunda.request.params.get('periodo_tipo')).toBe(primera.request.params.get('periodo_tipo'));
+    segunda.flush({ datos: rows.slice(7), siguiente_desde: null });
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelectorAll('tbody tr').length).toBe(15);
     fixture.componentInstance.beforePrint();

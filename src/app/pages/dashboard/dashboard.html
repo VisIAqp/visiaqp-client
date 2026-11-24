@@ -64,9 +64,15 @@
 
     @if (agrupacion === 'zona') {
       <p class="mt-2 mb-0 text-caption text-muted">
-        Promedio por cámara con medición.
+        @if (vistaOcupacion === 'reciente') { Promedio por minuto de las cámaras con medición. }
+        @else { Promedio por cámara con medición. }
       </p>
       @if (serieZonas.pagina; as p) {
+        @if (vistaOcupacion === 'reciente' && p.ventanas_que_cruzan_minuto) {
+          <p class="text-caption text-muted">
+            Este gráfico omite las ventanas que cruzan minutos. Puedes ver sus intervalos completos en Por cámara.
+          </p>
+        }
         @if (vistaOcupacion === 'reciente' && p.tiene_mas) {
           <p class="text-caption text-muted">Se muestran los puntos más recientes. Filtra por zona para ver más detalle.</p>
         }
@@ -113,7 +119,7 @@
           <div class="ui-focus my-3 max-h-96 overflow-auto" tabindex="0" role="region" aria-label="Ocupación reciente">
             <table class="w-full min-w-table border-collapse">
               <thead><tr>
-                <th class="ui-table-cell px-3 py-2" scope="col">Inicio de ventana (Lima)</th>
+                <th class="ui-table-cell px-3 py-2" scope="col">Ventana (Lima)</th>
                 <th class="ui-table-cell px-3 py-2" scope="col">Ejecución</th>
                 <th class="ui-table-cell px-3 py-2" scope="col">Promedio / máximo</th>
                 <th class="ui-table-cell px-3 py-2" scope="col">Tiempo observado</th>
@@ -121,7 +127,9 @@
               <tbody>
                 @for (fila of ventanasVisibles(); track fila.id_resultado) {
                   <tr>
-                    <td class="ui-table-cell px-3 py-2">{{ fecha(fila.periodo_inicio, true) }}</td>
+                    <td class="ui-table-cell px-3 py-2">
+                      {{ fecha(fila.periodo_inicio, true) }} – {{ fecha(fila.periodo_fin, true) }}
+                    </td>
                     <td class="ui-table-cell px-3 py-2">{{ etiquetaSerie(fila) }}</td>
                     <td class="ui-table-cell px-3 py-2">
                       @if (fila.promedio_presentes === null) { Sin medición }

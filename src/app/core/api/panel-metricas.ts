@@ -3,10 +3,10 @@ import { Observable } from 'rxjs';
 import { PaginaMetricas } from '../models/metricas.model';
 import { RequestState } from './request-state';
 
-export class PanelMetricas<T> {
+export class PanelMetricas<T, P extends PaginaMetricas<T> = PaginaMetricas<T>> {
   readonly estado: RequestState;
-  private readonly datos = signal<PaginaMetricas<T> | null>(null);
-  private consulta?: Observable<PaginaMetricas<T>>;
+  private readonly datos = signal<P | null>(null);
+  private consulta?: Observable<P>;
   private cambiar = () => {};
   constructor(ref: DestroyRef, private readonly conservarPagina = false) {
     this.estado = new RequestState(ref, conservarPagina);
@@ -23,7 +23,7 @@ export class PanelMetricas<T> {
   }
   reintentar() { if (this.consulta) this.cargar(this.consulta, this.cambiar); }
   refrescar() { if (!this.estado.loading()) this.reintentar(); }
-  cargar(consulta: Observable<PaginaMetricas<T>>, cambiar = () => {}) {
+  cargar(consulta: Observable<P>, cambiar = () => {}) {
     this.consulta = consulta;
     this.cambiar = cambiar;
     if (!this.conservarPagina) {

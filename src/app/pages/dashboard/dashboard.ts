@@ -15,7 +15,7 @@ import { CamaraService } from '../../core/services/camara';
 import { MetricasService } from '../../core/services/metricas';
 import { Zona } from '../../core/models/zona.model';
 import { Camara } from '../../core/models/camara.model';
-import { DatosOcupacionReciente, EstadoCamara, FiltrosMetricas, PuntoSerie, PuntoZona, ResumenMetricas, VentanaOcupacion } from '../../core/models/metricas.model';
+import { DatosOcupacionReciente, EstadoCamara, FiltrosMetricas, PaginaOcupacionZonas, PuntoSerie, PuntoZona, ResumenMetricas, VentanaOcupacion } from '../../core/models/metricas.model';
 import { PronosticoOcupacion as DatosPronostico } from '../../core/models/pronostico.model';
 import { MonitoreoService } from '../../core/services/monitoreo';
 import { GraficoZonas } from '../../shared/grafico-zonas/grafico-zonas';
@@ -42,7 +42,7 @@ export class Dashboard implements OnInit {
   readonly request = new RequestState(this.ref);
   readonly resumenEstado = new RequestState(this.ref, true);
   readonly serie = new PanelMetricas<PuntoSerie>(this.ref, true);
-  readonly serieZonas = new PanelMetricas<PuntoZona>(this.ref, true);
+  readonly serieZonas = new PanelMetricas<PuntoZona, PaginaOcupacionZonas>(this.ref, true);
   readonly recienteEstado = new RequestState(this.ref, true);
   readonly datosRecientes = signal<DatosOcupacionReciente | null>(null);
   readonly pronosticoRequest = new RequestState(this.ref, true);

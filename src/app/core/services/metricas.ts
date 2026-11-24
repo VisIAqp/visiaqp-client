@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { map, of, switchMap } from 'rxjs';
 import { Api } from '../api/api';
 import { DatosOcupacionReciente, DistribucionNivel, FiltrosMetricas, FiltrosOrigenMetricas, MedicionAgregada, PaginaCamaras,
-  PaginaMetricas, PatronHorario, PatronZona, PuntoSerie, PuntoZona, ResumenMetricas } from '../models/metricas.model';
+  PaginaMetricas, PaginaOcupacionZonas, PatronHorario, PatronZona, PuntoSerie, ResumenMetricas } from '../models/metricas.model';
 
 @Injectable({ providedIn: 'root' })
 export class MetricasService {
@@ -20,7 +20,7 @@ export class MetricasService {
   }
   ocupacionZonas(filtros: FiltrosMetricas, vista: 'historico' | 'reciente' | 'comparacion',
     desplazamiento = 0, limite = 200) {
-    return this.api.get<PaginaMetricas<PuntoZona>>('/metricas/ocupacion-zonas', {
+    return this.api.get<PaginaOcupacionZonas>('/metricas/ocupacion-zonas', {
       ...filtros, vista, desplazamiento, limite,
     });
   }

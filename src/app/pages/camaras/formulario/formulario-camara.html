@@ -48,6 +48,7 @@
             <label class="grid min-w-0 content-start gap-1">Ventana de reporte (segundos)
               <input name="intervalo" type="number" min="1" step="1" class="ui-field w-full"
                 [(ngModel)]="nuevaCamara.intervaloMuestreoSeg" required />
+              <small class="text-muted">En vivo, la ventana se cierra también al cambiar de minuto.</small>
             </label>
           </div>
         </section>

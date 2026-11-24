@@ -6,7 +6,7 @@ import { DatosOcupacionReciente, PuntoSerie, PuntoZona, VentanaOcupacion } from 
 import { alternarCamara, camarasOcultas, colorOcupacion, detalleEjecucion, estiloCamara, etiquetasCamaras } from '../../../shared/graficos/ocupacion-estilo';
 import { AgrupacionOcupacion, VistaOcupacion } from '../filtros-ocupacion/filtros-ocupacion';
 
-type Punto = { x: number; y: number | null };
+type Punto = { x: number; y: number | null; fin?: number };
 
 function agrupar<T>(filas: readonly T[], clave: (fila: T) => number): Map<number, T[]> {
   const grupos = new Map<number, T[]>();
@@ -76,9 +76,13 @@ export class GraficoOcupacion implements AfterViewInit, OnDestroy {
           },
           tooltip: { callbacks: {
             afterLabel: detalleEjecucion,
-            title: ([punto]) => punto?.parsed.x == null ? '' :
-              (this.vista() === 'reciente' && this.agrupacion() === 'camara' ? this.fechaVentana : this.formatoEje(true))
-                .format(punto.parsed.x),
+            title: ([punto]) => {
+              if (punto?.parsed.x == null) return '';
+              const fin = (punto.raw as Punto).fin;
+              return fin === undefined
+                ? this.formatoEje(true).format(punto.parsed.x)
+                : this.fechaVentana.formatRange(punto.parsed.x, fin);
+            },
           } },
         },
       },
@@ -146,8 +150,9 @@ export class GraficoOcupacion implements AfterViewInit, OnDestroy {
     for (const fila of [...filas].sort((a, b) => a.periodo_inicio.localeCompare(b.periodo_inicio))) {
       const x = fechaMetrica(fila.periodo_inicio).getTime();
       if (finAnterior !== undefined && x - finAnterior > paso) datos.push({ x: (finAnterior + x) / 2, y: null });
-      datos.push({ x, y: fila.promedio_presentes });
-      finAnterior = 'periodo_fin' in fila ? fechaMetrica(fila.periodo_fin).getTime() : x;
+      const fin = 'periodo_fin' in fila ? fechaMetrica(fila.periodo_fin).getTime() : undefined;
+      datos.push({ x, y: fila.promedio_presentes, fin });
+      finAnterior = fin ?? x;
     }
     return datos;
   }

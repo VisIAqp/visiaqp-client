@@ -22,6 +22,9 @@ export interface PaginaMetricas<T> {
   tiene_mas: boolean;
   datos: T[];
 }
+export interface PaginaOcupacionZonas extends PaginaMetricas<PuntoZona> {
+  ventanas_que_cruzan_minuto?: number;
+}
 export interface ResumenMetricas {
   desde: string;
   hasta: string;

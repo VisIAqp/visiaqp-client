@@ -11,9 +11,17 @@ describe('Actividad de transmisiones', () => {
     vista.detectChanges();
     expect(texto()).toContain('Sin transmisión');
 
+    vista.componentRef.setInput('estado', 'conectando');
+    vista.detectChanges();
+    expect(texto()).toContain('Conectando');
+
     vista.componentRef.setInput('estado', 'reportando');
     vista.detectChanges();
-    expect(texto()).toContain('Reportando');
+    expect(texto()).toContain('Recibiendo imágenes');
+
+    vista.componentRef.setInput('estado', 'sin_senal');
+    vista.detectChanges();
+    expect(texto()).toContain('Sin señal');
 
     vista.componentRef.setInput('estado', 'interrumpida');
     vista.detectChanges();

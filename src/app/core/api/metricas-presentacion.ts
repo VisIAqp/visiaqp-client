@@ -28,7 +28,8 @@ export function estadoMedicion(estado: string | null | undefined): string {
 }
 export function estadoOperativo(estado: string): string {
   const textos: Record<string, string> = {
-    reportando: 'Motor reportando actividad', sin_actividad: 'Sin señal de actividad',
+    conectando: 'Conectando', reportando: 'Recibiendo imágenes',
+    sin_senal: 'Sin señal', sin_actividad: 'Sin actividad del motor',
     sin_transmision: 'Sin transmisión registrada', interrumpida: 'Transmisión interrumpida',
     finalizada: 'Transmisión finalizada', deshabilitada: 'Cámara deshabilitada',
   };

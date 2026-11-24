@@ -82,6 +82,7 @@
         @if (estado(); as t) {
           <dl class="mt-4 mb-0 grid gap-3 desktop:grid-cols-3">
             <div><dt class="text-label text-muted">Última actividad (Lima)</dt><dd class="m-0 font-medium">{{ fecha(t.ultima_actividad) }}</dd></div>
+            <div><dt class="text-label text-muted">Última imagen procesada (Lima)</dt><dd class="m-0 font-medium">{{ fecha(t.ultima_muestra) }}</dd></div>
             <div><dt class="text-label text-muted">FPS efectivos</dt><dd class="m-0 font-medium">{{ t.fps_procesamiento === null ? 'Sin medición' : (t.fps_procesamiento | number:'1.0-2') }}</dd></div>
             <div><dt class="text-label text-muted">Edad de imagen desde la recepción</dt><dd class="m-0 font-medium">{{ t.edad_imagen_seg === null ? 'Sin medición' : (t.edad_imagen_seg | number:'1.0-2') + ' s' }}</dd></div>
           </dl>

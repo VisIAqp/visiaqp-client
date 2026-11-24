@@ -8,8 +8,10 @@ const estilos = {
 };
 
 const estados: Record<string, { texto: string; clase: string }> = {
-  reportando: { texto: 'Reportando', clase: estilos.disponible },
-  sin_actividad: { texto: 'Sin actividad', clase: estilos.advertencia },
+  conectando: { texto: 'Conectando', clase: estilos.advertencia },
+  reportando: { texto: 'Recibiendo imágenes', clase: estilos.disponible },
+  sin_senal: { texto: 'Sin señal', clase: estilos.error },
+  sin_actividad: { texto: 'Sin actividad del motor', clase: estilos.advertencia },
   interrumpida: { texto: 'Interrumpida', clase: estilos.error },
   sin_transmision: { texto: 'Sin transmisión', clase: estilos.neutro },
   finalizada: { texto: 'Finalizada', clase: estilos.neutro },

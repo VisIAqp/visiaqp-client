@@ -19,10 +19,11 @@ import { MonitoreoService } from '../../../core/services/monitoreo';
 import { PronosticoOcupacion as VistaPronostico } from '../../../shared/pronostico-ocupacion/pronostico-ocupacion';
 import { ApiState } from '../../../shared/api-state/api-state';
 import { EstadoCamaraBadge } from '../componentes/estado-camara-badge/estado-camara-badge';
+import { GraficoPronostico } from './grafico-pronostico';
 
 @Component({
   selector: 'app-detalle-camara',
-  imports: [CommonModule, ApiState, EstadoCamaraBadge, VistaPronostico],
+  imports: [CommonModule, ApiState, EstadoCamaraBadge, VistaPronostico, GraficoPronostico],
   templateUrl: './detalle-camara.html',
 })
 export class DetalleCamara implements OnInit {
@@ -130,7 +131,7 @@ export class DetalleCamara implements OnInit {
   consultarPronostico() {
     const id = this.idCamara();
     if (!id || this.pronosticoRequest.loading()) return;
-    this.pronosticoRequest.run(this.api.pronostico(id), (datos) => this.pronostico.set(datos));
+    this.pronosticoRequest.run(this.api.pronostico(id, true), (datos) => this.pronostico.set(datos));
   }
 
   private consultarDetalle() {

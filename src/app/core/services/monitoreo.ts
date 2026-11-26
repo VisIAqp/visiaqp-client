@@ -26,7 +26,9 @@ export class MonitoreoService {
       reduce((filas, pagina) => filas.concat(pagina.datos), [] as EstadoCamara[]),
     );
   }
-  pronostico(id_camara: number) {
-    return this.api.get<PronosticoOcupacion>('/pronosticos/ocupacion', { id_camara });
+  pronostico(id_camara: number, incluirObservaciones?: boolean) {
+    return this.api.get<PronosticoOcupacion>('/pronosticos/ocupacion', {
+      id_camara, incluir_observaciones: incluirObservaciones,
+    });
   }
 }

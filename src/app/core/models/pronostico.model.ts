@@ -12,4 +12,5 @@ export interface PronosticoOcupacion {
   emitido_en: string | null;
   version_modelo: string | null;
   estimaciones: EstimacionOcupacion[];
+  observaciones?: { fin_en: string; promedio_presentes: number }[];
 }

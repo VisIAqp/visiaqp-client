@@ -74,7 +74,12 @@
         <h3 id="pronostico-camara" class="mt-0">Pronóstico de ocupación</h3>
         <app-api-state [loading]="pronosticoRequest.cargaInicial()" [error]="pronosticoRequest.error()"
           [actualizado]="pronosticoRequest.actualizado()" (retry)="consultarPronostico()" />
-        @if (pronostico(); as p) { <app-pronostico-ocupacion [datos]="p" /> }
+        @if (pronostico(); as p) {
+          <app-pronostico-ocupacion [datos]="p" />
+          @if (p.estado === 'disponible' && p.base_en && p.estimaciones.length) {
+            <app-grafico-pronostico class="mt-4 block" [datos]="p" />
+          }
+        }
       </section>
 
       <details class="ui-card p-4 desktop:p-5">

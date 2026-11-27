@@ -26,6 +26,8 @@ export interface CamaraDto {
   zone_polygon: [number, number][] | null;
   ultima_conexion: string | null;
   tiene_url_stream: boolean;
+  ruta_video_en_vivo?: string | null;
+  url_video_en_vivo?: string | null;
 }
 export interface IndicadorPeriodoDto {
   id_zona: number;
@@ -106,6 +108,8 @@ export class DtoMapper {
       zonePolygon: d.zone_polygon,
       ultimaConexion: d.ultima_conexion ? this.date(d.ultima_conexion) : null,
       tieneUrlStream: d.tiene_url_stream,
+      rutaVideoEnVivo: d.ruta_video_en_vivo,
+      urlVideoEnVivo: d.url_video_en_vivo,
     };
   }
   indicador(d: IndicadorDto): Indicador {

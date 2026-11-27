@@ -24,6 +24,7 @@ export class CamaraService {
       estado: config.estado,
       intervalo_muestreo_seg: config.intervaloMuestreoSeg,
       zone_polygon: config.zonePolygon,
+      ruta_video_en_vivo: config.rutaVideoEnVivo.trim() || null,
       ...(!id ? { id_zona: config.zonaId } : {}),
       ...(!id || config.urlStream.trim() ? { url_stream: config.urlStream.trim() } : {}),
     };

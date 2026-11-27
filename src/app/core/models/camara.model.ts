@@ -11,6 +11,8 @@ export interface Camara {
   zonePolygon: [number, number][] | null;
   ultimaConexion: Date | null;
   tieneUrlStream: boolean;
+  rutaVideoEnVivo?: string | null;
+  urlVideoEnVivo?: string | null;
 }
 export interface ConfiguracionCamara {
   nombre: string;
@@ -19,5 +21,6 @@ export interface ConfiguracionCamara {
   estado: EstadoCamara;
   intervaloMuestreoSeg: number;
   urlStream: string;
+  rutaVideoEnVivo: string;
   zonePolygon: [number, number][] | null;
 }

@@ -27,6 +27,9 @@
       (retry)="consultarActividad()" />
 
     <div class="grid gap-4">
+      @if (c.estado === 'activa') {
+        <app-video-en-vivo [url]="c.urlVideoEnVivo ?? null" />
+      }
       <section class="ui-card p-4 desktop:p-5" aria-labelledby="ocupacion-camara">
         <h3 id="ocupacion-camara" class="mt-0">Ocupación de la última transmisión</h3>
         <app-api-state [loading]="medicionRequest.cargaInicial()" [error]="medicionRequest.error()"

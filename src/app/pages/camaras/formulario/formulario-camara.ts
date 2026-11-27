@@ -14,7 +14,7 @@ import { EditorPoligono } from '../../../shared/editor-poligono/editor-poligono'
 
 const formularioVacio = (): ConfiguracionCamara => ({
   nombre: '', zonaId: 0, tipo: 'fija', estado: 'activa', intervaloMuestreoSeg: 60,
-  urlStream: '', zonePolygon: null,
+  urlStream: '', rutaVideoEnVivo: '', zonePolygon: null,
 });
 
 @Component({
@@ -71,7 +71,7 @@ export class FormularioCamara implements OnInit {
         this.nuevaCamara = {
           nombre: camara.nombre, zonaId: camara.zonaId, tipo: camara.tipo,
           estado: camara.estado, intervaloMuestreoSeg: camara.intervaloMuestreoSeg,
-          urlStream: '', zonePolygon: camara.zonePolygon,
+          urlStream: '', rutaVideoEnVivo: camara.rutaVideoEnVivo ?? '', zonePolygon: camara.zonePolygon,
         };
         this.puntos.set(camara.zonePolygon ?? []);
       }

@@ -20,10 +20,11 @@ import { PronosticoOcupacion as VistaPronostico } from '../../../shared/pronosti
 import { ApiState } from '../../../shared/api-state/api-state';
 import { EstadoCamaraBadge } from '../componentes/estado-camara-badge/estado-camara-badge';
 import { GraficoPronostico } from './grafico-pronostico';
+import { VideoEnVivo } from './video-en-vivo';
 
 @Component({
   selector: 'app-detalle-camara',
-  imports: [CommonModule, ApiState, EstadoCamaraBadge, VistaPronostico, GraficoPronostico],
+  imports: [CommonModule, ApiState, EstadoCamaraBadge, VistaPronostico, GraficoPronostico, VideoEnVivo],
   templateUrl: './detalle-camara.html',
 })
 export class DetalleCamara implements OnInit {

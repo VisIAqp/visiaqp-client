@@ -68,6 +68,18 @@
           }
           <app-editor-poligono [(puntos)]="puntos" />
         </section>
+
+        <section class="ui-card p-4 desktop:p-5" aria-labelledby="titulo-configuracion-avanzada">
+          <h3 id="titulo-configuracion-avanzada" class="mt-0">Configuración avanzada</h3>
+          <label class="grid max-w-sm gap-1">
+            Umbral de confianza del detector
+            <input name="umbralConfianza" type="number" min="0" max="1" step="any" class="ui-field w-full"
+              [(ngModel)]="nuevaCamara.umbralConfianza" aria-describedby="ayuda-umbral-confianza" />
+            <small id="ayuda-umbral-confianza" class="text-muted">
+              Usa un valor mayor que 0 y hasta 1. Déjalo vacío para usar el umbral global del motor.
+            </small>
+          </label>
+        </section>
       </fieldset>
 
       <app-api-state [loading]="saving.loading()" [error]="saving.error()" [retryable]="false" />

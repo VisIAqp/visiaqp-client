@@ -23,6 +23,7 @@ export interface CamaraDto {
   tipo: Camara['tipo'];
   estado: Camara['estado'];
   intervalo_muestreo_seg: number;
+  umbral_confianza?: number | null;
   zone_polygon: [number, number][] | null;
   ultima_conexion: string | null;
   tiene_url_stream: boolean;
@@ -105,6 +106,7 @@ export class DtoMapper {
       tipo: d.tipo,
       estado: d.estado,
       intervaloMuestreoSeg: d.intervalo_muestreo_seg,
+      umbralConfianza: d.umbral_confianza ?? null,
       zonePolygon: d.zone_polygon,
       ultimaConexion: d.ultima_conexion ? this.date(d.ultima_conexion) : null,
       tieneUrlStream: d.tiene_url_stream,

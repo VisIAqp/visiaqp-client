@@ -8,6 +8,7 @@ export interface Camara {
   tipo: TipoCamara;
   estado: EstadoCamara;
   intervaloMuestreoSeg: number;
+  umbralConfianza?: number | null;
   zonePolygon: [number, number][] | null;
   ultimaConexion: Date | null;
   tieneUrlStream: boolean;
@@ -20,6 +21,7 @@ export interface ConfiguracionCamara {
   tipo: TipoCamara;
   estado: EstadoCamara;
   intervaloMuestreoSeg: number;
+  umbralConfianza: number | null;
   urlStream: string;
   rutaVideoEnVivo: string;
   zonePolygon: [number, number][] | null;

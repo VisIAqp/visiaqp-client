@@ -14,6 +14,7 @@ import { EditorPoligono } from '../../../shared/editor-poligono/editor-poligono'
 
 const formularioVacio = (): ConfiguracionCamara => ({
   nombre: '', zonaId: 0, tipo: 'fija', estado: 'activa', intervaloMuestreoSeg: 60,
+  umbralConfianza: null,
   urlStream: '', rutaVideoEnVivo: '', zonePolygon: null,
 });
 
@@ -71,6 +72,7 @@ export class FormularioCamara implements OnInit {
         this.nuevaCamara = {
           nombre: camara.nombre, zonaId: camara.zonaId, tipo: camara.tipo,
           estado: camara.estado, intervaloMuestreoSeg: camara.intervaloMuestreoSeg,
+          umbralConfianza: camara.umbralConfianza ?? null,
           urlStream: '', rutaVideoEnVivo: camara.rutaVideoEnVivo ?? '', zonePolygon: camara.zonePolygon,
         };
         this.puntos.set(camara.zonePolygon ?? []);
@@ -89,6 +91,11 @@ export class FormularioCamara implements OnInit {
     }
     if (!this.camara()?.tieneUrlStream && !datos.urlStream.trim()) {
       this.saving.error.set('Indica la fuente de video de la cámara.');
+      return;
+    }
+    const umbral = datos.umbralConfianza;
+    if (umbral !== null && (!Number.isFinite(umbral) || umbral <= 0 || umbral > 1)) {
+      this.saving.error.set('Ingresa un umbral mayor que 0 y menor o igual a 1, o deja el campo vacío.');
       return;
     }
     const puntos = this.editor()?.aplicarCoordenadas();

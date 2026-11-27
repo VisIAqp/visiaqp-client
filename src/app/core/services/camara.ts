@@ -23,6 +23,7 @@ export class CamaraService {
       tipo: config.tipo,
       estado: config.estado,
       intervalo_muestreo_seg: config.intervaloMuestreoSeg,
+      umbral_confianza: config.umbralConfianza,
       zone_polygon: config.zonePolygon,
       ruta_video_en_vivo: config.rutaVideoEnVivo.trim() || null,
       ...(!id ? { id_zona: config.zonaId } : {}),
